@@ -1,6 +1,7 @@
-import { Project } from '@/types/project';
+import { Project, ProjectCategory } from '@/types/project';
 
 const STORAGE_KEY = 'yoqubkhoja_projects';
+const SEED_KEY = 'yoqubkhoja_projects_seeded';
 
 export function getProjects(): Project[] {
   if (typeof window === 'undefined') return [];
@@ -16,10 +17,41 @@ export function saveProjects(projects: Project[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
 }
 
-export function addProject(project: Omit<Project, 'id' | 'createdAt'>): Project {
+export async function initializeProjects(): Promise<Project[]> {
+  const existing = getProjects();
+  if (existing.length > 0 || localStorage.getItem(SEED_KEY)) {
+    return existing;
+  }
+
+  try {
+    const res = await fetch('/api/projects');
+    const seed: Project[] = await res.json();
+    if (seed.length > 0) {
+      saveProjects(seed);
+      localStorage.setItem(SEED_KEY, '1');
+      return seed;
+    }
+  } catch {
+    // ignore
+  }
+
+  return existing;
+}
+
+export function addProject(
+  project: Omit<Project, 'id' | 'createdAt' | 'icon'> & { icon?: string }
+): Project {
   const projects = getProjects();
+  const categoryIcons: Record<ProjectCategory, string> = {
+    web: '🌐',
+    app: '📱',
+    tool: '🛠️',
+    other: '📦',
+  };
+
   const newProject: Project = {
     ...project,
+    icon: project.icon || categoryIcons[project.category] || '📦',
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
   };

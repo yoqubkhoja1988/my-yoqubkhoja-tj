@@ -1,8 +1,15 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import SessionProvider from '@/components/SessionProvider';
+
+export const metadata: Metadata = {
+  title: 'Yoqubkhoja Hub',
+  description: 'Маркази лоиҳаҳо — портфолиои шахсӣ',
+  icons: { icon: '/favicon.svg' },
+};
 
 export default async function LocaleLayout({
   children,

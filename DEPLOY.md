@@ -11,11 +11,11 @@
 ```powershell
 cd C:\Users\user\Projects\my-yoqubkhoja-tj
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/my-yoqubkhoja-tj.git
+git remote add origin https://github.com/yoqubkhoja1988/my-yoqubkhoja-tj.git
 git push -u origin main
 ```
 
-`YOUR_USERNAME`-ро бо номи GitHub-и худ иваз кунед.
+> Remote аллакай танзим шудааст: `https://github.com/yoqubkhoja1988/my-yoqubkhoja-tj.git`
 
 ### Вариант B — GitHub CLI
 ```powershell

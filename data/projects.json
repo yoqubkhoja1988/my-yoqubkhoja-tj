@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "proj-hub",
+    "name": "Yoqubkhoja Hub",
+    "description": "Маркази лоиҳаҳо — сомонаи шахсӣ бо воридшавӣ, 4 забон ва идоракунии лоиҳаҳо",
+    "url": "https://github.com/yoqubkhoja1988/my-yoqubkhoja-tj",
+    "status": "done",
+    "category": "web",
+    "icon": "🌐",
+    "createdAt": "2026-06-08T00:00:00.000Z"
+  },
+  {
+    "id": "proj-github",
+    "name": "GitHub Profile",
+    "description": "Профили GitHub — репозиторияҳо ва лоиҳаҳои кушода",
+    "url": "https://github.com/yoqubkhoja1988",
+    "status": "active",
+    "category": "tool",
+    "icon": "💻",
+    "createdAt": "2026-06-08T00:00:00.000Z"
+  }
+]
