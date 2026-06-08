@@ -7,6 +7,12 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+[[redirects]]
+  from = "https://gleeful-douhua-c4e8c8.netlify.app/*"
+  to = "https://yoqubkhoja.tj/:splat"
+  status = 301
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]

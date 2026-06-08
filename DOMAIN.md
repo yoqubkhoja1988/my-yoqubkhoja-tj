@@ -1,66 +1,59 @@
-# Пайваст кардани домен
+# Пайваст кардани домен yoqubkhoja.tj
 
-Масалан: `yoqubkhoja.tj` ё `hub.yoqubkhoja.tj`
-
-## Қадам 1 — Домен харид кунед
-
-Хизматрасониҳои маъмул:
-
-| Хизматрасонӣ | Сайт |
-|--------------|------|
-| Reg.tj | https://reg.tj |
-| Namecheap | https://namecheap.com |
-| Cloudflare | https://cloudflare.com |
+**Сайти ҳозира:** https://gleeful-douhua-c4e8c8.netlify.app  
+**Домени нав:** https://yoqubkhoja.tj
 
 ---
 
-## Қадам 2 — Netlify
+## Қадам 1 — Netlify (2 дақиқа)
 
-1. Ба https://app.netlify.com равед
-2. Сайти худро интихоб кунед
-3. **Domain management** → **Add a domain**
-4. Номи доменро ворид кунед: `yoqubkhoja.tj`
+1. Кушоед: https://app.netlify.com/projects/gleeful-douhua-c4e8c8/configuration/domains
+2. **Add a domain** → `yoqubkhoja.tj` → **Verify**
+3. **Add domain alias** → `www.yoqubkhoja.tj` (ихтиёрӣ)
+4. **Primary domain** → `yoqubkhoja.tj` интихоб кунед
 
----
-
-## Қадам 3 — DNS танзимот
-
-Дар панели домен (Reg.tj, Namecheap ва ғ.):
-
-### Вариант A — Subdomain (`hub.yoqubkhoja.tj`)
-
-| Type | Name | Value |
-|------|------|-------|
-| CNAME | hub | `your-site.netlify.app` |
-
-### Вариант B — Домени асосӣ (`yoqubkhoja.tj`)
-
-| Type | Name | Value |
-|------|------|-------|
-| A | @ | `75.2.60.5` |
-| CNAME | www | `your-site.netlify.app` |
-
-> IP-и Netlify: `75.2.60.5` — дар Netlify → Domain settings санҷед (метавонад тағйир ёбад)
+Netlify сатрҳои DNS-ро нишон медиҳад — онҳоро дар қадами 2 ворид кунед.
 
 ---
 
-## Қадам 4 — HTTPS
+## Қадам 2 — DNS (дар Reg.tj ё панели домен)
 
-Netlify автоматӣ сертификати SSL месозад (Let's Encrypt). 5–30 дақиқа интизор шавед.
+| Type | Host / Name | Value |
+|------|-------------|-------|
+| **A** | `@` | `75.2.60.5` |
+| **CNAME** | `www` | `gleeful-douhua-c4e8c8.netlify.app` |
 
----
+> IP-ро дар Netlify → Domain settings санҷед (метавонад тағйир ёбад).
 
-## Натиҷа
-
-Сомона дар ин адресҳо дастрас мешавад:
-
-- `https://yoqubkhoja.tj/tj/login`
-- `https://yoqubkhoja.tj/ru/dashboard`
+Интизор шавед 15–60 дақиқа (баъзан то 24 соат).
 
 ---
 
-## Маслиҳат
+## Қадам 3 — Environment variables дар Netlify
 
-Дар Netlify → **Domain management** → **Primary domain** домени асосиро интихоб кунед.
+**Site configuration** → **Environment variables** → илова кунед:
 
-Барои редирект аз `www` ба домени асосӣ Netlify автоматӣ кор мекунад.
+| Key | Value |
+|-----|-------|
+| `AUTH_URL` | `https://yoqubkhoja.tj` |
+| `NEXT_PUBLIC_SITE_URL` | `https://yoqubkhoja.tj` |
+
+Баъд: **Deploys** → **Trigger deploy** → **Deploy site**
+
+---
+
+## Қадам 4 — Санҷед
+
+- https://yoqubkhoja.tj/tj/login
+- https://yoqubkhoja.tj/ru/login
+
+Сайти кӯҳна автоматӣ редирект мешавад:
+`gleeful-douhua-c4e8c8.netlify.app` → `yoqubkhoja.tj`
+
+---
+
+## Агар домен ҳанӯз харида нашуда бошад
+
+1. https://reg.tj ё https://namecheap.com
+2. Домен `yoqubkhoja.tj`-ро харед
+3. Баъд қадамҳои болоро иҷро кунед

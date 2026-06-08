@@ -6,6 +6,7 @@ import { routing } from '@/i18n/routing';
 import SessionProvider from '@/components/SessionProvider';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://yoqubkhoja.tj'),
   title: 'Yoqubkhoja Hub',
   description: 'Маркази лоиҳаҳо — портфолиои шахсӣ',
   icons: { icon: '/favicon.svg' },
