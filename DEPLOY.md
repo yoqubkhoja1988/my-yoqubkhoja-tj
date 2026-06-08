@@ -34,7 +34,9 @@ gh repo create my-yoqubkhoja-tj --public --source=. --push
 3. GitHub-ро пайваст кунед → репозиторияи `my-yoqubkhoja-tj`-ро интихоб кунед
 4. Build settings (автоматӣ):
    - Build command: `npm run build`
+   - Publish directory: **холӣ гузоред** (плагин худаш танзим мекунад)
    - Plugin: `@netlify/plugin-nextjs`
+   - ⚠️ Агар Publish directory = `.next` бошад → 404 медиҳад!
 5. **Environment variables** илова кунед:
 
 | Key | Value |
