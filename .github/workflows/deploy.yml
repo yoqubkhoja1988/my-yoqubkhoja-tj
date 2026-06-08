@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+        env:
+          AUTH_SECRET: ci-build-secret
+          AUTH_USERNAME: yoqub
+          AUTH_PASSWORD_HASH: fc30043c381b6e6c79faae8309f4484ab9317a58ae4afaa328b5e926f350878f
