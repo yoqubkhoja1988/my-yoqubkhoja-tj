@@ -19,7 +19,7 @@ export default function LoginForm() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const username = String(form.get('username') ?? '');
+    const username = String(form.get('username') ?? '').trim();
     const password = String(form.get('password') ?? '');
 
     const statusResponse = await fetch('/api/users/login-status', {
@@ -37,6 +37,18 @@ export default function LoginForm() {
 
     if (statusData.status === 'denied') {
       setError(t('loginAccessDenied'));
+      setLoading(false);
+      return;
+    }
+
+    if (statusData.status === 'config') {
+      setError(t('loginConfigError'));
+      setLoading(false);
+      return;
+    }
+
+    if (statusData.status === 'invalid') {
+      setError(t('invalidCredentials'));
       setLoading(false);
       return;
     }

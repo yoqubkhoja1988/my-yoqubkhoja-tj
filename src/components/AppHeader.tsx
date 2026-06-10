@@ -1,8 +1,10 @@
 'use client';
 
-import { signOut, useSession } from 'next-auth/react';
+import { logoutAction } from '@/app/actions/auth';
+import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
+import { useTransition } from 'react';
 import {
   canAccessOrganizations,
   canAccessProjects,
@@ -17,6 +19,17 @@ export default function AppHeader() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = isSiteAdmin(session);
+  const [isPending, startTransition] = useTransition();
+
+  function handleLogout() {
+    startTransition(async () => {
+      try {
+        await logoutAction(locale);
+      } catch {
+        window.location.assign(`/${locale}/login`);
+      }
+    });
+  }
 
   const navItems = [
     ...(canAccessProjects(session)
@@ -75,10 +88,11 @@ export default function AppHeader() {
             <LangSwitcher />
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
-              className="btn-secondary"
+              onClick={handleLogout}
+              disabled={isPending}
+              className="btn-secondary disabled:opacity-60"
             >
-              {t('logout')}
+              {isPending ? '...' : t('logout')}
             </button>
           </div>
         </div>

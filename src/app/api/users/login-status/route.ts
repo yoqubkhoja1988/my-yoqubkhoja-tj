@@ -1,5 +1,5 @@
-import { getAdminUsername } from '@/lib/is-admin';
-import { hashPassword, verifyPassword } from '@/lib/password-hash';
+import { isAuthSecretConfigured, verifyAdminCredentials } from '@/lib/admin-credentials';
+import { verifyPassword } from '@/lib/password-hash';
 import { findUserByUsername } from '@/lib/users-store';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -13,12 +13,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: 'invalid' });
     }
 
-    const expectedUser = getAdminUsername();
-    const expectedHash =
-      process.env.AUTH_PASSWORD_HASH ||
-      'fc30043c381b6e6c79faae8309f4484ab9317a58ae4afaa328b5e926f350878f';
+    if (!isAuthSecretConfigured()) {
+      return NextResponse.json({ status: 'config' });
+    }
 
-    if (username === expectedUser && hashPassword(password) === expectedHash) {
+    if (verifyAdminCredentials(username, password)) {
       return NextResponse.json({ status: 'ok' });
     }
 

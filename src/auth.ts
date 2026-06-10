@@ -1,12 +1,14 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { getAdminUsername, isSiteAdmin } from '@/lib/is-admin';
-import { hashPassword, verifyPassword } from '@/lib/password-hash';
+import { verifyAdminCredentials } from '@/lib/admin-credentials';
+import { isSiteAdmin } from '@/lib/is-admin';
+import { verifyPassword } from '@/lib/password-hash';
 import { findUserByUsername } from '@/lib/users-store';
 import { UserPermissions } from '@/types/user';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
+  secret: process.env.AUTH_SECRET,
   providers: [
     Credentials({
       credentials: {
@@ -18,12 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const password = credentials?.password as string;
         if (!username || !password) return null;
 
-        const expectedUser = getAdminUsername();
-        const expectedHash =
-          process.env.AUTH_PASSWORD_HASH ||
-          'fc30043c381b6e6c79faae8309f4484ab9317a58ae4afaa328b5e926f350878f';
-
-        if (username === expectedUser && hashPassword(password) === expectedHash) {
+        if (verifyAdminCredentials(username, password)) {
           return { id: 'admin', name: username, role: 'admin' as const };
         }
 
