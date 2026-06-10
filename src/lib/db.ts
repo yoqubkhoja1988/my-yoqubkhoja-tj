@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { neon } from '@neondatabase/serverless';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { Organization } from '@/types/organization';
@@ -7,8 +7,41 @@ import { StoredUser, UserPermissions } from '@/types/user';
 
 let readyPromise: Promise<void> | null = null;
 
+type SqlResult<T> = { rows: T[]; rowCount: number };
+
+export function getDatabaseUrl(): string | undefined {
+  return (
+    process.env.POSTGRES_URL?.trim() ||
+    process.env.DATABASE_URL?.trim() ||
+    process.env.STORAGE_URL?.trim()
+  );
+}
+
 export function isDatabaseEnabled(): boolean {
-  return Boolean(process.env.POSTGRES_URL?.trim());
+  return Boolean(getDatabaseUrl());
+}
+
+export async function sql<T = Record<string, unknown>>(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): Promise<SqlResult<T>> {
+  const connectionString = getDatabaseUrl();
+  if (!connectionString) {
+    throw new Error('Database URL is not configured');
+  }
+
+  if (process.env.POSTGRES_URL?.trim()) {
+    const { sql: vercelSql } = await import('@vercel/postgres');
+    const result = await vercelSql(strings, ...(values as never[]));
+    return {
+      rows: result.rows as T[],
+      rowCount: result.rowCount ?? result.rows.length,
+    };
+  }
+
+  const query = neon(connectionString);
+  const rows = (await query(strings, ...values)) as T[];
+  return { rows, rowCount: rows.length };
 }
 
 function readJsonFile<T>(filename: string, fallback: T): T {
@@ -122,10 +155,26 @@ export async function getDatabaseStatus(): Promise<{
   users: number;
   organizations: number;
   sections: number;
+  urlSource: string | null;
 }> {
   if (!isDatabaseEnabled()) {
-    return { enabled: false, ready: false, users: 0, organizations: 0, sections: 0 };
+    return {
+      enabled: false,
+      ready: false,
+      users: 0,
+      organizations: 0,
+      sections: 0,
+      urlSource: null,
+    };
   }
+
+  const urlSource = process.env.POSTGRES_URL?.trim()
+    ? 'POSTGRES_URL'
+    : process.env.DATABASE_URL?.trim()
+      ? 'DATABASE_URL'
+      : process.env.STORAGE_URL?.trim()
+        ? 'STORAGE_URL'
+        : null;
 
   try {
     await ensureDatabaseReady();
@@ -140,13 +189,19 @@ export async function getDatabaseStatus(): Promise<{
       users: Number(users.rows[0]?.count ?? 0),
       organizations: Number(organizations.rows[0]?.count ?? 0),
       sections: Number(sections.rows[0]?.count ?? 0),
+      urlSource,
     };
   } catch {
-    return { enabled: true, ready: false, users: 0, organizations: 0, sections: 0 };
+    return {
+      enabled: true,
+      ready: false,
+      users: 0,
+      organizations: 0,
+      sections: 0,
+      urlSource,
+    };
   }
 }
-
-export { sql };
 
 export function parsePermissions(value: unknown): UserPermissions {
   if (typeof value === 'string') {
