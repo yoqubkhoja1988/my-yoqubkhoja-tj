@@ -230,12 +230,14 @@ export default function DashboardContent({
                 {t('accessGoToOrganizations')}
               </Link>
             ) : (
-              <p className="mt-3 max-w-md text-center text-xs text-[var(--text-muted)]">
-                {t('accessOrganizationsDenied')} {t('accessContactAdmin')}
-              </p>
-              <p className="mt-2 text-center text-xs">
-                <AdminTelegramContact />
-              </p>
+              <>
+                <p className="mt-3 max-w-md text-center text-xs text-[var(--text-muted)]">
+                  {t('accessOrganizationsDenied')} {t('accessContactAdmin')}
+                </p>
+                <p className="mt-2 text-center text-xs">
+                  <AdminTelegramContact />
+                </p>
+              </>
             )}
           </div>
         ) : (
