@@ -2,6 +2,12 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname, join } from 'path';
 import { randomUUID } from 'crypto';
 import {
+  ensureDatabaseReady,
+  isDatabaseEnabled,
+  parsePermissions,
+  sql,
+} from '@/lib/db';
+import {
   DEFAULT_USER_PERMISSIONS,
   PublicUser,
   StoredUser,
@@ -16,7 +22,7 @@ function toPublicUser(user: StoredUser): PublicUser {
   return publicUser;
 }
 
-export function readUsersFile(): StoredUser[] {
+function readUsersFileSync(): StoredUser[] {
   try {
     const data = readFileSync(FILE, 'utf-8');
     const parsed = JSON.parse(data);
@@ -26,7 +32,7 @@ export function readUsersFile(): StoredUser[] {
   }
 }
 
-function persistUsers(users: StoredUser[]): void {
+function persistUsersSync(users: StoredUser[]): void {
   const dir = dirname(FILE);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
@@ -37,29 +43,99 @@ function persistUsers(users: StoredUser[]): void {
   renameSync(tempFile, FILE);
 }
 
-export function findUserByUsername(username: string): StoredUser | undefined {
+function rowToStoredUser(row: {
+  id: string;
+  username: string;
+  password_hash: string;
+  status: string;
+  permissions: unknown;
+  created_at: Date | string;
+  updated_at: Date | string | null;
+}): StoredUser {
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    status: row.status as UserStatus,
+    permissions: parsePermissions(row.permissions),
+    createdAt: new Date(row.created_at).toISOString(),
+    updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : undefined,
+  };
+}
+
+export async function readUsersFile(): Promise<StoredUser[]> {
+  if (!isDatabaseEnabled()) {
+    return readUsersFileSync();
+  }
+
+  await ensureDatabaseReady();
+  const { rows } = await sql<{
+    id: string;
+    username: string;
+    password_hash: string;
+    status: string;
+    permissions: unknown;
+    created_at: Date | string;
+    updated_at: Date | string | null;
+  }>`SELECT * FROM users ORDER BY created_at ASC`;
+
+  return rows.map(rowToStoredUser);
+}
+
+export async function findUserByUsername(username: string): Promise<StoredUser | undefined> {
   const normalized = username.trim().toLowerCase();
-  return readUsersFile().find((user) => user.username.toLowerCase() === normalized);
+
+  if (!isDatabaseEnabled()) {
+    return readUsersFileSync().find((user) => user.username.toLowerCase() === normalized);
+  }
+
+  await ensureDatabaseReady();
+  const { rows } = await sql<{
+    id: string;
+    username: string;
+    password_hash: string;
+    status: string;
+    permissions: unknown;
+    created_at: Date | string;
+    updated_at: Date | string | null;
+  }>`SELECT * FROM users WHERE LOWER(username) = ${normalized} LIMIT 1`;
+
+  return rows[0] ? rowToStoredUser(rows[0]) : undefined;
 }
 
-export function findUserById(id: string): StoredUser | undefined {
-  return readUsersFile().find((user) => user.id === id);
+export async function findUserById(id: string): Promise<StoredUser | undefined> {
+  if (!isDatabaseEnabled()) {
+    return readUsersFileSync().find((user) => user.id === id);
+  }
+
+  await ensureDatabaseReady();
+  const { rows } = await sql<{
+    id: string;
+    username: string;
+    password_hash: string;
+    status: string;
+    permissions: unknown;
+    created_at: Date | string;
+    updated_at: Date | string | null;
+  }>`SELECT * FROM users WHERE id = ${id} LIMIT 1`;
+
+  return rows[0] ? rowToStoredUser(rows[0]) : undefined;
 }
 
-export function listPublicUsers(): PublicUser[] {
-  return readUsersFile().map(toPublicUser);
+export async function listPublicUsers(): Promise<PublicUser[]> {
+  const users = await readUsersFile();
+  return users.map(toPublicUser);
 }
 
-export function createUser(input: {
+export async function createUser(input: {
   username: string;
   passwordHash: string;
   status?: UserStatus;
   permissions?: UserPermissions;
-}): PublicUser {
-  const users = readUsersFile();
+}): Promise<PublicUser> {
   const username = input.username.trim();
-
-  if (users.some((user) => user.username.toLowerCase() === username.toLowerCase())) {
+  const existing = await findUserByUsername(username);
+  if (existing) {
     throw new Error('USERNAME_EXISTS');
   }
 
@@ -73,32 +149,75 @@ export function createUser(input: {
     createdAt: now,
   };
 
-  users.push(user);
-  persistUsers(users);
+  if (!isDatabaseEnabled()) {
+    const users = readUsersFileSync();
+    users.push(user);
+    persistUsersSync(users);
+    return toPublicUser(user);
+  }
+
+  await ensureDatabaseReady();
+  await sql`
+    INSERT INTO users (id, username, password_hash, status, permissions, created_at)
+    VALUES (
+      ${user.id},
+      ${user.username},
+      ${user.passwordHash},
+      ${user.status},
+      ${JSON.stringify(user.permissions)}::jsonb,
+      ${user.createdAt}
+    )
+  `;
+
   return toPublicUser(user);
 }
 
-export function updateUser(
+export async function updateUser(
   id: string,
   patch: Partial<Pick<StoredUser, 'status' | 'permissions' | 'passwordHash'>>
-): PublicUser | null {
-  const users = readUsersFile();
-  const index = users.findIndex((user) => user.id === id);
-  if (index === -1) return null;
+): Promise<PublicUser | null> {
+  const current = await findUserById(id);
+  if (!current) return null;
 
-  users[index] = {
-    ...users[index],
+  const updated: StoredUser = {
+    ...current,
     ...patch,
     updatedAt: new Date().toISOString(),
   };
-  persistUsers(users);
-  return toPublicUser(users[index]);
+
+  if (!isDatabaseEnabled()) {
+    const users = readUsersFileSync();
+    const index = users.findIndex((user) => user.id === id);
+    if (index === -1) return null;
+    users[index] = updated;
+    persistUsersSync(users);
+    return toPublicUser(updated);
+  }
+
+  await ensureDatabaseReady();
+  await sql`
+    UPDATE users
+    SET
+      status = ${updated.status},
+      permissions = ${JSON.stringify(updated.permissions)}::jsonb,
+      password_hash = ${updated.passwordHash},
+      updated_at = ${updated.updatedAt ?? null}
+    WHERE id = ${id}
+  `;
+
+  return toPublicUser(updated);
 }
 
-export function deleteUser(id: string): boolean {
-  const users = readUsersFile();
-  const next = users.filter((user) => user.id !== id);
-  if (next.length === users.length) return false;
-  persistUsers(next);
-  return true;
+export async function deleteUser(id: string): Promise<boolean> {
+  if (!isDatabaseEnabled()) {
+    const users = readUsersFileSync();
+    const next = users.filter((user) => user.id !== id);
+    if (next.length === users.length) return false;
+    persistUsersSync(next);
+    return true;
+  }
+
+  await ensureDatabaseReady();
+  const result = await sql`DELETE FROM users WHERE id = ${id}`;
+  return (result.rowCount ?? 0) > 0;
 }

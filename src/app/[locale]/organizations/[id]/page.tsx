@@ -20,7 +20,7 @@ export default async function OrganizationIndexPage({
     redirect({ href: '/login', locale });
   }
 
-  const organization = readOrganizationsFile().find((item) => item.id === id);
+  const organization = (await readOrganizationsFile()).find((item) => item.id === id);
   if (!organization || !canAccessOrganization(session, id)) {
     notFound();
   }

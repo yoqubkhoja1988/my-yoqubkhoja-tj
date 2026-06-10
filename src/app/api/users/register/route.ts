@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const username = body.username?.trim() ?? '';
     const password = body.password ?? '';
 
-    if (username.length < 3 || !/^[a-zA-Z0-9._-]+$/.test(username)) {
+    if (username.length < 3 || !/^[a-zA-Z0-9._@-]+$/.test(username)) {
       return NextResponse.json({ error: 'INVALID_USERNAME' }, { status: 400 });
     }
 
@@ -21,11 +21,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'RESERVED_USERNAME' }, { status: 400 });
     }
 
-    if (findUserByUsername(username)) {
+    if (await findUserByUsername(username)) {
       return NextResponse.json({ error: 'USERNAME_EXISTS' }, { status: 409 });
     }
 
-    const user = createUser({
+    const user = await createUser({
       username,
       passwordHash: hashPassword(password),
       status: 'pending',

@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   if (session instanceof NextResponse) return session;
 
   const { id } = await context.params;
-  const organization = readOrganizationsFile().find((item) => item.id === id);
+  const organization = (await readOrganizationsFile()).find((item) => item.id === id);
 
   if (!organization) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
   try {
     const body = (await request.json()) as Partial<Organization>;
-    const organizations = readOrganizationsFile();
+    const organizations = await readOrganizationsFile();
     const index = organizations.findIndex((item) => item.id === id);
 
     if (index === -1) {
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           : organizations[index].description,
     };
 
-    writeOrganizationsFile(organizations);
+    await writeOrganizationsFile(organizations);
     return NextResponse.json(organizations[index]);
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
@@ -69,13 +69,13 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   if (session instanceof NextResponse) return session;
 
   const { id } = await context.params;
-  const organizations = readOrganizationsFile();
+  const organizations = await readOrganizationsFile();
   const filtered = organizations.filter((item) => item.id !== id);
 
   if (filtered.length === organizations.length) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  writeOrganizationsFile(filtered);
+  await writeOrganizationsFile(filtered);
   return NextResponse.json({ ok: true });
 }

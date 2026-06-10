@@ -19,7 +19,7 @@ export default async function OrganizationSectionPage({
     redirect({ href: '/login', locale });
   }
 
-  const organization = readOrganizationsFile().find((item) => item.id === id);
+  const organization = (await readOrganizationsFile()).find((item) => item.id === id);
   if (!organization) {
     notFound();
   }
@@ -28,10 +28,10 @@ export default async function OrganizationSectionPage({
     notFound();
   }
 
-  const sectionContent = getOrganizationSection(id, section);
+  const sectionContent = await getOrganizationSection(id, section);
   const staffContent =
     section === 'finance' || section === 'formation-report'
-      ? getOrganizationSection(id, 'staff')
+      ? await getOrganizationSection(id, 'staff')
       : null;
 
   return (

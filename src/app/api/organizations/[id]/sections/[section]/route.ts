@@ -12,9 +12,7 @@ import {
   syncTimesheetsWithLaborLeaves,
 } from '@/lib/staff-timesheet-leave-sync';
 import { requireAdmin, requireSession } from '@/lib/api-guard';
-import {
-  canAccessOrganizationSection,
-} from '@/lib/user-access';
+import { canAccessOrganizationSection } from '@/lib/user-access';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -29,7 +27,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const content = getOrganizationSection(id, section);
+  const content = await getOrganizationSection(id, section);
   if (!content) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -50,15 +48,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     const previousStaff =
       section === 'staff' && body.timesheets !== undefined
-        ? getOrganizationSection(id, 'staff')
+        ? await getOrganizationSection(id, 'staff')
         : null;
 
     const previousFinance =
       section === 'finance' && body.laborLeaves !== undefined
-        ? getOrganizationSection(id, 'finance')
+        ? await getOrganizationSection(id, 'finance')
         : null;
 
-    const saved = writeOrganizationSection(id, section, {
+    const saved = await writeOrganizationSection(id, section, {
       summary: body.summary.trim(),
       ...(body.tables ? { tables: body.tables } : {}),
       ...(body.items ? { items: body.items } : {}),
@@ -73,14 +71,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     });
 
     if (section === 'staff' && body.timesheets !== undefined) {
-      const finance = getOrganizationSection(id, 'finance');
+      const finance = await getOrganizationSection(id, 'finance');
       if (finance?.payrollLedgers?.length) {
         const months = affectedTimesheetMonths(previousStaff?.timesheets, body.timesheets).filter(
           (month) => hasStoredPayrollLedger(finance.payrollLedgers, month)
         );
 
         if (months.length > 0) {
-          writeOrganizationSection(id, 'finance', {
+          await writeOrganizationSection(id, 'finance', {
             ...finance,
             payrollLedgers: syncPayrollLedgersAfterTimesheetChange(
               finance.payrollLedgers,
@@ -98,7 +96,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     if (section === 'finance' && body.laborLeaves !== undefined) {
-      const staff = getOrganizationSection(id, 'staff');
+      const staff = await getOrganizationSection(id, 'staff');
       if (staff) {
         const months = monthsAffectedByLaborLeaves(
           body.laborLeaves,
@@ -112,19 +110,19 @@ export async function PUT(request: NextRequest, context: RouteContext) {
             body.laborLeaves,
             months
           );
-          writeOrganizationSection(id, 'staff', {
+          await writeOrganizationSection(id, 'staff', {
             ...staff,
             timesheets: syncedTimesheets,
           });
 
-          const financeCurrent = getOrganizationSection(id, 'finance') ?? saved;
+          const financeCurrent = (await getOrganizationSection(id, 'finance')) ?? saved;
           const ledgerMonths = months.filter((month) =>
             hasStoredPayrollLedger(financeCurrent.payrollLedgers, month)
           );
 
           if (ledgerMonths.length > 0 && financeCurrent.payrollLedgers) {
-            const refreshedStaff = getOrganizationSection(id, 'staff') ?? staff;
-            writeOrganizationSection(id, 'finance', {
+            const refreshedStaff = (await getOrganizationSection(id, 'staff')) ?? staff;
+            await writeOrganizationSection(id, 'finance', {
               ...financeCurrent,
               payrollLedgers: syncPayrollLedgersAfterTimesheetChange(
                 financeCurrent.payrollLedgers,
@@ -142,7 +140,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       }
     }
 
-    const latest = getOrganizationSection(id, section) ?? saved;
+    const latest = (await getOrganizationSection(id, section)) ?? saved;
     return NextResponse.json(latest);
   } catch (error) {
     console.error('PUT organization section failed:', error);

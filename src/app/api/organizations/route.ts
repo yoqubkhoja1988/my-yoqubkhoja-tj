@@ -13,7 +13,7 @@ export async function GET() {
   const session = await requireSession();
   if (session instanceof NextResponse) return session;
 
-  const organizations = filterOrganizationsForSession(session, readOrganizationsFile());
+  const organizations = filterOrganizationsForSession(session, await readOrganizationsFile());
   return NextResponse.json(organizations);
 }
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name required' }, { status: 400 });
     }
 
-    const organizations = readOrganizationsFile();
+    const organizations = await readOrganizationsFile();
     const newOrganization: Organization = {
       id: body.id || randomUUID(),
       name: body.name.trim(),
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     organizations.push(newOrganization);
-    writeOrganizationsFile(organizations);
+    await writeOrganizationsFile(organizations);
     return NextResponse.json(newOrganization, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

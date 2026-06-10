@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: 'ok' });
     }
 
-    const user = findUserByUsername(username);
+    const user = await findUserByUsername(username);
     if (!user || !verifyPassword(password, user.passwordHash)) {
       return NextResponse.json({ status: 'invalid' });
     }

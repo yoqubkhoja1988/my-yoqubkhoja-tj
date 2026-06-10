@@ -24,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return { id: 'admin', name: username, role: 'admin' as const };
         }
 
-        const storedUser = findUserByUsername(username);
+        const storedUser = await findUserByUsername(username);
         if (!storedUser || !verifyPassword(password, storedUser.passwordHash)) {
           return null;
         }

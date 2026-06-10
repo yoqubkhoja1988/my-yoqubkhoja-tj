@@ -20,9 +20,9 @@ function readProjectsFile(): Project[] {
   }
 }
 
-export function buildAdminDataSnapshot(): AdminDataSnapshot {
-  const organizations = readOrganizationsFile();
-  const sectionsByOrg = readOrganizationSections();
+export async function buildAdminDataSnapshot(): Promise<AdminDataSnapshot> {
+  const organizations = await readOrganizationsFile();
+  const sectionsByOrg = await readOrganizationSections();
   const projects = readProjectsFile();
   const orgNameById = new Map(organizations.map((org) => [org.id, org.name]));
 

@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       permissions?: UserPermissions;
     };
 
-    const updated = updateUser(id, {
+    const updated = await updateUser(id, {
       ...(body.status ? { status: body.status } : {}),
       ...(body.permissions ? { permissions: body.permissions } : {}),
     });
@@ -37,7 +37,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   if (session instanceof NextResponse) return session;
 
   const { id } = await context.params;
-  const removed = deleteUser(id);
+  const removed = await deleteUser(id);
   if (!removed) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }

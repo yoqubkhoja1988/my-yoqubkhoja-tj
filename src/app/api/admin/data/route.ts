@@ -12,5 +12,5 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  return NextResponse.json(buildAdminDataSnapshot());
+  return NextResponse.json(await buildAdminDataSnapshot());
 }

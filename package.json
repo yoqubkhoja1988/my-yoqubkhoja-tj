@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.11.4",
+    "@vercel/postgres": "^0.10.0",
     "exceljs": "^4.4.0",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
