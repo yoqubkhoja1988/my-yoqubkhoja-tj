@@ -2,7 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { FormEvent, useState } from 'react';
 import LangSwitcher from './LangSwitcher';
 import Logo from './Logo';
@@ -19,9 +19,31 @@ export default function LoginForm() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
+    const username = String(form.get('username') ?? '');
+    const password = String(form.get('password') ?? '');
+
+    const statusResponse = await fetch('/api/users/login-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const statusData = (await statusResponse.json()) as { status?: string };
+
+    if (statusData.status === 'pending') {
+      setError(t('loginPendingApproval'));
+      setLoading(false);
+      return;
+    }
+
+    if (statusData.status === 'denied') {
+      setError(t('loginAccessDenied'));
+      setLoading(false);
+      return;
+    }
+
     const result = await signIn('credentials', {
-      username: form.get('username'),
-      password: form.get('password'),
+      username,
+      password,
       redirect: false,
     });
 
@@ -36,33 +58,34 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -left-20 top-20 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute -right-20 bottom-20 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute -right-32 bottom-1/4 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-violet-500/8 blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-md">
-        <div className="hero-gradient rounded-2xl border border-[var(--border)] p-8 shadow-2xl md:p-10">
-          <div className="mb-8 flex flex-col items-center">
+      <div className="relative w-full max-w-sm animate-in">
+        <div className="hero-gradient rounded-xl p-5 shadow-2xl md:p-6">
+          <div className="mb-5 flex flex-col items-center">
             <Logo centered />
           </div>
 
-          <div className="mb-6 flex justify-center">
+          <div className="mb-4 flex justify-center">
             <LangSwitcher />
           </div>
 
-          <h2 className="mb-6 text-center text-2xl font-bold">{t('login')}</h2>
+          <h2 className="mb-4 text-center text-lg font-bold tracking-tight">{t('login')}</h2>
 
           {error && (
-            <div className="mb-4 rounded-lg border border-[var(--danger)] bg-red-500/15 px-4 py-3 text-sm text-red-300">
+            <div className="mb-4 rounded-xl border border-[var(--danger)]/50 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label htmlFor="username" className="mb-1 block text-sm font-semibold text-[var(--text-muted)]">
+              <label htmlFor="username" className="field-label">
                 {t('username')}
               </label>
               <input
@@ -71,11 +94,11 @@ export default function LoginForm() {
                 type="text"
                 required
                 autoComplete="username"
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-blue-500/20"
+                className="input-field"
               />
             </div>
             <div>
-              <label htmlFor="password" className="mb-1 block text-sm font-semibold text-[var(--text-muted)]">
+              <label htmlFor="password" className="field-label">
                 {t('password')}
               </label>
               <input
@@ -84,17 +107,20 @@ export default function LoginForm() {
                 type="password"
                 required
                 autoComplete="current-password"
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-[var(--text)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-blue-500/20"
+                className="input-field"
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-[var(--accent)] to-violet-600 py-3.5 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-90 disabled:opacity-60"
-            >
+            <button type="submit" disabled={loading} className="btn-primary w-full py-3.5">
               {loading ? '...' : t('submit')}
             </button>
           </form>
+
+          <p className="mt-4 text-center text-xs text-[var(--text-muted)]">
+            {t('registerNoAccount')}{' '}
+            <Link href="/register" className="font-semibold text-[var(--accent)] hover:underline">
+              {t('registerTitle')}
+            </Link>
+          </p>
         </div>
       </div>
     </div>

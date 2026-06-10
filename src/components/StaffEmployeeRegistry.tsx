@@ -1,0 +1,711 @@
+'use client';
+
+import { analyzeStaffing } from '@/lib/staff-analytics';
+import { downloadCsv, exportEmployeesToCsv } from '@/lib/staff-export';
+import {
+  assignMissingPersonnelNumbers,
+  generateNextPersonnelNumber,
+  hasMissingPersonnelNumbers,
+} from '@/lib/staff-personnel-number';
+import { updateOrganizationSection } from '@/lib/organization-sections';
+import {
+  extractStaffingOptions,
+  getPositionsForDepartment,
+} from '@/lib/staff-staffing-options';
+import { OrganizationSectionContent, StaffEmployee } from '@/types/organization-section';
+import { useTranslations } from 'next-intl';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+
+type EmployeeForm = {
+  fullName: string;
+  position: string;
+  department: string;
+  phone: string;
+  email: string;
+  bankAccount: string;
+  ris: string;
+  rma: string;
+  personnelNumber: string;
+  hiredAt: string;
+  education: string;
+  experience: string;
+  birthYear: string;
+  status: string;
+};
+
+const emptyForm: EmployeeForm = {
+  fullName: '',
+  position: '',
+  department: '',
+  phone: '',
+  email: '',
+  bankAccount: '',
+  ris: '',
+  rma: '',
+  personnelNumber: '',
+  hiredAt: '',
+  education: '',
+  experience: '',
+  birthYear: '',
+  status: 'active',
+};
+
+type Props = {
+  organizationId: string;
+  content: OrganizationSectionContent;
+  onUpdate: (content: OrganizationSectionContent) => void;
+};
+
+function toForm(employee: StaffEmployee): EmployeeForm {
+  return {
+    fullName: employee.fullName,
+    position: employee.position,
+    department: employee.department || '',
+    phone: employee.phone || '',
+    email: employee.email || '',
+    bankAccount: employee.bankAccount || '',
+    ris: employee.ris || '',
+    rma: employee.rma || '',
+    personnelNumber: employee.personnelNumber || '',
+    hiredAt: employee.hiredAt || '',
+    education: employee.education || '',
+    experience: employee.experience || '',
+    birthYear: employee.birthYear || '',
+    status: employee.status || 'active',
+  };
+}
+
+function toEmployee(form: EmployeeForm, id?: string): StaffEmployee {
+  const employee: StaffEmployee = {
+    id: id || crypto.randomUUID(),
+    fullName: form.fullName.trim(),
+    position: form.position.trim(),
+    status: form.status,
+  };
+
+  const optional: (keyof Omit<EmployeeForm, 'fullName' | 'position' | 'status'>)[] = [
+    'department',
+    'phone',
+    'email',
+    'bankAccount',
+    'ris',
+    'rma',
+    'personnelNumber',
+    'hiredAt',
+    'education',
+    'experience',
+    'birthYear',
+  ];
+
+  for (const key of optional) {
+    const value = form[key].trim();
+    if (value) employee[key] = value;
+  }
+
+  return employee;
+}
+
+export default function StaffEmployeeRegistry({ organizationId, content, onUpdate }: Props) {
+  const t = useTranslations();
+  const employees = content.employees ?? [];
+  const analytics = useMemo(() => analyzeStaffing(content), [content]);
+  const departments = useMemo(
+    () => extractStaffingOptions(content.tables),
+    [content.tables]
+  );
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [viewEmployee, setViewEmployee] = useState<StaffEmployee | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<EmployeeForm>(emptyForm);
+  const [search, setSearch] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const backfillStarted = useRef(false);
+
+  const filteredEmployees = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return employees.filter((employee) => {
+      const matchesDepartment =
+        filterDepartment === 'all' || employee.department === filterDepartment;
+      const matchesStatus = filterStatus === 'all' || employee.status === filterStatus;
+      const matchesSearch =
+        !query ||
+        employee.fullName.toLowerCase().includes(query) ||
+        employee.position.toLowerCase().includes(query) ||
+        (employee.department?.toLowerCase().includes(query) ?? false) ||
+        (employee.phone?.includes(query) ?? false) ||
+        (employee.personnelNumber?.includes(query) ?? false) ||
+        (employee.bankAccount?.includes(query) ?? false) ||
+        (employee.ris?.includes(query) ?? false) ||
+        (employee.rma?.includes(query) ?? false);
+
+      return matchesDepartment && matchesStatus && matchesSearch;
+    });
+  }, [employees, search, filterDepartment, filterStatus]);
+
+  const positionOptions = useMemo(() => {
+    const fromStaffing = getPositionsForDepartment(departments, form.department);
+    if (form.position && !fromStaffing.includes(form.position)) {
+      return [...fromStaffing, form.position];
+    }
+    return fromStaffing;
+  }, [departments, form.department, form.position]);
+
+  const capacityWarning = useMemo(() => {
+    if (!form.department || !form.position || editingId) return null;
+    const slot = analytics.slots.find(
+      (item) => item.department === form.department && item.position === form.position
+    );
+    if (!slot) return null;
+    if (slot.filled >= slot.quota) return t('staffPositionFull');
+    return null;
+  }, [analytics.slots, form.department, form.position, editingId, t]);
+
+  function openModal(id?: string) {
+    if (id) {
+      const employee = employees.find((item) => item.id === id);
+      if (!employee) return;
+      setEditingId(id);
+      setForm(toForm(employee));
+    } else {
+      setEditingId(null);
+      setForm({
+        ...emptyForm,
+        personnelNumber: generateNextPersonnelNumber(employees),
+      });
+    }
+    setError('');
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setError('');
+  }
+
+  async function persistEmployees(nextEmployees: StaffEmployee[]) {
+    setSaving(true);
+    setError('');
+
+    const payload: OrganizationSectionContent = {
+      ...content,
+      employees: nextEmployees,
+    };
+
+    const saved = await updateOrganizationSection(organizationId, 'staff', payload);
+    setSaving(false);
+
+    if (!saved) {
+      setError(t('sectionSaveError'));
+      return false;
+    }
+
+    onUpdate(saved);
+    return true;
+  }
+
+  useEffect(() => {
+    if (backfillStarted.current || !hasMissingPersonnelNumbers(employees)) return;
+    void (async () => {
+      const saved = await persistEmployees(assignMissingPersonnelNumbers(employees));
+      if (saved) backfillStarted.current = true;
+    })();
+  }, [employees]);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!form.fullName.trim() || !form.department.trim() || !form.position.trim()) return;
+
+    const personnelNumber = editingId
+      ? form.personnelNumber.trim()
+      : form.personnelNumber.trim() || generateNextPersonnelNumber(employees);
+
+    const employee = toEmployee({ ...form, personnelNumber }, editingId ?? undefined);
+    const nextEmployees = editingId
+      ? employees.map((item) => (item.id === editingId ? employee : item))
+      : [...employees, employee];
+
+    const ok = await persistEmployees(nextEmployees);
+    if (ok) closeModal();
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm(t('confirmDeleteEmployee'))) return;
+    await persistEmployees(employees.filter((item) => item.id !== id));
+  }
+
+  function handleExport() {
+    const rows = filteredEmployees.map((employee) => ({
+      ...employee,
+      status: statusLabel(employee.status),
+    }));
+    const csv = exportEmployeesToCsv(rows, [
+      { key: 'index', label: t('staffColNo') },
+      { key: 'fullName', label: t('employeeFullName') },
+      { key: 'position', label: t('employeePosition') },
+      { key: 'department', label: t('employeeDepartment') },
+      { key: 'personnelNumber', label: t('employeePersonnelNumber') },
+      { key: 'ris', label: t('employeeRis') },
+      { key: 'rma', label: t('organizationRma') },
+      { key: 'phone', label: t('employeePhone') },
+      { key: 'email', label: t('employeeEmail') },
+      { key: 'bankAccount', label: t('employeeBankAccount') },
+      { key: 'hiredAt', label: t('employeeHiredAt') },
+      { key: 'education', label: t('employeeEducation') },
+      { key: 'experience', label: t('employeeExperience') },
+      { key: 'birthYear', label: t('employeeBirthYear') },
+      { key: 'status', label: t('employeeStatus') },
+    ]);
+    downloadCsv(`employees-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+  }
+
+  function statusLabel(status?: string) {
+    if (status === 'vacation') return t('employeeStatusVacation');
+    if (status === 'inactive') return t('employeeStatusInactive');
+    return t('employeeStatusActive');
+  }
+
+  function handleDepartmentChange(department: string) {
+    const positions = getPositionsForDepartment(departments, department);
+    const position = positions.includes(form.position) ? form.position : (positions[0] ?? '');
+    setForm({ ...form, department, position });
+  }
+
+  return (
+    <section id="staff-registry" className="mt-8 border-t border-[var(--border)] pt-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="page-eyebrow">{t('employeeRegistry')}</p>
+          <h4 className="text-base font-bold">{t('employeeRegistryTitle')}</h4>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">{t('employeeRegistrySubtitle')}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={filteredEmployees.length === 0}
+            className="btn-secondary"
+          >
+            {t('exportEmployees')}
+          </button>
+          <button type="button" onClick={() => openModal()} className="btn-primary" disabled={saving}>
+            + {t('addEmployee')}
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t('employeeSearchPlaceholder')}
+          className="input-field lg:max-w-xs"
+        />
+        <select
+          value={filterDepartment}
+          onChange={(e) => setFilterDepartment(e.target.value)}
+          className="input-field lg:max-w-xs"
+        >
+          <option value="all">{t('filterAllDepartments')}</option>
+          {departments.map((item) => (
+            <option key={item.label} value={item.label}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="input-field lg:max-w-[10rem]"
+        >
+          <option value="all">{t('filterAllStatuses')}</option>
+          <option value="active">{t('employeeStatusActive')}</option>
+          <option value="vacation">{t('employeeStatusVacation')}</option>
+          <option value="inactive">{t('employeeStatusInactive')}</option>
+        </select>
+      </div>
+
+      {error && !modalOpen && (
+        <p className="mb-3 rounded-lg border border-[var(--danger)]/50 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+          {error}
+        </p>
+      )}
+
+      {employees.length === 0 ? (
+        <div className="empty-state py-8">
+          <div className="empty-state-icon">👤</div>
+          <p className="text-sm text-[var(--text-muted)]">{t('noEmployees')}</p>
+        </div>
+      ) : filteredEmployees.length === 0 ? (
+        <div className="empty-state py-8">
+          <div className="empty-state-icon">🔍</div>
+          <p className="text-sm text-[var(--text-muted)]">{t('employeeNoResults')}</p>
+        </div>
+      ) : (
+        <div className="table-wrapper table-scroll-sm">
+          <table>
+            <caption>
+              {t('employeeRegistryTitle')} ({filteredEmployees.length})
+            </caption>
+            <thead>
+              <tr>
+                <th>{t('staffColNo')}</th>
+                <th>{t('employeeFullName')}</th>
+                <th>{t('employeePosition')}</th>
+                <th>{t('employeeDepartment')}</th>
+                <th>{t('employeePersonnelNumber')}</th>
+                <th>{t('employeeRis')}</th>
+                <th>{t('organizationRma')}</th>
+                <th>{t('employeePhone')}</th>
+                <th>{t('employeeEmail')}</th>
+                <th>{t('employeeBankAccount')}</th>
+                <th>{t('employeeHiredAt')}</th>
+                <th>{t('employeeEducation')}</th>
+                <th>{t('employeeExperience')}</th>
+                <th>{t('employeeBirthYear')}</th>
+                <th>{t('employeeStatus')}</th>
+                <th>{t('employeeActions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredEmployees.map((employee, index) => (
+                <tr key={employee.id}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => setViewEmployee(employee)}
+                      className="font-semibold text-left hover:text-[var(--accent)]"
+                    >
+                      {employee.fullName}
+                    </button>
+                  </td>
+                  <td className="text-[var(--accent)]">{employee.position}</td>
+                  <td>{employee.department || '—'}</td>
+                  <td>{employee.personnelNumber || '—'}</td>
+                  <td className="font-mono text-xs">{employee.ris || '—'}</td>
+                  <td className="font-mono text-xs">{employee.rma || '—'}</td>
+                  <td className="md:whitespace-nowrap">{employee.phone || '—'}</td>
+                  <td>{employee.email || '—'}</td>
+                  <td className="md:whitespace-nowrap font-mono text-xs">{employee.bankAccount || '—'}</td>
+                  <td className="md:whitespace-nowrap">{employee.hiredAt || '—'}</td>
+                  <td>{employee.education || '—'}</td>
+                  <td>{employee.experience || '—'}</td>
+                  <td>{employee.birthYear || '—'}</td>
+                  <td>
+                    <span className="inline-block rounded-full bg-[var(--bg-input)] px-2 py-0.5 text-[10px] font-semibold uppercase">
+                      {statusLabel(employee.status)}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex flex-nowrap gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openModal(employee.id)}
+                        className="btn-secondary px-2 py-1 text-[10px]"
+                        disabled={saving}
+                      >
+                        {t('editEmployee')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(employee.id)}
+                        className="btn-danger px-2 py-0.5 text-[10px]"
+                        disabled={saving}
+                      >
+                        {t('deleteEmployee')}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {viewEmployee && (
+        <div
+          className="modal-overlay"
+          onClick={(e) => e.target === e.currentTarget && setViewEmployee(null)}
+        >
+          <div className="modal-panel max-w-md">
+            <h3 className="mb-4 text-lg font-bold">{viewEmployee.fullName}</h3>
+            <dl className="space-y-3 text-sm">
+              {[
+                [t('employeePosition'), viewEmployee.position],
+                [t('employeeDepartment'), viewEmployee.department],
+                [t('employeePersonnelNumber'), viewEmployee.personnelNumber],
+                [t('employeeRis'), viewEmployee.ris],
+                [t('organizationRma'), viewEmployee.rma],
+                [t('employeePhone'), viewEmployee.phone],
+                [t('employeeEmail'), viewEmployee.email],
+                [t('employeeBankAccount'), viewEmployee.bankAccount],
+                [t('employeeHiredAt'), viewEmployee.hiredAt],
+                [t('employeeEducation'), viewEmployee.education],
+                [t('employeeExperience'), viewEmployee.experience],
+                [t('employeeBirthYear'), viewEmployee.birthYear],
+                [t('employeeStatus'), statusLabel(viewEmployee.status)],
+              ].map(([label, value]) => (
+                <div key={String(label)}>
+                  <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
+                  <dd className="font-medium">{value || '—'}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setViewEmployee(null)} className="btn-secondary">
+                {t('cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewEmployee(null);
+                  openModal(viewEmployee.id);
+                }}
+                className="btn-primary"
+              >
+                {t('editEmployee')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalOpen && (
+        <div
+          className="modal-overlay"
+          onClick={(e) => e.target === e.currentTarget && !saving && closeModal()}
+        >
+          <div className="modal-panel max-w-lg">
+            <h3 className="mb-4 text-lg font-bold">
+              {editingId ? t('editEmployee') : t('addEmployee')}
+            </h3>
+
+            {error && (
+              <p className="mb-3 rounded-lg border border-[var(--danger)]/50 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                {error}
+              </p>
+            )}
+
+            {capacityWarning && (
+              <p className="mb-3 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                {capacityWarning}
+              </p>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label className="field-label">{t('employeeFullName')}</label>
+                <input
+                  value={form.fullName}
+                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                  required
+                  className="input-field"
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('employeeDepartment')}</label>
+                  <select
+                    value={form.department}
+                    onChange={(e) => handleDepartmentChange(e.target.value)}
+                    required
+                    className="input-field"
+                  >
+                    <option value="">{t('selectDepartment')}</option>
+                    {departments.map((item) => (
+                      <option key={item.label} value={item.label}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">{t('employeePosition')}</label>
+                  <select
+                    value={form.position}
+                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                    required
+                    disabled={!form.department}
+                    className="input-field disabled:opacity-60"
+                  >
+                    <option value="">{t('selectPosition')}</option>
+                    {positionOptions.map((position) => (
+                      <option key={position} value={position}>
+                        {position}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {departments.length === 0 && (
+                <p className="text-xs text-[var(--warning)]">{t('noStaffingForSelect')}</p>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('employeePersonnelNumber')}</label>
+                  <input
+                    value={form.personnelNumber}
+                    onChange={(e) => setForm({ ...form, personnelNumber: e.target.value })}
+                    readOnly={!editingId}
+                    className={`input-field ${!editingId ? 'cursor-default bg-[var(--bg-input)]/60' : ''}`}
+                  />
+                  {!editingId && (
+                    <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+                      {t('employeePersonnelNumberAuto')}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="field-label">{t('organizationRma')}</label>
+                  <input
+                    value={form.rma}
+                    onChange={(e) =>
+                      setForm({ ...form, rma: e.target.value.replace(/\D/g, '').slice(0, 9) })
+                    }
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder={t('organizationRmaPlaceholder')}
+                    className="input-field font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('employeeRis')}</label>
+                  <input
+                    value={form.ris}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        ris: e.target.value.replace(/[^0-9A-Za-z\u0400-\u04FF]/g, '').slice(0, 20),
+                      })
+                    }
+                    maxLength={20}
+                    placeholder={t('employeeRisPlaceholder')}
+                    className="input-field font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('employeePhone')}</label>
+                  <input
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="+992 ..."
+                    className="input-field"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('employeeEmail')}</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="field-label">{t('employeeBankAccount')}</label>
+                  <input
+                    value={form.bankAccount}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        bankAccount: e.target.value.replace(/\D/g, '').slice(0, 20),
+                      })
+                    }
+                    inputMode="numeric"
+                    maxLength={20}
+                    placeholder={t('employeeBankAccountPlaceholder')}
+                    className="input-field font-mono"
+                  />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('employeeHiredAt')}</label>
+                  <input
+                    type="date"
+                    value={form.hiredAt}
+                    onChange={(e) => setForm({ ...form, hiredAt: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('employeeBirthYear')}</label>
+                  <input
+                    value={form.birthYear}
+                    onChange={(e) =>
+                      setForm({ ...form, birthYear: e.target.value.replace(/\D/g, '') })
+                    }
+                    maxLength={4}
+                    placeholder="1988"
+                    className="input-field"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('employeeEducation')}</label>
+                  <input
+                    value={form.education}
+                    onChange={(e) => setForm({ ...form, education: e.target.value })}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('employeeExperience')}</label>
+                  <input
+                    value={form.experience}
+                    onChange={(e) => setForm({ ...form, experience: e.target.value })}
+                    placeholder={t('employeeExperiencePlaceholder')}
+                    className="input-field"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="field-label">{t('employeeStatus')}</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="input-field"
+                >
+                  <option value="active">{t('employeeStatusActive')}</option>
+                  <option value="vacation">{t('employeeStatusVacation')}</option>
+                  <option value="inactive">{t('employeeStatusInactive')}</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={closeModal} className="btn-secondary" disabled={saving}>
+                  {t('cancel')}
+                </button>
+                <button type="submit" className="btn-primary" disabled={saving}>
+                  {saving ? t('saving') : t('save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}

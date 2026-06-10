@@ -1,0 +1,533 @@
+import {
+  detectStaffColumns,
+  formatAmount,
+  isTotalRow,
+  parseAmount,
+} from '@/lib/staff-table-calc';
+import {
+  activeEmployees,
+  countNormWorkingDays,
+  countPayrollWorkedDays,
+  currentMonthKey,
+  getDaysInMonth,
+  mergeTimesheetForMonth,
+  resolveTimesheetMark,
+} from '@/lib/staff-timesheet';
+import { laborLeavePayForEmployee } from '@/lib/finance-labor-leave-pay';
+import {
+  LaborLeave,
+  OrganizationSectionContent,
+  PayrollLedger,
+  PayrollLedgerEntry,
+  PositionHandover,
+  StaffEmployee,
+  StaffTimesheetEntry,
+} from '@/types/organization-section';
+
+const ZERO = '0,00';
+const TAX_RATE = 0.12;
+const TAX_SOCIAL_PERCENT = 0.01;
+const TAX_STANDARD_DEDUCTION = 156;
+
+/** Андоз аз даромад: (Ҳамагӣ − 1% − 156) × 12% */
+export function calcIncomeTax(
+  gross: number,
+  workedDays?: number,
+  normDays?: number
+): number {
+  const standardDeduction =
+    workedDays !== undefined && normDays !== undefined && normDays > 0
+      ? (TAX_STANDARD_DEDUCTION * workedDays) / normDays
+      : TAX_STANDARD_DEDUCTION;
+  const taxable = Math.max(
+    0,
+    gross - gross * TAX_SOCIAL_PERCENT - standardDeduction
+  );
+  return taxable * TAX_RATE;
+}
+
+
+export function formatLedgerAmount(value: number): string {
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+export function parseLedgerAmount(value: string): number {
+  const normalized = value.replace(/,/g, '').trim();
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function normWorkingDays(month: string): number {
+  return countNormWorkingDays(month);
+}
+
+function proportional(part: number, worked: number, norm: number): number {
+  if (norm <= 0) return 0;
+  return worked >= norm ? part : (part * worked) / norm;
+}
+
+function handoverStartDay(effectiveDate: string, month: string): number | null {
+  if (effectiveDate.slice(0, 7) !== month) return null;
+  const day = Number.parseInt(effectiveDate.slice(8, 10), 10);
+  return Number.isFinite(day) && day >= 1 ? day : null;
+}
+
+function workedHandoverDays(
+  entry: StaffTimesheetEntry,
+  month: string,
+  startDay: number
+): number {
+  const daysInMonth = getDaysInMonth(month);
+  let count = 0;
+  for (let day = startDay; day <= daysInMonth; day++) {
+    if (resolveTimesheetMark(entry, month, day) === '8') count++;
+  }
+  return count;
+}
+
+export type HandoverAllowanceBreakdown = {
+  fullMonthAllowance: number;
+  workedDays: number;
+  normDays: number;
+  allowance: number;
+};
+
+export function calcHandoverAllowanceBreakdown(
+  handover: PositionHandover,
+  staffContent: OrganizationSectionContent,
+  month: string,
+  employeeId: string
+): HandoverAllowanceBreakdown | null {
+  const percent = Number(handover.salaryHandoverPercent ?? 0);
+  if (percent <= 0) return null;
+  if (handover.effectiveDate.slice(0, 7) !== month) return null;
+  if (!handover.department || !handover.position) return null;
+
+  const wage = findPositionDutySalary(
+    staffContent,
+    handover.department,
+    handover.position
+  );
+  if (!wage) return null;
+
+  const startDay = handoverStartDay(handover.effectiveDate, month);
+  if (!startDay) return null;
+
+  const normDays = normWorkingDays(month);
+  if (normDays <= 0) return null;
+
+  const timesheet = mergeTimesheetForMonth(
+    staffContent.timesheets,
+    month,
+    staffContent.employees ?? []
+  );
+  const entry = timesheet.entries.find((item) => item.employeeId === employeeId);
+  const workedDays = entry ? workedHandoverDays(entry, month, startDay) : 0;
+  const fullMonthAllowance = wage.dutySalary * (percent / 100);
+  const allowance = proportional(fullMonthAllowance, workedDays, normDays);
+
+  return {
+    fullMonthAllowance,
+    workedDays,
+    normDays,
+    allowance,
+  };
+}
+
+/** Маоши вазифавии моҳона аз басти вазифаҳо (барои кормандони хизматрасонӣ — бо иловапулии шабона) */
+export function getEmployeeDutySalary(
+  staffContent: OrganizationSectionContent,
+  department: string,
+  position: string
+): number | null {
+  const wage = findPositionDutySalary(staffContent, department, position);
+  if (!wage) return null;
+  if (isServiceStaffDepartment(department)) {
+    return wage.dutySalary + wage.nightAllowance;
+  }
+  return wage.dutySalary;
+}
+
+export function findPositionDutySalary(
+  staffContent: OrganizationSectionContent,
+  department: string,
+  position: string
+): { dutySalary: number; nightAllowance: number } | null {
+  for (const table of staffContent.tables ?? []) {
+    if (table.title !== department) continue;
+    const columns = detectStaffColumns(table.columns);
+    if (!columns) continue;
+
+    for (const row of table.rows) {
+      if (isTotalRow(row, columns.position)) continue;
+      if (row[columns.position]?.trim() !== position) continue;
+
+      const baseSalary = parseAmount(row[columns.baseSalary]);
+      if (baseSalary === null) return null;
+
+      const harmfulAmount =
+        columns.harmfulAmount >= 0
+          ? (parseAmount(row[columns.harmfulAmount]) ?? 0)
+          : 0;
+      const nightAllowance =
+        columns.nightAllowance >= 0
+          ? (parseAmount(row[columns.nightAllowance]) ?? 0)
+          : 0;
+
+      return {
+        dutySalary: baseSalary + harmfulAmount,
+        nightAllowance,
+      };
+    }
+  }
+  return null;
+}
+
+function isServiceStaffDepartment(department: string): boolean {
+  return department.toLowerCase().includes('хизматрасон');
+}
+
+function findEmployeeWage(staffContent: OrganizationSectionContent, employee: StaffEmployee) {
+  if (!employee.department || !employee.position) return null;
+  const wage = findPositionDutySalary(
+    staffContent,
+    employee.department,
+    employee.position
+  );
+  if (!wage) return null;
+
+  // Кормандони хизматрасонӣ: иловапулиҳо аз басти вазифаҳо → сутуни маоши вазифавӣ
+  if (isServiceStaffDepartment(employee.department)) {
+    return {
+      baseSalary: wage.dutySalary + wage.nightAllowance,
+      allowances: 0,
+    };
+  }
+
+  return {
+    baseSalary: wage.dutySalary,
+    allowances: wage.nightAllowance,
+  };
+}
+
+export function calcHandoverAllowanceAmount(
+  handover: PositionHandover,
+  staffContent: OrganizationSectionContent,
+  month: string,
+  employeeId: string
+): number {
+  return (
+    calcHandoverAllowanceBreakdown(handover, staffContent, month, employeeId)
+      ?.allowance ?? 0
+  );
+}
+
+function handoverAllowanceForEmployee(
+  positionHandovers: PositionHandover[] | undefined,
+  staffContent: OrganizationSectionContent,
+  month: string,
+  employeeId: string
+): number {
+  return (positionHandovers ?? []).reduce((sum, handover) => {
+    if (handover.toEmployeeId !== employeeId) return sum;
+    return sum + calcHandoverAllowanceAmount(handover, staffContent, month, employeeId);
+  }, 0);
+}
+
+export function resolvePayrollLedgerMonth(
+  financeContent: OrganizationSectionContent,
+  fallback = currentMonthKey()
+): string {
+  const months = new Set<string>();
+
+  for (const handover of financeContent.positionHandovers ?? []) {
+    if (Number(handover.salaryHandoverPercent ?? 0) > 0) {
+      months.add(handover.effectiveDate.slice(0, 7));
+    }
+  }
+
+  for (const leave of financeContent.laborLeaves ?? []) {
+    months.add(leave.startDate.slice(0, 7));
+  }
+
+  for (const ledger of financeContent.payrollLedgers ?? []) {
+    months.add(ledger.month);
+  }
+
+  if (months.has(fallback)) return fallback;
+
+  const sorted = [...months].sort().reverse();
+  return sorted[0] ?? fallback;
+}
+
+function emptyEntry(employeeId: string): PayrollLedgerEntry {
+  return {
+    employeeId,
+    baseSalary: ZERO,
+    allowances: ZERO,
+    laborLeavePay: ZERO,
+    fhea: ZERO,
+    kik: ZERO,
+    hhdt: ZERO,
+    tax: ZERO,
+  };
+}
+
+export function calcEntryTotals(entry: PayrollLedgerEntry) {
+  const baseSalary = parseAmount(entry.baseSalary) ?? 0;
+  const allowances = parseAmount(entry.allowances) ?? 0;
+  const laborLeavePay = parseAmount(entry.laborLeavePay ?? '') ?? 0;
+  const gross = baseSalary + allowances + laborLeavePay;
+  const fhea = parseAmount(entry.fhea) ?? 0;
+  const kik = parseAmount(entry.kik) ?? 0;
+  const hhdt = parseAmount(entry.hhdt) ?? 0;
+  const tax = parseAmount(entry.tax) ?? 0;
+  const deductions = fhea + kik + hhdt + tax;
+
+  return {
+    baseSalary,
+    allowances,
+    laborLeavePay,
+    gross,
+    fhea,
+    kik,
+    hhdt,
+    tax,
+    deductions,
+    netPay: Math.max(0, gross - deductions),
+  };
+}
+
+function autoDeductions(
+  gross: number,
+  saved?: PayrollLedgerEntry,
+  workedDays?: number,
+  normDays?: number
+) {
+  const fhea =
+    saved && saved.fhea !== ZERO
+      ? (parseAmount(saved.fhea) ?? gross * 0.01)
+      : gross * 0.01;
+  const kik =
+    saved && saved.kik !== ZERO ? (parseAmount(saved.kik) ?? gross * 0.01) : gross * 0.01;
+  const hhdt =
+    saved && saved.hhdt !== ZERO ? (parseAmount(saved.hhdt) ?? gross * 0.01) : gross * 0.01;
+  const tax =
+    saved && saved.tax !== ZERO
+      ? (parseAmount(saved.tax) ?? calcIncomeTax(gross, workedDays, normDays))
+      : calcIncomeTax(gross, workedDays, normDays);
+
+  return {
+    fhea: formatAmount(fhea),
+    kik: formatAmount(kik),
+    hhdt: formatAmount(hhdt),
+    tax: formatAmount(tax),
+  };
+}
+
+export function buildLedgerEntry(
+  employee: StaffEmployee,
+  staffContent: OrganizationSectionContent,
+  month: string,
+  saved?: PayrollLedgerEntry,
+  positionHandovers?: PositionHandover[],
+  laborLeaves?: LaborLeave[],
+  payrollLedgers?: PayrollLedger[]
+): PayrollLedgerEntry {
+  const timesheet = mergeTimesheetForMonth(
+    staffContent.timesheets,
+    month,
+    staffContent.employees ?? []
+  );
+  const sheetEntry = timesheet.entries.find((item) => item.employeeId === employee.id);
+  const workedDays = sheetEntry
+    ? countPayrollWorkedDays(sheetEntry, month, {
+        laborLeaves,
+        employeeId: employee.id,
+      })
+    : 0;
+  const normDays = normWorkingDays(month);
+  const wage = findEmployeeWage(staffContent, employee);
+  const base = saved ?? emptyEntry(employee.id);
+  const handoverAllowance = handoverAllowanceForEmployee(
+    positionHandovers,
+    staffContent,
+    month,
+    employee.id
+  );
+  const laborLeavePay = laborLeavePayForEmployee(
+    laborLeaves,
+    staffContent,
+    payrollLedgers,
+    month,
+    employee.id
+  );
+
+  if (!wage) {
+    if (handoverAllowance <= 0 && laborLeavePay <= 0) return base;
+
+    const gross = handoverAllowance + laborLeavePay;
+    const deductions = autoDeductions(gross, undefined, workedDays, normDays);
+    return {
+      employeeId: employee.id,
+      baseSalary: ZERO,
+      allowances: formatAmount(handoverAllowance),
+      laborLeavePay: formatAmount(laborLeavePay),
+      ...deductions,
+    };
+  }
+
+  const baseSalary = proportional(wage.baseSalary, workedDays, normDays);
+  const nightAllowance = proportional(wage.allowances, workedDays, normDays);
+  const allowances = nightAllowance + handoverAllowance;
+  const gross = baseSalary + allowances + laborLeavePay;
+  const deductions = autoDeductions(gross, undefined, workedDays, normDays);
+
+  return {
+    employeeId: employee.id,
+    baseSalary: formatAmount(baseSalary),
+    allowances: formatAmount(allowances),
+    laborLeavePay: formatAmount(laborLeavePay),
+    ...deductions,
+  };
+}
+
+export type PayrollLedgerBuildContext = {
+  positionHandovers?: PositionHandover[];
+  laborLeaves?: LaborLeave[];
+  payrollLedgers?: PayrollLedger[];
+};
+
+export function buildPayrollLedger(
+  month: string,
+  staffContent: OrganizationSectionContent,
+  savedLedger?: PayrollLedger,
+  positionHandovers?: PositionHandover[],
+  laborLeaves?: LaborLeave[],
+  payrollLedgers?: PayrollLedger[]
+): PayrollLedger {
+  const savedMap = new Map((savedLedger?.entries ?? []).map((entry) => [entry.employeeId, entry]));
+  const historyLedgers = payrollLedgers;
+
+  return {
+    month,
+    preparedAt: savedLedger?.preparedAt,
+    entries: activeEmployees(staffContent.employees).map((employee) =>
+      buildLedgerEntry(
+        employee,
+        staffContent,
+        month,
+        savedMap.get(employee.id),
+        positionHandovers,
+        laborLeaves,
+        historyLedgers
+      )
+    ),
+  };
+}
+
+export function recalculatePayrollLedger(
+  ledger: PayrollLedger,
+  staffContent: OrganizationSectionContent,
+  context: PayrollLedgerBuildContext = {}
+): PayrollLedger {
+  const { positionHandovers, laborLeaves, payrollLedgers } = context;
+  return {
+    ...ledger,
+    entries: ledger.entries.map((entry) => {
+      const employee = staffContent.employees?.find((item) => item.id === entry.employeeId);
+      if (!employee) return entry;
+      return buildLedgerEntry(
+        employee,
+        staffContent,
+        ledger.month,
+        entry,
+        positionHandovers,
+        laborLeaves,
+        payrollLedgers
+      );
+    }),
+  };
+}
+
+export function mergePayrollLedgerForMonth(
+  ledgers: PayrollLedger[] | undefined,
+  month: string,
+  staffContent: OrganizationSectionContent,
+  context: PayrollLedgerBuildContext = {}
+): PayrollLedger {
+  const saved = ledgers?.find((ledger) => ledger.month === month);
+  return buildPayrollLedger(
+    month,
+    staffContent,
+    saved,
+    context.positionHandovers,
+    context.laborLeaves,
+    ledgers
+  );
+}
+
+export function upsertPayrollLedger(
+  ledgers: PayrollLedger[] | undefined,
+  ledger: PayrollLedger
+): PayrollLedger[] {
+  const rest = (ledgers ?? []).filter((item) => item.month !== ledger.month);
+  return [...rest, ledger].sort((a, b) => b.month.localeCompare(a.month));
+}
+
+export function removePayrollLedger(
+  ledgers: PayrollLedger[] | undefined,
+  month: string
+): PayrollLedger[] {
+  return (ledgers ?? []).filter((item) => item.month !== month);
+}
+
+export function hasStoredPayrollLedger(
+  ledgers: PayrollLedger[] | undefined,
+  month: string
+): boolean {
+  return (ledgers ?? []).some((item) => item.month === month);
+}
+
+export function affectedTimesheetMonths(
+  previous: OrganizationSectionContent['timesheets'],
+  next: OrganizationSectionContent['timesheets']
+): string[] {
+  const months = new Set<string>();
+  for (const sheet of previous ?? []) months.add(sheet.month);
+  for (const sheet of next ?? []) months.add(sheet.month);
+  return [...months];
+}
+
+/** Навсозии китоби музди меҳнат пас аз тағйири табел */
+export function syncPayrollLedgersAfterTimesheetChange(
+  payrollLedgers: PayrollLedger[] | undefined,
+  staffContent: OrganizationSectionContent,
+  months: string[],
+  context: PayrollLedgerBuildContext = {}
+): PayrollLedger[] {
+  let ledgers = payrollLedgers ?? [];
+
+  for (const month of months) {
+    const saved = ledgers.find((ledger) => ledger.month === month);
+    if (!saved) continue;
+
+    const updated = buildPayrollLedger(
+      month,
+      staffContent,
+      saved,
+      context.positionHandovers,
+      context.laborLeaves,
+      ledgers
+    );
+    ledgers = upsertPayrollLedger(ledgers, {
+      ...updated,
+      preparedAt: saved.preparedAt,
+    });
+  }
+
+  return ledgers;
+}
