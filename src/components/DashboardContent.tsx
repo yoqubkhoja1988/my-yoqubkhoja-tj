@@ -1,5 +1,6 @@
 'use client';
 
+import { Link } from '@/i18n/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -8,6 +9,7 @@ import { Project, ProjectCategory, ProjectStatus } from '@/types/project';
 import AdminDataPanel from './AdminDataPanel';
 import AdminUsersPanel from './AdminUsersPanel';
 import AppFooter from './AppFooter';
+import AdminTelegramContact from './AdminTelegramContact';
 import AppHeader from './AppHeader';
 
 type DashboardTab = 'projects' | 'admin';
@@ -31,6 +33,7 @@ const emptyForm = {
 export default function DashboardContent({
   isAdmin = false,
   canAccessProjects = true,
+  canAccessOrganizations = false,
 }: {
   isAdmin?: boolean;
   canAccessProjects?: boolean;
@@ -222,6 +225,18 @@ export default function DashboardContent({
           <div className="empty-state">
             <div className="empty-state-icon">🔒</div>
             <p className="text-[var(--text-muted)]">{t('accessProjectsDenied')}</p>
+            {canAccessOrganizations ? (
+              <Link href="/organizations" className="btn-primary mt-4">
+                {t('accessGoToOrganizations')}
+              </Link>
+            ) : (
+              <p className="mt-3 max-w-md text-center text-xs text-[var(--text-muted)]">
+                {t('accessOrganizationsDenied')} {t('accessContactAdmin')}
+              </p>
+              <p className="mt-2 text-center text-xs">
+                <AdminTelegramContact />
+              </p>
+            )}
           </div>
         ) : (
           <>

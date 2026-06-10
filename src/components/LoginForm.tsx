@@ -6,16 +6,20 @@ import { Link, useRouter } from '@/i18n/navigation';
 import { FormEvent, useState } from 'react';
 import LangSwitcher from './LangSwitcher';
 import Logo from './Logo';
+import AppFooter from './AppFooter';
+import AdminTelegramContact from './AdminTelegramContact';
 
 export default function LoginForm() {
   const t = useTranslations();
   const router = useRouter();
   const [error, setError] = useState('');
+  const [showAdminContact, setShowAdminContact] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    setShowAdminContact(false);
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
@@ -31,12 +35,14 @@ export default function LoginForm() {
 
     if (statusData.status === 'pending') {
       setError(t('loginPendingApproval'));
+      setShowAdminContact(true);
       setLoading(false);
       return;
     }
 
     if (statusData.status === 'denied') {
       setError(t('loginAccessDenied'));
+      setShowAdminContact(true);
       setLoading(false);
       return;
     }
@@ -70,7 +76,8 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen flex-col">
+      <div className="relative flex flex-1 items-center justify-center p-4">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
         <div className="absolute -right-32 bottom-1/4 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -91,7 +98,12 @@ export default function LoginForm() {
 
           {error && (
             <div className="mb-4 rounded-xl border border-[var(--danger)]/50 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
+              <p>{error}</p>
+              {showAdminContact && (
+                <p className="mt-2 text-xs text-red-200/90">
+                  <AdminTelegramContact linkClassName="font-semibold text-sky-300 hover:underline" />
+                </p>
+              )}
             </div>
           )}
 
@@ -135,6 +147,8 @@ export default function LoginForm() {
           </p>
         </div>
       </div>
+      </div>
+      <AppFooter />
     </div>
   );
 }

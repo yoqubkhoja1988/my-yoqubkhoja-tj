@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { FormEvent, useState } from 'react';
 import LangSwitcher from './LangSwitcher';
 import Logo from './Logo';
+import AppFooter from './AppFooter';
+import AdminTelegramContact from './AdminTelegramContact';
 
 export default function RegisterForm() {
   const t = useTranslations();
@@ -44,7 +46,11 @@ export default function RegisterForm() {
             ? t('registerUsernameExists')
             : data.error === 'RESERVED_USERNAME'
               ? t('registerReservedUsername')
-              : t('registerError')
+              : data.error === 'INVALID_USERNAME'
+                ? t('registerInvalidUsername')
+                : data.error === 'INVALID_PASSWORD'
+                  ? t('registerInvalidPassword')
+                  : t('registerError')
         );
         setLoading(false);
         return;
@@ -60,7 +66,8 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen flex-col">
+      <div className="relative flex flex-1 items-center justify-center p-4">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
         <div className="absolute -right-32 bottom-1/4 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
@@ -77,7 +84,10 @@ export default function RegisterForm() {
           </div>
 
           <h2 className="mb-2 text-center text-lg font-bold tracking-tight">{t('registerTitle')}</h2>
-          <p className="mb-4 text-center text-xs text-[var(--text-muted)]">{t('registerSubtitle')}</p>
+          <p className="mb-2 text-center text-xs text-[var(--text-muted)]">{t('registerSubtitle')}</p>
+          <p className="mb-4 text-center text-xs text-[var(--text-muted)]">
+            <AdminTelegramContact />
+          </p>
 
           {error && (
             <div className="mb-4 rounded-xl border border-[var(--danger)]/50 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -87,7 +97,10 @@ export default function RegisterForm() {
 
           {success && (
             <div className="mb-4 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-300">
-              {t('registerSuccess')}
+              <p>{t('registerSuccess')}</p>
+              <p className="mt-2 text-xs text-green-200/90">
+                <AdminTelegramContact linkClassName="font-semibold text-sky-300 hover:underline" />
+              </p>
             </div>
           )}
 
@@ -102,7 +115,7 @@ export default function RegisterForm() {
                 type="text"
                 required
                 minLength={3}
-                pattern="[a-zA-Z0-9._-]+"
+                pattern="[a-zA-Z0-9._@-]+"
                 autoComplete="username"
                 className="input-field"
               />
@@ -148,6 +161,8 @@ export default function RegisterForm() {
           </p>
         </div>
       </div>
+      </div>
+      <AppFooter />
     </div>
   );
 }
