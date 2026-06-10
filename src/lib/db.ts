@@ -10,11 +10,27 @@ let readyPromise: Promise<void> | null = null;
 type SqlResult<T> = { rows: T[]; rowCount: number };
 
 export function getDatabaseUrl(): string | undefined {
-  return (
+  const direct =
     process.env.POSTGRES_URL?.trim() ||
+    process.env.POSTGRES_URL_NON_POOLING?.trim() ||
+    process.env.POSTGRES_PRISMA_URL?.trim() ||
     process.env.DATABASE_URL?.trim() ||
-    process.env.STORAGE_URL?.trim()
-  );
+    process.env.DATABASE_URL_UNPOOLED?.trim() ||
+    process.env.STORAGE_URL?.trim() ||
+    process.env.NEON_DATABASE_URL?.trim();
+
+  if (direct) return direct;
+
+  const host = process.env.PGHOST?.trim() || process.env.PGHOST_UNPOOLED?.trim();
+  const user = process.env.PGUSER?.trim();
+  const password = process.env.PGPASSWORD?.trim();
+  const database = process.env.PGDATABASE?.trim();
+
+  if (host && user && password && database) {
+    return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}/${database}?sslmode=require`;
+  }
+
+  return undefined;
 }
 
 export function isDatabaseEnabled(): boolean {
@@ -174,7 +190,11 @@ export async function getDatabaseStatus(): Promise<{
       ? 'DATABASE_URL'
       : process.env.STORAGE_URL?.trim()
         ? 'STORAGE_URL'
-        : null;
+        : process.env.PGHOST?.trim()
+          ? 'PGHOST'
+          : process.env.POSTGRES_URL_NON_POOLING?.trim()
+            ? 'POSTGRES_URL_NON_POOLING'
+            : null;
 
   try {
     await ensureDatabaseReady();
