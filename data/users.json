@@ -1,0 +1,21 @@
+[
+  {
+    "id": "ba774e79-5b80-4f6f-9f93-4139f2c4a1e9",
+    "username": "asilamoh",
+    "passwordHash": "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+    "status": "approved",
+    "permissions": {
+      "canAccessProjects": true,
+      "organizationIds": [
+        "b8c5fe62-c216-410e-9dcf-c845838f0ad7"
+      ],
+      "sectionSlugs": [
+        "finance",
+        "staff",
+        "formation-report"
+      ]
+    },
+    "createdAt": "2026-06-10T17:06:00.773Z",
+    "updatedAt": "2026-06-10T18:25:53.104Z"
+  }
+]
