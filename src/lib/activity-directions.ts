@@ -1,6 +1,7 @@
 import { ActivityDirection } from '@/types/activity-direction';
 
 export const FOOD_SAFETY_CENTER_ID = 'b8c5fe62-c216-410e-9dcf-c845838f0ad7';
+export const KINDERGARTEN_SCHOOL_ID = '8c19df05-9925-4a55-8daf-c03d607f954c';
 
 /**
  * Меню мувофиқи cfs.tj (Фаъолият, Хабарҳо, Маводҳо)
@@ -96,8 +97,80 @@ const FOOD_SAFETY_DIRECTIONS: ActivityDirection[] = [
   { slug: 'reports', icon: '📈', labelKey: 'actReports', groupKey: 'actGroupAdmin' },
 ];
 
+/**
+ * Меню мувофиқи:
+ * — Қонуни ҶТ «Дар бораи таълиму тарбияи томактабӣ» (№1056, 2013);
+ * — Низомномаи намунавии МДТ (Қарори Ҳукумат, №256, 29.04.2015);
+ * — Стандарти давлатии таҳсилоти томактабӣ;
+ * — оинномаи МДТМ Мактаб-кӯдакистони №1 ноҳияи Ҷаббор Расулов.
+ */
+const KINDERGARTEN_SCHOOL_DIRECTIONS: ActivityDirection[] = [
+  { slug: 'overview', icon: '🏠', labelKey: 'actOverview', groupKey: 'actGroupGeneral' },
+
+  { slug: 'charter', icon: '📜', labelKey: 'actCharter', groupKey: 'actGroupCharterLegal' },
+  { slug: 'licensing', icon: '📄', labelKey: 'actLicensing', groupKey: 'actGroupCharterLegal' },
+  { slug: 'legal', icon: '⚖️', labelKey: 'actLegal', groupKey: 'actGroupCharterLegal' },
+
+  {
+    slug: 'education-standard',
+    icon: '📐',
+    labelKey: 'actEducationStandard',
+    groupKey: 'actGroupEducation',
+  },
+  {
+    slug: 'education-programs',
+    icon: '📚',
+    labelKey: 'actEducationPrograms',
+    groupKey: 'actGroupEducation',
+  },
+  { slug: 'work-plan', icon: '🗓️', labelKey: 'actWorkPlan', groupKey: 'actGroupEducation' },
+  { slug: 'methodology', icon: '🎓', labelKey: 'actMethodology', groupKey: 'actGroupEducation' },
+
+  { slug: 'governance', icon: '🏛️', labelKey: 'actGovernance', groupKey: 'actGroupGovernance' },
+  {
+    slug: 'state-supervision',
+    icon: '🔍',
+    labelKey: 'actStateSupervision',
+    groupKey: 'actGroupGovernance',
+  },
+
+  { slug: 'age-groups', icon: '👶', labelKey: 'actAgeGroups', groupKey: 'actGroupSubjects' },
+  { slug: 'enrollees', icon: '🧒', labelKey: 'actEnrollees', groupKey: 'actGroupSubjects' },
+  { slug: 'parent-work', icon: '👨‍👩‍👧', labelKey: 'actParentWork', groupKey: 'actGroupSubjects' },
+  {
+    slug: 'medical-service',
+    icon: '🏥',
+    labelKey: 'actMedicalService',
+    groupKey: 'actGroupSubjects',
+  },
+  { slug: 'nutrition', icon: '🍽️', labelKey: 'actNutrition', groupKey: 'actGroupSubjects' },
+
+  {
+    slug: 'material-base',
+    icon: '🏗️',
+    labelKey: 'actMaterialBase',
+    groupKey: 'actGroupMaterialFinance',
+  },
+  { slug: 'staff', icon: '👥', labelKey: 'actStaff', groupKey: 'actGroupMaterialFinance' },
+  { slug: 'finance', icon: '💰', labelKey: 'actFinance', groupKey: 'actGroupMaterialFinance' },
+  {
+    slug: 'formation-report',
+    icon: '📋',
+    labelKey: 'actFormationReport',
+    groupKey: 'actGroupMaterialFinance',
+  },
+  { slug: 'reports', icon: '📈', labelKey: 'actReports', groupKey: 'actGroupMaterialFinance' },
+
+  { slug: 'news', icon: '📢', labelKey: 'actNews', groupKey: 'actGroupInfo' },
+  { slug: 'photogallery', icon: '📷', labelKey: 'actPhotogallery', groupKey: 'actGroupInfo' },
+  { slug: 'videos', icon: '🎬', labelKey: 'actVideos', groupKey: 'actGroupInfo' },
+
+  { slug: 'reception', icon: '✉️', labelKey: 'actReception', groupKey: 'actGroupAppeals' },
+];
+
 const DIRECTIONS_BY_ORG: Record<string, ActivityDirection[]> = {
   [FOOD_SAFETY_CENTER_ID]: FOOD_SAFETY_DIRECTIONS,
+  [KINDERGARTEN_SCHOOL_ID]: KINDERGARTEN_SCHOOL_DIRECTIONS,
 };
 
 export function getActivityDirections(organizationId: string): ActivityDirection[] {
@@ -132,4 +205,8 @@ export function groupActivityDirections(
   return groups;
 }
 
-export const ALL_SECTION_SLUGS = FOOD_SAFETY_DIRECTIONS.map((item) => item.slug);
+export const ALL_SECTION_SLUGS = Array.from(
+  new Set(
+    [...FOOD_SAFETY_DIRECTIONS, ...KINDERGARTEN_SCHOOL_DIRECTIONS].map((item) => item.slug)
+  )
+);

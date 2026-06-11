@@ -29,6 +29,19 @@ const SECTION_LABEL_KEYS: Record<string, string> = {
   photogallery: 'actPhotogallery',
   magazine: 'actMagazine',
   videos: 'actVideos',
+  charter: 'actCharter',
+  'education-standard': 'actEducationStandard',
+  'education-programs': 'actEducationPrograms',
+  'work-plan': 'actWorkPlan',
+  methodology: 'actMethodology',
+  governance: 'actGovernance',
+  'state-supervision': 'actStateSupervision',
+  'age-groups': 'actAgeGroups',
+  enrollees: 'actEnrollees',
+  'parent-work': 'actParentWork',
+  'medical-service': 'actMedicalService',
+  nutrition: 'actNutrition',
+  'material-base': 'actMaterialBase',
 };
 
 const STATUS_CLASS: Record<UserStatus, string> = {
