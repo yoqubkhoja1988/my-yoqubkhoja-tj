@@ -53,6 +53,7 @@ import StaffSectionNav from './StaffSectionNav';
 import StaffFormationReportPanel from './StaffFormationReportPanel';
 import StaffVacancyPanel from './StaffVacancyPanel';
 import OrganizationInfoPanel from './OrganizationInfoPanel';
+import UserContentText from './UserContentText';
 import LegalDocumentsPanel from './LegalDocumentsPanel';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { ensureForm5Tables, form5TablesFromAll } from '@/lib/financial-report-form5';
@@ -76,17 +77,19 @@ function DataTableView({ table }: { table: SectionTable }) {
     <div className="table-wrapper">
       <table>
         <caption>
-          {table.title}
+          <UserContentText text={table.title} as="span" />
           {table.caption && (
             <span className="mt-1 block text-xs font-normal text-[var(--text-muted)]">
-              {table.caption}
+              <UserContentText text={table.caption} as="span" />
             </span>
           )}
         </caption>
         <thead>
           <tr>
             {table.columns.map((column) => (
-              <th key={column}>{column}</th>
+              <th key={column}>
+                <UserContentText text={column} as="span" />
+              </th>
             ))}
           </tr>
         </thead>
@@ -94,7 +97,9 @@ function DataTableView({ table }: { table: SectionTable }) {
           {table.rows.map((row, rowIndex) => (
             <tr key={`${row[0]}-${rowIndex}`}>
               {row.map((cell, cellIndex) => (
-                <td key={`${rowIndex}-${cellIndex}`}>{cell}</td>
+                <td key={`${rowIndex}-${cellIndex}`}>
+                  <UserContentText text={cell} as="span" />
+                </td>
               ))}
             </tr>
           ))}
@@ -535,7 +540,7 @@ export default function EditableSectionContent({
             />
           ) : (
             <p className="text-xs leading-relaxed text-[var(--text-muted)] md:text-sm">
-              {view.summary}
+              <UserContentText text={view.summary} as="span" />
             </p>
           )}
         </>
@@ -899,13 +904,17 @@ export default function EditableSectionContent({
               key={item.title}
               className="rounded-lg border border-[var(--border)] bg-[var(--bg-input)]/40 p-3"
             >
-              <p className="text-sm font-bold">{item.title}</p>
+              <p className="text-sm font-bold">
+                <UserContentText text={item.title} as="span" />
+              </p>
               {item.detail && (
-                <p className="mt-1 text-sm font-medium text-[var(--accent)]">{item.detail}</p>
+                <p className="mt-1 text-sm font-medium text-[var(--accent)]">
+                  <UserContentText text={item.detail} as="span" />
+                </p>
               )}
               {item.description && (
                 <p className="mt-2 text-xs leading-relaxed text-[var(--text-muted)]">
-                  {item.description}
+                  <UserContentText text={item.description} as="span" />
                 </p>
               )}
               {item.fields && item.fields.length > 0 && (
@@ -913,9 +922,11 @@ export default function EditableSectionContent({
                   {item.fields.map((field) => (
                     <div key={field.label}>
                       <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                        {field.label}
+                        <UserContentText text={field.label} as="span" />
                       </dt>
-                      <dd className="mt-0.5 text-sm">{field.value}</dd>
+                      <dd className="mt-0.5 text-sm">
+                        <UserContentText text={field.value} as="span" />
+                      </dd>
                     </div>
                   ))}
                 </dl>

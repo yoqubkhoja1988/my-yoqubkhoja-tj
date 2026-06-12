@@ -1,5 +1,6 @@
 'use client';
 
+import UserContentText from '@/components/UserContentText';
 import { getOfficialLegalSource } from '@/lib/official-legal-catalog';
 import { SectionItem } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
@@ -39,9 +40,13 @@ function DocumentCard({ item, t }: { item: SectionItem; t: (key: string) => stri
     <article className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/40 p-4 transition hover:border-[var(--accent)]/35">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-snug">{item.title}</p>
+          <p className="text-sm font-bold leading-snug">
+            <UserContentText text={item.title} as="span" />
+          </p>
           {item.detail && (
-            <p className="mt-1 text-xs font-semibold text-[var(--accent)]">{item.detail}</p>
+            <p className="mt-1 text-xs font-semibold text-[var(--accent)]">
+              <UserContentText text={item.detail} as="span" />
+            </p>
           )}
         </div>
         {item.documentType && (
@@ -58,7 +63,9 @@ function DocumentCard({ item, t }: { item: SectionItem; t: (key: string) => stri
       </div>
 
       {item.description && (
-        <p className="mt-2 text-xs leading-relaxed text-[var(--text-muted)]">{item.description}</p>
+        <p className="mt-2 text-xs leading-relaxed text-[var(--text-muted)]">
+          <UserContentText text={item.description} as="span" />
+        </p>
       )}
 
       {item.fields && item.fields.length > 0 && (
@@ -66,9 +73,11 @@ function DocumentCard({ item, t }: { item: SectionItem; t: (key: string) => stri
           {item.fields.map((field) => (
             <div key={field.label}>
               <dt className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-                {field.label}
+                <UserContentText text={field.label} as="span" />
               </dt>
-              <dd className="mt-0.5 text-sm">{field.value}</dd>
+              <dd className="mt-0.5 text-sm">
+                <UserContentText text={field.value} as="span" />
+              </dd>
             </div>
           ))}
         </dl>
@@ -243,7 +252,9 @@ export default function LegalDocumentsPanel({
   return (
     <div className="space-y-4">
       {summary && !editing && (
-        <p className="text-sm leading-relaxed text-[var(--text-muted)]">{summary}</p>
+        <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+          <UserContentText text={summary} as="span" />
+        </p>
       )}
 
       {showTabs && !editing && (

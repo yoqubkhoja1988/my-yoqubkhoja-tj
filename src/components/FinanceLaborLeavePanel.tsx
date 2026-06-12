@@ -24,8 +24,9 @@ import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
-import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
+import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
+import { useTranslatedUserContent } from '@/hooks/useTranslatedUserContent';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
 import {
@@ -71,6 +72,7 @@ export default function FinanceLaborLeavePanel({
   const t = useTranslations();
   const locale = useLocale();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
+  const translatedOrganizationName = useTranslatedUserContent(reportOrganizationName);
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
@@ -663,8 +665,7 @@ export default function FinanceLaborLeavePanel({
           <div
             id="finance-labor-leave-document"
             lang="tg"
-            translate="no"
-            className="labor-leave-document notranslate mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm print:border-0 print:shadow-none md:p-8"
+            className="labor-leave-document mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm print:border-0 print:shadow-none md:p-8"
           >
             <OrganizationReportDocumentHeader
               variant="document"
@@ -688,7 +689,7 @@ export default function FinanceLaborLeavePanel({
 
             <p className="mb-4 text-justify text-xs leading-relaxed md:text-sm">
               {t('laborLeaveIntro', {
-                organization: reportOrganizationName || t('payrollLedgerOrganization'),
+                organization: translatedOrganizationName || t('payrollLedgerOrganization'),
                 employee: employee?.fullName ?? '________________',
                 leaveType: t(`laborLeaveType_${draft.leaveType}`),
                 startDate: formatDate(draft.startDate),

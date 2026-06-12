@@ -10,6 +10,7 @@ import {
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
+import { useTranslatedUserContent } from '@/hooks/useTranslatedUserContent';
 import { printDocument } from '@/lib/print-document';
 import { shiftMonth } from '@/lib/staff-timesheet';
 import { Organization } from '@/types/organization';
@@ -34,6 +35,7 @@ export default function FinanceBankPaymentPanel({
 }: Props) {
   const t = useTranslations();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
+  const translatedOrganizationName = useTranslatedUserContent(reportOrganizationName);
   const [month, setMonth] = useState(() => resolveBankPaymentMonth(financeContent, preferredMonth));
   useEffect(() => {
     if (!preferredMonth) return;
@@ -51,9 +53,9 @@ export default function FinanceBankPaymentPanel({
       staffContent,
       month,
       organization,
-      reportOrganizationName
+      translatedOrganizationName
     );
-  }, [financeContent, staffContent, month, organization, reportOrganizationName]);
+  }, [financeContent, staffContent, month, organization, translatedOrganizationName]);
 
   async function handleExcelExport() {
     if (!documentData) return;
@@ -131,13 +133,12 @@ export default function FinanceBankPaymentPanel({
             <div
               id="finance-bank-payment-document"
               lang="tg"
-              translate="no"
-              className="bank-payment-document notranslate mx-auto max-w-5xl rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm print:border-0 print:p-2 print:shadow-none md:p-6"
+              className="bank-payment-document mx-auto max-w-5xl rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm print:border-0 print:p-2 print:shadow-none md:p-6"
             >
               <header className="mb-4 rounded-lg bg-amber-100 px-4 py-3 text-center text-xs leading-relaxed text-slate-800">
                 <h3 className="text-sm font-bold text-slate-900">
                   {t('bankPaymentDocumentHeading', {
-                    organization: reportOrganizationName || t('payrollLedgerOrganization'),
+                    organization: translatedOrganizationName || t('payrollLedgerOrganization'),
                   })}
                 </h3>
                 <p className="mt-2">{documentData.periodLabel}</p>

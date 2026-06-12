@@ -391,8 +391,7 @@ export default function FinancePayrollLedgerPanel({
         <div
           id="finance-payroll-ledger-document"
           lang="tg"
-          translate="no"
-          className="payroll-ledger-document notranslate mx-auto min-w-[72rem] rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm print:min-w-0 print:border-0 print:p-2 print:shadow-none md:p-6"
+          className="payroll-ledger-document mx-auto min-w-[72rem] rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm print:min-w-0 print:border-0 print:p-2 print:shadow-none md:p-6"
         >
           <OrganizationReportDocumentHeader
             variant="document"

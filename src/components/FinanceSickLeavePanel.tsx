@@ -3,6 +3,7 @@
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
+import { useTranslatedUserContent } from '@/hooks/useTranslatedUserContent';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
 import { leaveMonthsAffected } from '@/lib/finance-labor-leave-pay';
@@ -69,6 +70,7 @@ export default function FinanceSickLeavePanel({
   const t = useTranslations();
   const locale = useLocale();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
+  const translatedOrganizationName = useTranslatedUserContent(reportOrganizationName);
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
@@ -652,8 +654,7 @@ export default function FinanceSickLeavePanel({
         <div
           id="finance-sick-leave-document"
           lang="tg"
-          translate="no"
-          className="sick-leave-document notranslate mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm print:border-0 print:shadow-none md:p-8"
+          className="sick-leave-document mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm print:border-0 print:shadow-none md:p-8"
         >
           <OrganizationReportDocumentHeader
             variant="document"
@@ -677,7 +678,7 @@ export default function FinanceSickLeavePanel({
 
           <p className="mb-4 text-justify text-xs leading-relaxed md:text-sm">
             {t('sickLeaveIntro', {
-              organization: reportOrganizationName || t('payrollLedgerOrganization'),
+              organization: translatedOrganizationName || t('payrollLedgerOrganization'),
               employee: employee?.fullName ?? '________________',
               startDate: formatDate(draft.startDate),
               endDate: formatDate(draft.endDate),

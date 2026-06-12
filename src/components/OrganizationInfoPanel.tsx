@@ -1,5 +1,6 @@
 'use client';
 
+import UserContentText from '@/components/UserContentText';
 import { OrganizationReportHeader } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 
@@ -73,10 +74,16 @@ export default function OrganizationInfoPanel({
           </p>
           {(editing ? authorities.filter((line) => line.trim()) : authorities).map((line, index) => (
             <p key={`${line}-${index}`} className="text-xs text-[var(--text-muted)]">
-              {line || t('orgInfoAuthorityPlaceholder')}
+              {line ? (
+                <UserContentText text={line} as="span" />
+              ) : (
+                t('orgInfoAuthorityPlaceholder')
+              )}
             </p>
           ))}
-          <p className="mt-2 text-sm font-bold">{displayName}</p>
+          <p className="mt-2 text-sm font-bold">
+            <UserContentText text={displayName} as="span" />
+          </p>
         </div>
       </div>
 
@@ -133,7 +140,9 @@ export default function OrganizationInfoPanel({
             <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
               {t('orgInfoFieldOrganizationName')}
             </dt>
-            <dd className="mt-1 text-sm font-medium">{displayName}</dd>
+            <dd className="mt-1 text-sm font-medium">
+              <UserContentText text={displayName} as="span" />
+            </dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
@@ -141,7 +150,9 @@ export default function OrganizationInfoPanel({
             </dt>
             <dd className="mt-1 space-y-1 text-sm">
               {authorities.map((line, index) => (
-                <p key={`${line}-${index}`}>{line}</p>
+                <p key={`${line}-${index}`}>
+                  <UserContentText text={line} as="span" />
+                </p>
               ))}
             </dd>
           </div>

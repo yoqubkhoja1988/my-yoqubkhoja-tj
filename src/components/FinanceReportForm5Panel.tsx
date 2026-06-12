@@ -1,5 +1,6 @@
 'use client';
 
+import UserContentText from '@/components/UserContentText';
 import { SectionTable } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 
@@ -38,9 +39,13 @@ export default function FinanceReportForm5Panel({
       {tables.map((table, tableIndex) => (
         <div key={table.title} className="space-y-2">
           <div>
-            <h5 className="text-sm font-bold">{table.title}</h5>
+            <h5 className="text-sm font-bold">
+              <UserContentText text={table.title} as="span" />
+            </h5>
             {table.caption && (
-              <p className="text-xs text-[var(--text-muted)]">{table.caption}</p>
+              <p className="text-xs text-[var(--text-muted)]">
+                <UserContentText text={table.caption} as="span" />
+              </p>
             )}
           </div>
           <div className="table-wrapper overflow-x-auto">

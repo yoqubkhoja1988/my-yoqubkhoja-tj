@@ -2,6 +2,7 @@
 
 import FinanceReportForm5Panel from '@/components/FinanceReportForm5Panel';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
+import UserContentText from '@/components/UserContentText';
 import {
   FINANCIAL_REPORT_INSTRUCTION,
   FINANCIAL_REPORT_FORMS,
@@ -299,7 +300,7 @@ export default function FinanceReportsPanel({
         <p className="page-eyebrow">{t('actGroupFinancialReports')}</p>
         <h4 className="text-sm font-bold">{t(titleKey)}</h4>
         <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-          {summary || t('financeReportsDefaultSummary')}
+          <UserContentText text={summary || t('financeReportsDefaultSummary')} as="span" />
         </p>
       </div>
 

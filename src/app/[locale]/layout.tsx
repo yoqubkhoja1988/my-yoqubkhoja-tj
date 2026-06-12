@@ -29,7 +29,6 @@ export async function generateMetadata({
     title: messages.siteName ?? 'Yoqubkhoja Hub',
     description: messages.siteDescription ?? messages.siteName,
     icons: { icon: '/favicon.svg' },
-    other: { google: 'notranslate' },
   };
 }
 
@@ -49,7 +48,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={toHtmlLang(locale)} translate="no" className={`${inter.variable} notranslate`}>
+    <html lang={toHtmlLang(locale)} className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <SessionProvider>{children}</SessionProvider>

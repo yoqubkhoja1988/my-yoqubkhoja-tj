@@ -3,6 +3,7 @@
 import { StaffAnalytics } from '@/lib/staff-analytics';
 import { VacancyNoticeInfo } from '@/types/organization-section';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import UserContentText from '@/components/UserContentText';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { printDocument } from '@/lib/print-document';
 import { useTranslations } from 'next-intl';
@@ -132,7 +133,9 @@ export default function StaffVacancyNotice({
             )}
           </div>
 
-          <p className="mb-4 text-justify text-xs leading-relaxed md:text-sm">{info.intro}</p>
+          <p className="mb-4 text-justify text-xs leading-relaxed md:text-sm">
+            <UserContentText text={info.intro ?? ''} as="span" />
+          </p>
 
           <div className="table-wrapper table-scroll-sm">
             <table>
@@ -151,8 +154,12 @@ export default function StaffVacancyNotice({
                 {vacantSlots.map((slot, index) => (
                   <tr key={`${slot.department}-${slot.position}`}>
                     <td>{index + 1}</td>
-                    <td>{slot.department}</td>
-                    <td className="font-semibold text-[var(--accent)]">{slot.position}</td>
+                    <td>
+                      <UserContentText text={slot.department} as="span" />
+                    </td>
+                    <td className="font-semibold text-[var(--accent)]">
+                      <UserContentText text={slot.position} as="span" />
+                    </td>
                     <td className="font-bold text-amber-400">{slot.vacant}</td>
                     <td>{slot.baseSalary || '—'}</td>
                     <td>{slot.monthlyWage || '—'}</td>
@@ -177,7 +184,9 @@ export default function StaffVacancyNotice({
               <p className="text-xs font-bold uppercase text-[var(--text-muted)]">
                 {t('vacancyNoticeRequirements')}
               </p>
-              <p className="mt-1 text-xs leading-relaxed md:text-sm">{info.requirements}</p>
+              <p className="mt-1 text-xs leading-relaxed md:text-sm">
+                <UserContentText text={info.requirements} as="span" />
+              </p>
             </div>
           )}
 

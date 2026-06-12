@@ -1,5 +1,6 @@
 'use client';
 
+import UserContentText from '@/components/UserContentText';
 import { Link } from '@/i18n/navigation';
 import {
   getActivityDirection,
@@ -73,7 +74,7 @@ function OverviewPanel({ organization }: { organization: Organization }) {
       <SectionHeader icon="🏠" title={t('actOverview')} />
       {organization.description?.trim() && (
         <p className="mb-4 text-xs leading-relaxed text-[var(--text-muted)] md:text-sm">
-          {organization.description}
+          <UserContentText text={organization.description.trim()} as="span" />
         </p>
       )}
       <dl className="grid gap-3 sm:grid-cols-2">
@@ -161,14 +162,16 @@ export default function OrganizationDetailContent({
   const sidebar = (
     <div className="flex h-full flex-col p-3">
       <p className="page-eyebrow">{t('orgMenu')}</p>
-      <h2 className="mt-2 text-sm font-bold leading-snug">{organization.name}</h2>
+      <h2 className="mt-2 text-sm font-bold leading-snug">
+        <UserContentText text={organization.name} as="span" />
+      </h2>
       {organization.rma && (
         <p className="mt-2 inline-block rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
           {t('organizationRma')}: {organization.rma}
         </p>
       )}
 
-      <nav className="notranslate mt-4 flex-1 space-y-3 overflow-y-auto pr-1">
+      <nav className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1">
         {grouped.map((group) => (
           <div key={group.groupKey}>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
