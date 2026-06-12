@@ -54,6 +54,11 @@ import StaffVacancyPanel from './StaffVacancyPanel';
 import LegalDocumentsPanel from './LegalDocumentsPanel';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { ensureForm5Tables, form5TablesFromAll } from '@/lib/financial-report-form5';
+import {
+  isFinancialReportSection,
+  resolveFinancialReportStorageSlug,
+  resolveFinancialReportView,
+} from '@/lib/financial-reports-menu';
 import { isCharterLegalSection } from '@/lib/user-access';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
@@ -283,7 +288,8 @@ export default function EditableSectionContent({
       vacancyNotice: draft.vacancyNotice ?? data.vacancyNotice,
       timesheets: draft.timesheets ?? data.timesheets,
     });
-    const saved = await updateOrganizationSection(organizationId, section, payload);
+    const storageSlug = resolveFinancialReportStorageSlug(section);
+    const saved = await updateOrganizationSection(organizationId, storageSlug, payload);
     setSaving(false);
 
     if (!saved) {
@@ -495,7 +501,7 @@ export default function EditableSectionContent({
 
       {((section !== 'finance' &&
         section !== 'staff' &&
-        section !== 'financial-reports' &&
+        !isFinancialReportSection(section) &&
         !isCharterLegalSection(section)) ||
         (section === 'finance' &&
           (activeFinanceSection === 'finance-stats' ||
@@ -578,7 +584,7 @@ export default function EditableSectionContent({
         />
       )}
 
-      {section === 'financial-reports' && (
+      {isFinancialReportSection(section) && (
         <>
           {editing && draft ? (
             <textarea
@@ -590,6 +596,7 @@ export default function EditableSectionContent({
             />
           ) : null}
           <FinanceReportsPanel
+            view={resolveFinancialReportView(section)}
             summary={view.summary}
             items={view.items ?? []}
             tables={view.tables ?? []}

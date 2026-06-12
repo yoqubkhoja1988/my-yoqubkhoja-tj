@@ -1,7 +1,10 @@
 import { ActivityDirection } from '@/types/activity-direction';
+import { getFinancialReportMenuDirections } from '@/lib/financial-reports-menu';
 
 export const FOOD_SAFETY_CENTER_ID = 'b8c5fe62-c216-410e-9dcf-c845838f0ad7';
 export const KINDERGARTEN_SCHOOL_ID = '8c19df05-9925-4a55-8daf-c03d607f954c';
+
+const FINANCIAL_REPORT_MENU = getFinancialReportMenuDirections();
 
 /**
  * Меню мувофиқи cfs.tj (Фаъолият, Хабарҳо, Маводҳо)
@@ -108,6 +111,8 @@ const FOOD_SAFETY_DIRECTIONS: ActivityDirection[] = [
     groupKey: 'actGroupAdmin',
   },
   { slug: 'reports', icon: '📈', labelKey: 'actReports', groupKey: 'actGroupAdmin' },
+
+  ...FINANCIAL_REPORT_MENU,
 ];
 
 /**
@@ -180,18 +185,14 @@ const KINDERGARTEN_SCHOOL_DIRECTIONS: ActivityDirection[] = [
   { slug: 'staff', icon: '👥', labelKey: 'actStaff', groupKey: 'actGroupMaterialFinance' },
   { slug: 'finance', icon: '💰', labelKey: 'actFinance', groupKey: 'actGroupMaterialFinance' },
   {
-    slug: 'financial-reports',
-    icon: '📊',
-    labelKey: 'actFinancialReports',
-    groupKey: 'actGroupMaterialFinance',
-  },
-  {
     slug: 'formation-report',
     icon: '📋',
     labelKey: 'actFormationReport',
     groupKey: 'actGroupMaterialFinance',
   },
   { slug: 'reports', icon: '📈', labelKey: 'actReports', groupKey: 'actGroupMaterialFinance' },
+
+  ...FINANCIAL_REPORT_MENU,
 
   { slug: 'news', icon: '📢', labelKey: 'actNews', groupKey: 'actGroupInfo' },
   { slug: 'photogallery', icon: '📷', labelKey: 'actPhotogallery', groupKey: 'actGroupInfo' },
@@ -209,6 +210,7 @@ export function getActivityDirections(organizationId: string): ActivityDirection
   return (
     DIRECTIONS_BY_ORG[organizationId] ?? [
       { slug: 'overview', icon: '🏠', labelKey: 'actOverview', groupKey: 'actGroupGeneral' },
+      ...FINANCIAL_REPORT_MENU,
     ]
   );
 }

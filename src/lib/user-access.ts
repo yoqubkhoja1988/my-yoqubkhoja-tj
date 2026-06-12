@@ -4,12 +4,18 @@ import { UserPermissions } from '@/types/user';
 import { Organization } from '@/types/organization';
 import { ActivityDirection } from '@/types/activity-direction';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import {
+  FINANCIAL_REPORT_SECTION_SLUGS,
+  isFinancialReportSection,
+} from '@/lib/financial-reports-menu';
 
 const AUTO_VISIBLE_LEGAL_SECTIONS = new Set<string>([
   LEGAL_SECTION_SLUGS.laws,
   LEGAL_SECTION_SLUGS.decisions,
   LEGAL_SECTION_SLUGS.documents,
 ]);
+
+const AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS = new Set<string>(FINANCIAL_REPORT_SECTION_SLUGS);
 
 function hasOrganizationAccess(session: Session | null | undefined): boolean {
   if (!session?.user || isSiteAdmin(session)) return false;
@@ -49,11 +55,12 @@ export function isCharterLegalSection(sectionSlug: string): boolean {
 /** Бахшҳои таҳриршаванда барои корбари ташкилот */
 export const ORG_USER_EDITABLE_SECTIONS = [
   ...CHARTER_LEGAL_SECTION_SLUGS,
-  'financial-reports',
+  ...FINANCIAL_REPORT_SECTION_SLUGS,
 ] as const;
 
 export function isOrgUserEditableSection(sectionSlug: string): boolean {
-  return (ORG_USER_EDITABLE_SECTIONS as readonly string[]).includes(sectionSlug);
+  if (isCharterLegalSection(sectionSlug)) return true;
+  return isFinancialReportSection(sectionSlug);
 }
 
 /** Таҳрири мундариҷа — барои корбари ташкилот бо дастрасӣ ба бахш */
@@ -106,6 +113,9 @@ export function canAccessSection(
   if (AUTO_VISIBLE_LEGAL_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
     return true;
   }
+  if (AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
+    return true;
+  }
   return permissions?.sectionSlugs.includes(sectionSlug) ?? false;
 }
 
@@ -139,6 +149,7 @@ export function filterDirectionsForSession(
   return directions.filter(
     (direction) =>
       allowedSections.includes(direction.slug) ||
-      (orgAccess && AUTO_VISIBLE_LEGAL_SECTIONS.has(direction.slug))
+      (orgAccess && AUTO_VISIBLE_LEGAL_SECTIONS.has(direction.slug)) ||
+      (orgAccess && AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(direction.slug))
   );
 }

@@ -13,8 +13,13 @@ import {
 } from '@/lib/staff-timesheet-leave-sync';
 import { requireSession } from '@/lib/api-guard';
 import { validateOrganizationSectionIsolation } from '@/lib/organization-scope';
-import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import {
+  DEFAULT_FINANCIAL_REPORTS_CONTENT,
+  isFinancialReportSection,
+  resolveFinancialReportStorageSlug,
+} from '@/lib/financial-reports-menu';
 import { syncOfficialLegalForOrganization } from '@/lib/official-legal-sync';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { canAccessOrganizationSection, canEditOrganizationSection } from '@/lib/user-access';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { NextRequest, NextResponse } from 'next/server';
@@ -35,10 +40,15 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     section === LEGAL_SECTION_SLUGS.decisions ||
     section === LEGAL_SECTION_SLUGS.documents;
 
-  let content = await getOrganizationSection(id, section);
+  const storageSlug = resolveFinancialReportStorageSlug(section);
+
+  let content = await getOrganizationSection(id, storageSlug);
   if (isLegalSection && (!content || !content.items?.length)) {
     await syncOfficialLegalForOrganization(id);
-    content = await getOrganizationSection(id, section);
+    content = await getOrganizationSection(id, storageSlug);
+  }
+  if (isFinancialReportSection(section) && !content) {
+    content = { ...DEFAULT_FINANCIAL_REPORTS_CONTENT };
   }
   if (!content) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -52,6 +62,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   if (session instanceof NextResponse) return session;
 
   const { id, section } = await context.params;
+  const storageSlug = resolveFinancialReportStorageSlug(section);
   if (!canEditOrganizationSection(session, id, section)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -61,7 +72,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Summary required' }, { status: 400 });
     }
 
-    validateOrganizationSectionIsolation(id, section, body);
+    validateOrganizationSectionIsolation(id, storageSlug, body);
 
     const previousStaff =
       section === 'staff' && body.timesheets !== undefined
@@ -73,7 +84,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         ? await getOrganizationSection(id, 'finance')
         : null;
 
-    const saved = await writeOrganizationSection(id, section, {
+    const saved = await writeOrganizationSection(id, storageSlug, {
       summary: body.summary.trim(),
       ...(body.tables ? { tables: body.tables } : {}),
       ...(body.items ? { items: body.items } : {}),
@@ -159,7 +170,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       }
     }
 
-    const latest = (await getOrganizationSection(id, section)) ?? saved;
+    const latest = (await getOrganizationSection(id, storageSlug)) ?? saved;
     return NextResponse.json(latest);
   } catch (error) {
     console.error('PUT organization section failed:', error);

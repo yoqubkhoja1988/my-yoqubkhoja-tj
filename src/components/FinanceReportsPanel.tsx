@@ -9,11 +9,16 @@ import {
   rootFinancialReportForms,
 } from '@/lib/financial-reports-catalog';
 import { form5TablesFromAll } from '@/lib/financial-report-form5';
+import {
+  FINANCIAL_REPORT_FORM_ID_BY_VIEW,
+  FinancialReportView,
+} from '@/lib/financial-reports-menu';
 import { SectionItem, SectionTable } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
 type Props = {
+  view?: FinancialReportView;
   summary?: string;
   items?: SectionItem[];
   tables?: SectionTable[];
@@ -29,7 +34,18 @@ type Props = {
   onInitForm5?: () => void;
 };
 
-type TabId = FinancialReportPeriod | 'form5' | 'deadlines';
+const VIEW_TITLE_KEYS: Partial<Record<FinancialReportView, string>> = {
+  overview: 'financeReportsTitle',
+  form1: 'actFinancialReportsForm1',
+  form2: 'actFinancialReportsForm2',
+  form3: 'actFinancialReportsForm3',
+  form4: 'actFinancialReportsForm4',
+  form5: 'actFinancialReportsForm5',
+  form6: 'actFinancialReportsForm6',
+  annual: 'actFinancialReportsAnnual',
+  quarterly: 'actFinancialReportsQuarterly',
+  deadlines: 'actFinancialReportsDeadlines',
+};
 
 function attachmentForForm(items: SectionItem[], formId: string): SectionItem | undefined {
   return items.find((item) => item.reportFormId === formId);
@@ -150,6 +166,7 @@ function FormCard({
 }
 
 export default function FinanceReportsPanel({
+  view = 'overview',
   summary,
   items = [],
   tables = [],
@@ -160,19 +177,8 @@ export default function FinanceReportsPanel({
   onInitForm5,
 }: Props) {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<TabId>('form5');
-
   const form5Tables = useMemo(() => form5TablesFromAll(tables), [tables]);
-
-  const tabs: { id: TabId; label: string }[] = useMemo(
-    () => [
-      { id: 'form5', label: t('financeReportsTabForm5') },
-      { id: 'annual', label: t('financeReportsTabAnnual') },
-      { id: 'quarterly', label: t('financeReportsTabQuarterly') },
-      { id: 'deadlines', label: t('financeReportsTabDeadlines') },
-    ],
-    [t]
-  );
+  const titleKey = VIEW_TITLE_KEYS[view] ?? 'financeReportsTitle';
 
   function patchForm(formId: string, patch: Partial<SectionItem>) {
     if (!onItemsChange) return;
@@ -214,48 +220,105 @@ export default function FinanceReportsPanel({
     );
   }
 
+  function renderSingleFormView(formId: string) {
+    const form = FINANCIAL_REPORT_FORMS.find((entry) => entry.id === formId);
+    if (!form) return null;
+
+    const period: FinancialReportPeriod = form.periods.includes('annual') ? 'annual' : 'quarterly';
+    const children = childFinancialReportForms(formId, period);
+
+    return (
+      <FormCard
+        formId={form.id}
+        formCode={form.formCode}
+        title={t(form.titleKey)}
+        attachment={attachmentForForm(items, form.id)}
+        editing={editing}
+        onPatch={(patch) => patchForm(form.id, patch)}
+        t={t}
+      >
+        {children.map((child) => (
+          <FormCard
+            key={child.id}
+            formId={child.id}
+            formCode={child.formCode}
+            title={t(child.titleKey)}
+            attachment={attachmentForForm(items, child.id)}
+            editing={editing}
+            onPatch={(patch) => patchForm(child.id, patch)}
+            t={t}
+          />
+        ))}
+      </FormCard>
+    );
+  }
+
+  function renderDeadlines() {
+    return (
+      <dl className="grid gap-3 sm:grid-cols-2">
+        {[
+          'financeReportsDeadlineAnnual',
+          'financeReportsDeadlineQuarterly',
+          'financeReportsDeadlineForm5',
+          'financeReportsDeadlineForm6',
+        ].map((key) => (
+          <div
+            key={key}
+            className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/30 p-3"
+          >
+            <dt className="text-xs font-bold text-[var(--text)]">{t(`${key}Title`)}</dt>
+            <dd className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
+              {t(`${key}Body`)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+
+  const instructionBlock = (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/20 p-4 text-xs leading-relaxed text-[var(--text-muted)]">
+      <p className="font-semibold text-[var(--text)]">{t(FINANCIAL_REPORT_INSTRUCTION.titleKey)}</p>
+      <p className="mt-1">
+        {t('financeReportsInstructionMeta', {
+          number: FINANCIAL_REPORT_INSTRUCTION.number,
+          date: FINANCIAL_REPORT_INSTRUCTION.date,
+        })}
+      </p>
+      <p className="mt-1">{t(FINANCIAL_REPORT_INSTRUCTION.issuerKey)}</p>
+      <p className="mt-1">{t(FINANCIAL_REPORT_INSTRUCTION.standardKey)}</p>
+    </div>
+  );
+
+  const formId = FINANCIAL_REPORT_FORM_ID_BY_VIEW[view];
+
   return (
     <div className="space-y-4">
       <div>
-        <p className="page-eyebrow">{t('financeReportsEyebrow')}</p>
-        <h4 className="text-sm font-bold">{t('financeReportsTitle')}</h4>
+        <p className="page-eyebrow">{t('actGroupFinancialReports')}</p>
+        <h4 className="text-sm font-bold">{t(titleKey)}</h4>
         <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
           {summary || t('financeReportsDefaultSummary')}
         </p>
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/20 p-4 text-xs leading-relaxed text-[var(--text-muted)]">
-        <p className="font-semibold text-[var(--text)]">{t(FINANCIAL_REPORT_INSTRUCTION.titleKey)}</p>
-        <p className="mt-1">
-          {t('financeReportsInstructionMeta', {
-            number: FINANCIAL_REPORT_INSTRUCTION.number,
-            date: FINANCIAL_REPORT_INSTRUCTION.date,
-          })}
-        </p>
-        <p className="mt-1">{t(FINANCIAL_REPORT_INSTRUCTION.issuerKey)}</p>
-        <p className="mt-1">{t(FINANCIAL_REPORT_INSTRUCTION.standardKey)}</p>
-      </div>
+      {view === 'overview' && (
+        <>
+          {instructionBlock}
+          <p className="text-xs leading-relaxed text-[var(--text-muted)]">
+            {t('financeReportsOverviewHint')}
+          </p>
+        </>
+      )}
 
-      <div className="flex flex-wrap gap-1.5">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-              activeTab === tab.id
-                ? 'bg-gradient-to-r from-[var(--accent)] to-indigo-500 text-white shadow-md shadow-blue-500/20'
-                : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {view !== 'overview' && instructionBlock}
 
-      {activeTab === 'form5' && (
+      {formId && view !== 'form5' && renderSingleFormView(formId)}
+
+      {view === 'form5' && (
         <div className="space-y-3">
           <p className="text-xs text-[var(--text-muted)]">{t('financeReportForm5Intro')}</p>
+          {renderSingleFormView('form-5')}
           {form5Tables.length === 0 && editing && onInitForm5 ? (
             <button type="button" onClick={onInitForm5} className="btn-primary text-xs">
               {t('financeReportForm5Init')}
@@ -271,40 +334,21 @@ export default function FinanceReportsPanel({
         </div>
       )}
 
-      {activeTab === 'annual' && (
+      {view === 'annual' && (
         <div className="space-y-3">
           <p className="text-xs text-[var(--text-muted)]">{t('financeReportsAnnualNote')}</p>
           {renderFormTree('annual')}
         </div>
       )}
 
-      {activeTab === 'quarterly' && (
+      {view === 'quarterly' && (
         <div className="space-y-3">
           <p className="text-xs text-[var(--text-muted)]">{t('financeReportsQuarterlyNote')}</p>
           {renderFormTree('quarterly')}
         </div>
       )}
 
-      {activeTab === 'deadlines' && (
-        <dl className="grid gap-3 sm:grid-cols-2">
-          {[
-            'financeReportsDeadlineAnnual',
-            'financeReportsDeadlineQuarterly',
-            'financeReportsDeadlineForm5',
-            'financeReportsDeadlineForm6',
-          ].map((key) => (
-            <div
-              key={key}
-              className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/30 p-3"
-            >
-              <dt className="text-xs font-bold text-[var(--text)]">{t(`${key}Title`)}</dt>
-              <dd className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-                {t(`${key}Body`)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      {view === 'deadlines' && renderDeadlines()}
     </div>
   );
 }

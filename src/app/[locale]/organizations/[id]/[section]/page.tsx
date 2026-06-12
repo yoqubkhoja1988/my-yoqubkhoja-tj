@@ -1,7 +1,12 @@
 import { auth } from '@/auth';
 import OrganizationDetailContent from '@/components/OrganizationDetailContent';
-import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import {
+  DEFAULT_FINANCIAL_REPORTS_CONTENT,
+  isFinancialReportSection,
+  resolveFinancialReportStorageSlug,
+} from '@/lib/financial-reports-menu';
 import { syncOfficialLegalForOrganization } from '@/lib/official-legal-sync';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { getOrganizationSection } from '@/lib/organization-sections-store';
 import { readOrganizationsFile } from '@/lib/organizations-store';
 import { canAccessOrganizationSection } from '@/lib/user-access';
@@ -34,10 +39,15 @@ export default async function OrganizationSectionPage({
     section === LEGAL_SECTION_SLUGS.decisions ||
     section === LEGAL_SECTION_SLUGS.documents;
 
-  let sectionContent = await getOrganizationSection(id, section);
+  const storageSlug = resolveFinancialReportStorageSlug(section);
+
+  let sectionContent = await getOrganizationSection(id, storageSlug);
   if (isLegalSection && (!sectionContent || !sectionContent.items?.length)) {
     await syncOfficialLegalForOrganization(id);
-    sectionContent = await getOrganizationSection(id, section);
+    sectionContent = await getOrganizationSection(id, storageSlug);
+  }
+  if (isFinancialReportSection(section) && !sectionContent) {
+    sectionContent = { ...DEFAULT_FINANCIAL_REPORTS_CONTENT };
   }
   const staffContent =
     section === 'finance' || section === 'formation-report'
