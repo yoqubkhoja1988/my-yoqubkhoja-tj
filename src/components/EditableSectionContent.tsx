@@ -15,6 +15,7 @@ import {
 } from '@/lib/staff-table-calc';
 import {
   OrganizationSectionContent,
+  SectionItem,
   SectionTable,
   VacancyNoticeInfo,
 } from '@/types/organization-section';
@@ -51,6 +52,7 @@ import StaffFormationReportPanel from './StaffFormationReportPanel';
 import StaffVacancyPanel from './StaffVacancyPanel';
 import LegalDocumentsPanel from './LegalDocumentsPanel';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import { isCharterLegalSection } from '@/lib/user-access';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
   return JSON.parse(JSON.stringify(content)) as OrganizationSectionContent;
@@ -371,6 +373,22 @@ export default function EditableSectionContent({
     setDraft({ ...draft, tables: recalculateAllStaffTables(tables) });
   }
 
+  function resolveLegalSectionType():
+    | 'laws'
+    | 'decisions'
+    | 'documents'
+    | 'general' {
+    if (section === LEGAL_SECTION_SLUGS.laws) return 'laws';
+    if (section === LEGAL_SECTION_SLUGS.decisions) return 'decisions';
+    if (section === LEGAL_SECTION_SLUGS.documents) return 'documents';
+    return 'general';
+  }
+
+  function updateDraftItems(items: SectionItem[]) {
+    if (!draft) return;
+    setDraft({ ...draft, items });
+  }
+
   function removeStaffingRow(tableIndex: number, rowIndex: number) {
     if (!draft?.tables) return;
     const table = draft.tables[tableIndex];
@@ -431,9 +449,7 @@ export default function EditableSectionContent({
 
       {((section !== 'finance' &&
         section !== 'staff' &&
-        section !== LEGAL_SECTION_SLUGS.laws &&
-        section !== LEGAL_SECTION_SLUGS.decisions &&
-        section !== LEGAL_SECTION_SLUGS.documents) ||
+        !isCharterLegalSection(section)) ||
         (section === 'finance' &&
           (activeFinanceSection === 'finance-stats' ||
             activeFinanceSection === 'finance-budget')) ||
@@ -741,27 +757,29 @@ export default function EditableSectionContent({
         />
       )}
 
-      {(section === LEGAL_SECTION_SLUGS.laws ||
-        section === LEGAL_SECTION_SLUGS.decisions ||
-        section === LEGAL_SECTION_SLUGS.documents) && (
+      {isCharterLegalSection(section) && (
+        <>
+          {editing && draft ? (
+            <textarea
+              value={draft.summary}
+              onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+              rows={4}
+              className="input-field text-sm"
+            />
+          ) : null}
           <LegalDocumentsPanel
-            summary={view.summary}
+            summary={editing ? undefined : view.summary}
             items={view.items ?? []}
-            sectionType={
-              section === LEGAL_SECTION_SLUGS.laws
-                ? 'laws'
-                : section === LEGAL_SECTION_SLUGS.decisions
-                  ? 'decisions'
-                  : 'documents'
-            }
+            sectionType={resolveLegalSectionType()}
+            editing={editing && !!draft}
+            onItemsChange={editing && draft ? updateDraftItems : undefined}
           />
-        )}
+        </>
+      )}
 
       {view.items &&
         view.items.length > 0 &&
-        section !== LEGAL_SECTION_SLUGS.laws &&
-        section !== LEGAL_SECTION_SLUGS.decisions &&
-        section !== LEGAL_SECTION_SLUGS.documents &&
+        !isCharterLegalSection(section) &&
         ((section !== 'finance' && section !== 'staff') ||
           (section === 'finance' && activeFinanceSection === 'finance-contacts') ||
           (section === 'staff' && activeStaffSection === 'staff-stats')) && (

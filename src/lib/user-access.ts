@@ -33,6 +33,32 @@ export function canEditOrganizationContent(session: Session | null | undefined):
   return false;
 }
 
+/** Бахшҳои гурӯҳи «Оиннома ва ҳуҷҷатҳои ҳуқуқӣ» */
+export const CHARTER_LEGAL_SECTION_SLUGS = [
+  'charter',
+  'legal',
+  LEGAL_SECTION_SLUGS.laws,
+  LEGAL_SECTION_SLUGS.decisions,
+  LEGAL_SECTION_SLUGS.documents,
+] as const;
+
+export function isCharterLegalSection(sectionSlug: string): boolean {
+  return (CHARTER_LEGAL_SECTION_SLUGS as readonly string[]).includes(sectionSlug);
+}
+
+/** Таҳрири ҳуҷҷатҳои оиннома/қонунӣ — барои корбари ташкилот бо дастрасӣ ба бахш */
+export function canEditOrganizationSection(
+  session: Session | null | undefined,
+  organizationId: string,
+  sectionSlug: string
+): boolean {
+  if (!session?.user) return false;
+  if (isSiteAdmin(session)) return true;
+  if (isSupervisionOnlyUser(session)) return false;
+  if (!isCharterLegalSection(sectionSlug)) return false;
+  return canAccessOrganizationSection(session, organizationId, sectionSlug);
+}
+
 export function canAccessProjects(session: Session | null | undefined): boolean {
   if (!session?.user) return false;
   if (isSiteAdmin(session)) return true;

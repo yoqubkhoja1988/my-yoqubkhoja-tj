@@ -6,7 +6,11 @@ import {
   getActivityDirections,
   groupActivityDirections,
 } from '@/lib/activity-directions';
-import { filterDirectionsForSession, canEditOrganizationContent, isSupervisionOnlyUser } from '@/lib/user-access';
+import {
+  canEditOrganizationSection,
+  filterDirectionsForSession,
+  isSupervisionOnlyUser,
+} from '@/lib/user-access';
 import { OrganizationAccessProvider } from '@/contexts/organization-access-context';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
@@ -142,14 +146,14 @@ export default function OrganizationDetailContent({
 }: Props) {
   const t = useTranslations();
   const { data: session } = useSession();
-  const canEdit = canEditOrganizationContent(session);
+  const activeSection = section || 'overview';
+  const canEdit = canEditOrganizationSection(session, organization.id, activeSection);
   const supervisionOnly = isSupervisionOnlyUser(session);
   const directions = useMemo(
     () => filterDirectionsForSession(session, getActivityDirections(organization.id)),
     [session, organization.id]
   );
   const grouped = groupActivityDirections(directions);
-  const activeSection = section || 'overview';
 
   const sidebar = (
     <div className="flex h-full flex-col p-3">

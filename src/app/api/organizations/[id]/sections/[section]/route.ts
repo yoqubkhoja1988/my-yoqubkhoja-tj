@@ -11,11 +11,11 @@ import {
   monthsAffectedByLaborLeaves,
   syncTimesheetsWithLaborLeaves,
 } from '@/lib/staff-timesheet-leave-sync';
-import { requireAdmin, requireSession } from '@/lib/api-guard';
+import { requireSession } from '@/lib/api-guard';
 import { validateOrganizationSectionIsolation } from '@/lib/organization-scope';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { syncOfficialLegalForOrganization } from '@/lib/official-legal-sync';
-import { canAccessOrganizationSection } from '@/lib/user-access';
+import { canAccessOrganizationSection, canEditOrganizationSection } from '@/lib/user-access';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -48,10 +48,13 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
-  const session = await requireAdmin();
+  const session = await requireSession();
   if (session instanceof NextResponse) return session;
 
   const { id, section } = await context.params;
+  if (!canEditOrganizationSection(session, id, section)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
   try {
     const body = (await request.json()) as OrganizationSectionContent;
     if (!body.summary?.trim()) {

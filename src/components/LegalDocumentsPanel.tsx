@@ -5,7 +5,7 @@ import { SectionItem } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
-type LegalTab = 'laws' | 'decisions' | 'documents';
+type LegalTab = 'laws' | 'decisions' | 'documents' | 'general';
 
 type Props = {
   summary?: string;
@@ -15,6 +15,8 @@ type Props = {
   laws?: SectionItem[];
   decisions?: SectionItem[];
   documents?: SectionItem[];
+  editing?: boolean;
+  onItemsChange?: (items: SectionItem[]) => void;
 };
 
 function typeBadgeClass(type?: SectionItem['documentType']): string {
@@ -93,6 +95,82 @@ function DocumentCard({ item, t }: { item: SectionItem; t: (key: string) => stri
   );
 }
 
+function EditableDocumentCard({
+  item,
+  index,
+  onChange,
+  onRemove,
+}: {
+  item: SectionItem;
+  index: number;
+  onChange: (index: number, item: SectionItem) => void;
+  onRemove: (index: number) => void;
+}) {
+  const t = useTranslations();
+  return (
+    <article className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/40 p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-xs font-bold text-[var(--text-muted)]">
+          {t('legalDocItemNo', { no: index + 1 })}
+        </p>
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          className="text-xs font-semibold text-red-400 hover:text-red-300"
+        >
+          {t('legalDocRemoveItem')}
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <label className="field-label">{t('legalDocFieldTitle')}</label>
+          <input
+            type="text"
+            value={item.title}
+            onChange={(e) => onChange(index, { ...item, title: e.target.value })}
+            className="input-field text-sm"
+            placeholder={t('legalDocTitlePlaceholder')}
+          />
+        </div>
+
+        <div>
+          <label className="field-label">{t('legalDocFieldDetail')}</label>
+          <input
+            type="text"
+            value={item.detail ?? ''}
+            onChange={(e) => onChange(index, { ...item, detail: e.target.value })}
+            className="input-field text-sm"
+            placeholder={t('legalDocDetailPlaceholder')}
+          />
+        </div>
+
+        <div>
+          <label className="field-label">{t('legalDocFieldDescription')}</label>
+          <textarea
+            value={item.description ?? ''}
+            onChange={(e) => onChange(index, { ...item, description: e.target.value })}
+            rows={3}
+            className="input-field text-sm"
+            placeholder={t('legalDocDescriptionPlaceholder')}
+          />
+        </div>
+
+        <div>
+          <label className="field-label">{t('legalDocFieldUrl')}</label>
+          <input
+            type="url"
+            value={item.url ?? ''}
+            onChange={(e) => onChange(index, { ...item, url: e.target.value })}
+            className="input-field text-sm"
+            placeholder={t('legalDocUrlPlaceholder')}
+          />
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function LegalDocumentsPanel({
   summary,
   items,
@@ -101,9 +179,13 @@ export default function LegalDocumentsPanel({
   laws = [],
   decisions = [],
   documents = [],
+  editing = false,
+  onItemsChange,
 }: Props) {
   const t = useTranslations();
-  const [activeTab, setActiveTab] = useState<LegalTab>(sectionType);
+  const [activeTab, setActiveTab] = useState<LegalTab>(
+    sectionType === 'general' ? 'documents' : sectionType
+  );
   const [search, setSearch] = useState('');
 
   const tabs: { key: LegalTab; label: string; count: number }[] = [
@@ -122,23 +204,49 @@ export default function LegalDocumentsPanel({
       : items;
 
     const q = search.trim().toLowerCase();
-    if (!q) return list;
+    if (!q || editing) return list;
 
     return list.filter(
       (item) =>
         item.title.toLowerCase().includes(q) ||
         item.detail?.toLowerCase().includes(q) ||
-        item.description?.toLowerCase().includes(q)
+        item.description?.toLowerCase().includes(q) ||
+        item.url?.toLowerCase().includes(q)
     );
-  }, [activeTab, decisions, documents, items, laws, search, showTabs]);
+  }, [activeTab, decisions, documents, editing, items, laws, search, showTabs]);
+
+  function patchItem(index: number, item: SectionItem) {
+    if (!onItemsChange) return;
+    const next = [...items];
+    next[index] = item;
+    onItemsChange(next);
+  }
+
+  function removeItem(index: number) {
+    if (!onItemsChange) return;
+    onItemsChange(items.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  function addItem() {
+    if (!onItemsChange) return;
+    const documentType =
+      sectionType === 'laws'
+        ? 'law'
+        : sectionType === 'decisions'
+          ? 'decision'
+          : sectionType === 'documents'
+            ? 'document'
+            : undefined;
+    onItemsChange([...(items ?? []), { title: '', ...(documentType ? { documentType } : {}) }]);
+  }
 
   return (
     <div className="space-y-4">
-      {summary && (
+      {summary && !editing && (
         <p className="text-sm leading-relaxed text-[var(--text-muted)]">{summary}</p>
       )}
 
-      {showTabs && (
+      {showTabs && !editing && (
         <div className="flex flex-wrap gap-1.5">
           {tabs.map((tab) => (
             <button
@@ -157,18 +265,40 @@ export default function LegalDocumentsPanel({
         </div>
       )}
 
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={t('legalDocSearchPlaceholder')}
-        className="input-field max-w-md"
-      />
+      {!editing && (
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t('legalDocSearchPlaceholder')}
+          className="input-field max-w-md"
+        />
+      )}
+
+      {editing && onItemsChange && (
+        <button type="button" onClick={addItem} className="btn-secondary text-xs">
+          + {t('legalDocAddItem')}
+        </button>
+      )}
 
       {activeItems.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">📄</div>
-          <p className="text-[var(--text-muted)]">{t('legalDocEmpty')}</p>
+          <p className="text-[var(--text-muted)]">
+            {editing ? t('legalDocEmptyEdit') : t('legalDocEmpty')}
+          </p>
+        </div>
+      ) : editing && onItemsChange ? (
+        <div className="grid gap-3">
+          {activeItems.map((item, index) => (
+            <EditableDocumentCard
+              key={`edit-${index}`}
+              item={item}
+              index={index}
+              onChange={patchItem}
+              onRemove={removeItem}
+            />
+          ))}
         </div>
       ) : (
         <div className="grid gap-3">
@@ -178,7 +308,7 @@ export default function LegalDocumentsPanel({
         </div>
       )}
 
-      <p className="text-[10px] text-[var(--text-muted)]">{t('legalDocOfficialNote')}</p>
+      {!editing && <p className="text-[10px] text-[var(--text-muted)]">{t('legalDocOfficialNote')}</p>}
     </div>
   );
 }
