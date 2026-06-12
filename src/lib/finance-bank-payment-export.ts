@@ -1,4 +1,5 @@
 import type ExcelJS from 'exceljs';
+import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import {
   calcEntryTotals,
   formatLedgerAmount,
@@ -77,6 +78,7 @@ export type BankPaymentExportLabels = {
 export function getBankPaymentExportLabels(names: {
   directorName: string;
   accountantName: string;
+  organizationId?: string;
 }): BankPaymentExportLabels {
   return {
     sheetPrint: 'Варақа',
@@ -91,7 +93,7 @@ export function getBankPaymentExportLabels(names: {
     colPurpose: 'Тавзеҳи пардохт',
     total: 'Ҳамагӣ',
     totalInWords: 'Бо ҳарф',
-    director: 'Сардор',
+    director: getDirectorSignatureLabel(names.organizationId),
     accountant: 'Сармуҳосиб',
     accountantRole: 'Мудири бахш — Сармуҳосиб',
     directorName: names.directorName,
@@ -258,6 +260,7 @@ export function buildBankPaymentDocument(
   organization?: Organization
 ): BankPaymentDocument {
   const ledger = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
+    organizationId: organization?.id,
     positionHandovers: financeContent.positionHandovers,
     laborLeaves: financeContent.laborLeaves,
     payrollLedgers: financeContent.payrollLedgers,

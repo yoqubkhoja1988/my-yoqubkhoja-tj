@@ -60,7 +60,8 @@ export function syncLedgersAfterHandoverChange(
   positionHandovers: PositionHandover[] | undefined,
   staffContent: OrganizationSectionContent,
   months: string[],
-  laborLeaves?: LaborLeave[]
+  laborLeaves?: LaborLeave[],
+  organizationId?: string
 ): PayrollLedger[] {
   let ledgers = payrollLedgers ?? [];
 
@@ -80,7 +81,8 @@ export function syncLedgersAfterHandoverChange(
       saved,
       positionHandovers,
       laborLeaves,
-      ledgers
+      ledgers,
+      organizationId
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,

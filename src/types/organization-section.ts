@@ -15,12 +15,65 @@ export interface SectionItem {
   detail?: string;
   description?: string;
   fields?: SectionField[];
+  /** Пайванд ба манбаи расмӣ */
+  url?: string;
+  sourceSite?: string;
+  documentType?: 'law' | 'decision' | 'document';
+  officialNumber?: string;
+  adoptedAt?: string;
+  status?: string;
 }
+
+export interface EmployeeWageScale {
+  group?:
+    | 'management'
+    | 'educator-20h'
+    | 'teacher-18h'
+    | 'library'
+    | 'medical'
+    | 'psychologist'
+    | 'auxiliary';
+  managementRole?: 'director' | 'deputy_education' | 'deputy_other';
+  studentBracket?:
+    | 'upTo100'
+    | 'from101to280'
+    | 'from281to400'
+    | 'from401to880'
+    | 'from881to1600'
+    | 'from1601to2500'
+    | 'over2500';
+  educationLevel?:
+    | 'general_secondary'
+    | 'secondary_vocational'
+    | 'secondary_vocational_c2'
+    | 'secondary_vocational_c1'
+    | 'higher'
+    | 'higher_c2'
+    | 'higher_c1'
+    | 'higher_superior';
+  libraryRole?:
+    | 'head_higher'
+    | 'head_vocational'
+    | 'librarian_higher'
+    | 'librarian_vocational'
+    | 'student_org';
+  medicalCategory?: 'none' | 'superior' | 'category_1' | 'category_2';
+  auxiliaryRole?: 'standard' | 'accountant';
+  extraDuties?: ('class_leadership' | 'notebook_check' | 'cabinet_management')[];
+  baseSalary?: string;
+  hourlyRate?: string;
+  calculatedMonthly?: string;
+}
+
+/** Кори асосӣ ё кори иловагӣ (совместительство) — тартиботи ҳисоби андоз фарқ мекунад */
+export type EmploymentWorkType = 'primary' | 'secondary';
 
 export interface StaffEmployee {
   id: string;
   fullName: string;
   position: string;
+  /** Кори асосӣ ё иловагӣ — барои ҳисоби андоз аз даромад */
+  employmentWorkType?: EmploymentWorkType;
   department?: string;
   phone?: string;
   email?: string;
@@ -33,6 +86,7 @@ export interface StaffEmployee {
   experience?: string;
   birthYear?: string;
   status?: string;
+  wageScale?: EmployeeWageScale;
 }
 
 export interface VacancyNoticeInfo {

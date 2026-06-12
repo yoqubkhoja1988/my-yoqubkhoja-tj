@@ -10,11 +10,21 @@ import {
   removeOrganization,
   updateOrganization,
 } from '@/lib/organizations';
-import { Organization } from '@/types/organization';
+import {
+  ORGANIZATION_SECTORS,
+  OrganizationSectorGroupId,
+  getOrganizationSectorMeta,
+  groupOrganizationsBySector,
+  inferOrganizationSector,
+} from '@/lib/organization-sectors';
+import { Organization, OrganizationSectorId } from '@/types/organization';
 import AppFooter from './AppFooter';
 import AppHeader from './AppHeader';
 
+type SectorFilter = 'all' | OrganizationSectorGroupId;
+
 type OrganizationForm = {
+  sector: OrganizationSectorId | '';
   rma: string;
   ryam: string;
   name: string;
@@ -31,6 +41,7 @@ type OrganizationForm = {
 };
 
 const emptyForm: OrganizationForm = {
+  sector: '',
   rma: '',
   ryam: '',
   name: '',
@@ -47,7 +58,10 @@ const emptyForm: OrganizationForm = {
 };
 
 function toForm(org: Organization): OrganizationForm {
+  const inferredSector = inferOrganizationSector(org);
   return {
+    sector:
+      org.sector ?? (inferredSector !== 'uncategorized' ? inferredSector : ''),
     rma: org.rma || '',
     ryam: org.ryam || '',
     name: org.name,
@@ -70,7 +84,11 @@ function cleanForm(form: OrganizationForm): Omit<Organization, 'id' | 'createdAt
     description: form.description.trim(),
   };
 
-  const optionalFields: (keyof OrganizationForm)[] = [
+  if (form.sector) {
+    result.sector = form.sector;
+  }
+
+  const optionalFields = [
     'rma',
     'ryam',
     'address',
@@ -82,7 +100,7 @@ function cleanForm(form: OrganizationForm): Omit<Organization, 'id' | 'createdAt
     'taxDistrict',
     'status',
     'registeredAt',
-  ];
+  ] as const;
 
   optionalFields.forEach((key) => {
     const value = form[key]?.trim();
@@ -103,13 +121,31 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [activeSector, setActiveSector] = useState<SectorFilter>('all');
 
   useEffect(() => {
-    initializeOrganizations().then((data) => {
-      setOrganizations(data);
-      setLoading(false);
-    });
-  }, []);
+    let cancelled = false;
+
+    void initializeOrganizations()
+      .then((data) => {
+        if (cancelled) return;
+        setOrganizations(data);
+        if (data.length === 0) {
+          setLoadError(t('orgLoadError'));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(t('orgLoadError'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -125,6 +161,34 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
       )
       .sort((a, b) => a.name.localeCompare(b.name, 'tg'));
   }, [organizations, search]);
+
+  const grouped = useMemo(() => groupOrganizationsBySector(filtered), [filtered]);
+
+  const visibleGroups = useMemo(() => {
+    if (activeSector === 'all') return grouped;
+    return grouped.filter((group) => group.id === activeSector);
+  }, [activeSector, grouped]);
+
+  const sectorFilters = useMemo(() => {
+    const present = new Set(grouped.map((group) => group.id));
+    const items: {
+      id: OrganizationSectorGroupId;
+      labelKey: string;
+      count: number;
+    }[] = ORGANIZATION_SECTORS.filter((sector) => present.has(sector.id)).map((sector) => ({
+      id: sector.id,
+      labelKey: sector.labelKey,
+      count: grouped.find((group) => group.id === sector.id)?.organizations.length ?? 0,
+    }));
+    if (present.has('uncategorized')) {
+      items.push({
+        id: 'uncategorized',
+        labelKey: 'orgSectorUncategorized',
+        count: grouped.find((group) => group.id === 'uncategorized')?.organizations.length ?? 0,
+      });
+    }
+    return items;
+  }, [grouped]);
 
   async function refresh() {
     setOrganizations(await getOrganizations());
@@ -251,7 +315,7 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
           </div>
         </section>
 
-        <div className="mb-4">
+        <div className="mb-4 space-y-3">
           <input
             type="search"
             value={search}
@@ -259,7 +323,43 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
             placeholder={t('orgSearchPlaceholder')}
             className="input-field sm:max-w-md"
           />
+
+          {!loading && organizations.length > 0 && sectorFilters.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setActiveSector('all')}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  activeSector === 'all'
+                    ? 'bg-gradient-to-r from-[var(--accent)] to-indigo-500 text-white shadow-md shadow-blue-500/20'
+                    : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                {t('orgSectorFilterAll')}
+              </button>
+              {sectorFilters.map((sector) => (
+                <button
+                  key={sector.id}
+                  type="button"
+                  onClick={() => setActiveSector(sector.id)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    activeSector === sector.id
+                      ? 'bg-gradient-to-r from-[var(--accent)] to-indigo-500 text-white shadow-md shadow-blue-500/20'
+                      : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {t(sector.labelKey)} ({sector.count})
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
+        {loadError && !loading && (
+          <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            {loadError}
+          </p>
+        )}
 
         {loading ? (
           <div className="empty-state">
@@ -276,53 +376,104 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
             <p className="text-[var(--text-muted)]">{t('noResults')}</p>
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((org) => (
-              <article
-                key={org.id}
-                className="glass-card glass-card-hover flex flex-col p-4"
-              >
-                <div className="mb-3 flex items-start justify-between gap-2">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)]/20 to-emerald-500/10 text-lg">
-                    🏛️
-                  </div>
-                  {org.rma && (
-                    <span className="rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
-                      {org.rma}
-                    </span>
-                  )}
-                </div>
+          <div className="space-y-6">
+            {visibleGroups.map((group) => {
+              const meta = getOrganizationSectorMeta(group.id);
+              if (!meta) return null;
 
-                <Link
-                  href={`/organizations/${org.id}/overview`}
-                  className="text-sm font-bold leading-snug transition hover:text-[var(--accent)]"
+              return (
+                <section
+                  key={group.id}
+                  id={`org-sector-${group.id}`}
+                  className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)]/40 p-4 md:p-5"
                 >
-                  {org.name}
-                </Link>
+                  <header className="mb-4 border-b border-[var(--border)] pb-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="text-base font-bold md:text-lg">
+                          <span className="mr-1.5">{meta.icon}</span>
+                          {t(meta.labelKey)}
+                        </h3>
+                        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-[var(--text-muted)] md:text-sm">
+                          {t(meta.descKey)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-semibold text-[var(--accent)]">
+                        {t('orgSectorCount', { count: group.organizations.length })}
+                      </span>
+                    </div>
+                  </header>
 
-                {(org.address || org.director) && (
-                  <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
-                    {[org.address, org.director].filter(Boolean).join(' · ')}
-                  </p>
-                )}
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {group.organizations.map((org) => {
+                      const sectorId = inferOrganizationSector(org);
+                      const sectorMeta = getOrganizationSectorMeta(sectorId);
 
-                <div className="mt-auto flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-3">
-                  <Link href={`/organizations/${org.id}`} className="btn-primary px-3 py-1.5 text-xs">
-                    {t('orgOpen')}
-                  </Link>
-                  {canManage && (
-                    <>
-                      <button type="button" onClick={() => openModal(org.id)} className="btn-secondary px-3 py-1.5 text-xs">
-                        {t('editOrganization')}
-                      </button>
-                      <button type="button" onClick={() => handleDelete(org.id)} className="btn-danger">
-                        {t('deleteOrganization')}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </article>
-            ))}
+                      return (
+                        <article
+                          key={org.id}
+                          className="glass-card glass-card-hover flex flex-col p-4"
+                        >
+                          <div className="mb-3 flex items-start justify-between gap-2">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)]/20 to-emerald-500/10 text-lg">
+                              {sectorMeta?.icon ?? '🏛️'}
+                            </div>
+                            {org.rma && (
+                              <span className="rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
+                                {org.rma}
+                              </span>
+                            )}
+                          </div>
+
+                          <Link
+                            href={`/organizations/${org.id}/overview`}
+                            className="text-sm font-bold leading-snug transition hover:text-[var(--accent)]"
+                          >
+                            {org.name}
+                          </Link>
+
+                          {sectorMeta && (
+                            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+                              {t(sectorMeta.labelKey)}
+                            </p>
+                          )}
+
+                          {(org.address || org.director) && (
+                            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
+                              {[org.address, org.director].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
+
+                          <div className="mt-auto flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-3">
+                            <Link href={`/organizations/${org.id}`} className="btn-primary px-3 py-1.5 text-xs">
+                              {t('orgOpen')}
+                            </Link>
+                            {canManage && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => openModal(org.id)}
+                                  className="btn-secondary px-3 py-1.5 text-xs"
+                                >
+                                  {t('editOrganization')}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(org.id)}
+                                  className="btn-danger"
+                                >
+                                  {t('deleteOrganization')}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
           </div>
         )}
       </main>
@@ -382,6 +533,27 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
                     className="input-field opacity-70"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="field-label">{t('organizationSector')}</label>
+                <select
+                  value={form.sector}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      sector: e.target.value as OrganizationSectorId | '',
+                    })
+                  }
+                  className="input-field"
+                >
+                  <option value="">{t('organizationSectorPlaceholder')}</option>
+                  {ORGANIZATION_SECTORS.map((sector) => (
+                    <option key={sector.id} value={sector.id}>
+                      {sector.icon} {t(sector.labelKey)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

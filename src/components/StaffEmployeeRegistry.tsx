@@ -9,16 +9,33 @@ import {
 } from '@/lib/staff-personnel-number';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import {
+  calculateWageScale,
+  emptyWageScale,
+  hydrateWageScale,
+  parseWageAmount,
+  usesEducationLevel,
+  usesPreschoolWageScales,
+} from '@/lib/preschool-wage-scales';
+import {
   extractStaffingOptions,
   getPositionsForDepartment,
 } from '@/lib/staff-staffing-options';
-import { OrganizationSectionContent, StaffEmployee } from '@/types/organization-section';
+import PreschoolWageScaleFields from '@/components/PreschoolWageScaleFields';
+import { useOrganizationAccess } from '@/contexts/organization-access-context';
+import { calcIncomeTax } from '@/lib/finance-payroll-ledger';
+import {
+  EmployeeWageScale,
+  EmploymentWorkType,
+  OrganizationSectionContent,
+  StaffEmployee,
+} from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 type EmployeeForm = {
   fullName: string;
   position: string;
+  employmentWorkType: EmploymentWorkType;
   department: string;
   phone: string;
   email: string;
@@ -31,11 +48,13 @@ type EmployeeForm = {
   experience: string;
   birthYear: string;
   status: string;
+  wageScale: EmployeeWageScale;
 };
 
 const emptyForm: EmployeeForm = {
   fullName: '',
   position: '',
+  employmentWorkType: 'primary',
   department: '',
   phone: '',
   email: '',
@@ -48,6 +67,7 @@ const emptyForm: EmployeeForm = {
   experience: '',
   birthYear: '',
   status: 'active',
+  wageScale: emptyWageScale(),
 };
 
 type Props = {
@@ -60,6 +80,7 @@ function toForm(employee: StaffEmployee): EmployeeForm {
   return {
     fullName: employee.fullName,
     position: employee.position,
+    employmentWorkType: employee.employmentWorkType ?? 'primary',
     department: employee.department || '',
     phone: employee.phone || '',
     email: employee.email || '',
@@ -72,18 +93,23 @@ function toForm(employee: StaffEmployee): EmployeeForm {
     experience: employee.experience || '',
     birthYear: employee.birthYear || '',
     status: employee.status || 'active',
+    wageScale: employee.wageScale ?? emptyWageScale(),
   };
 }
 
-function toEmployee(form: EmployeeForm, id?: string): StaffEmployee {
+function toEmployee(form: EmployeeForm, organizationId: string, id?: string): StaffEmployee {
   const employee: StaffEmployee = {
     id: id || crypto.randomUUID(),
     fullName: form.fullName.trim(),
     position: form.position.trim(),
+    employmentWorkType: form.employmentWorkType,
     status: form.status,
   };
 
-  const optional: (keyof Omit<EmployeeForm, 'fullName' | 'position' | 'status'>)[] = [
+  const optional: (keyof Omit<
+    EmployeeForm,
+    'fullName' | 'position' | 'status' | 'wageScale' | 'employmentWorkType'
+  >)[] = [
     'department',
     'phone',
     'email',
@@ -102,11 +128,17 @@ function toEmployee(form: EmployeeForm, id?: string): StaffEmployee {
     if (value) employee[key] = value;
   }
 
+  if (form.wageScale?.group) {
+    employee.wageScale = calculateWageScale(form.wageScale, organizationId);
+  }
+
   return employee;
 }
 
 export default function StaffEmployeeRegistry({ organizationId, content, onUpdate }: Props) {
   const t = useTranslations();
+  const { canEdit } = useOrganizationAccess();
+  const showWageScales = usesPreschoolWageScales(organizationId);
   const employees = content.employees ?? [];
   const analytics = useMemo(() => analyzeStaffing(content), [content]);
   const departments = useMemo(
@@ -154,6 +186,12 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
     return fromStaffing;
   }, [departments, form.department, form.position]);
 
+  const estimatedTaxPreview = useMemo(() => {
+    const gross = parseWageAmount(form.wageScale?.calculatedMonthly ?? '');
+    if (!gross || gross <= 0) return null;
+    return calcIncomeTax(gross, undefined, undefined, form.employmentWorkType);
+  }, [form.employmentWorkType, form.wageScale?.calculatedMonthly]);
+
   const capacityWarning = useMemo(() => {
     if (!form.department || !form.position || editingId) return null;
     const slot = analytics.slots.find(
@@ -164,17 +202,69 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
     return null;
   }, [analytics.slots, form.department, form.position, editingId, t]);
 
+  function wageScaleEducationLabel(scale: EmployeeWageScale): string {
+    if (scale.group === 'medical' && scale.medicalCategory) {
+      return t(`wageScaleMedical_${scale.medicalCategory}`);
+    }
+    if (!scale.educationLevel || !usesEducationLevel(scale.group)) return '';
+    return t(`wageScaleEducation_${scale.educationLevel}`);
+  }
+
+  function handlePositionChange(position: string) {
+    setForm((current) => {
+      if (!showWageScales) {
+        return { ...current, position };
+      }
+
+      const wageScale = hydrateWageScale(
+        {
+          educationLevel: current.wageScale?.educationLevel,
+          extraDuties: current.wageScale?.extraDuties ?? [],
+        },
+        organizationId,
+        position
+      );
+      const education = wageScaleEducationLabel(wageScale);
+
+      return {
+        ...current,
+        position,
+        wageScale,
+        education: education || current.education,
+      };
+    });
+  }
+
+  function handleWageScaleChange(wageScale: EmployeeWageScale) {
+    const next = calculateWageScale(wageScale, organizationId);
+    const education = wageScaleEducationLabel(next);
+    setForm((current) => ({
+      ...current,
+      wageScale: next,
+      education: education || current.education,
+    }));
+  }
+
   function openModal(id?: string) {
     if (id) {
       const employee = employees.find((item) => item.id === id);
       if (!employee) return;
+      const wageScale = showWageScales
+        ? hydrateWageScale(employee.wageScale, organizationId, employee.position)
+        : employee.wageScale;
+      const education = showWageScales
+        ? wageScaleEducationLabel(wageScale!) || employee.education || ''
+        : employee.education || '';
       setEditingId(id);
-      setForm(toForm(employee));
+      setForm({ ...toForm(employee), wageScale: wageScale ?? emptyWageScale(organizationId), education });
     } else {
       setEditingId(null);
+      const wageScale = emptyWageScale(organizationId);
       setForm({
         ...emptyForm,
         personnelNumber: generateNextPersonnelNumber(employees),
+        wageScale,
+        education: showWageScales ? wageScaleEducationLabel(wageScale) : '',
       });
     }
     setError('');
@@ -225,7 +315,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
       ? form.personnelNumber.trim()
       : form.personnelNumber.trim() || generateNextPersonnelNumber(employees);
 
-    const employee = toEmployee({ ...form, personnelNumber }, editingId ?? undefined);
+    const employee = toEmployee({ ...form, personnelNumber }, organizationId, editingId ?? undefined);
     const nextEmployees = editingId
       ? employees.map((item) => (item.id === editingId ? employee : item))
       : [...employees, employee];
@@ -242,12 +332,14 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
   function handleExport() {
     const rows = filteredEmployees.map((employee) => ({
       ...employee,
+      employmentWorkType: employmentWorkTypeLabel(employee.employmentWorkType),
       status: statusLabel(employee.status),
-    }));
+    })) as StaffEmployee[];
     const csv = exportEmployeesToCsv(rows, [
       { key: 'index', label: t('staffColNo') },
       { key: 'fullName', label: t('employeeFullName') },
       { key: 'position', label: t('employeePosition') },
+      { key: 'employmentWorkType', label: t('employeeEmploymentWorkType') },
       { key: 'department', label: t('employeeDepartment') },
       { key: 'personnelNumber', label: t('employeePersonnelNumber') },
       { key: 'ris', label: t('employeeRis') },
@@ -264,6 +356,12 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
     downloadCsv(`employees-${new Date().toISOString().slice(0, 10)}.csv`, csv);
   }
 
+  function employmentWorkTypeLabel(workType?: EmploymentWorkType) {
+    return workType === 'secondary'
+      ? t('employmentWorkTypeSecondary')
+      : t('employmentWorkTypePrimary');
+  }
+
   function statusLabel(status?: string) {
     if (status === 'vacation') return t('employeeStatusVacation');
     if (status === 'inactive') return t('employeeStatusInactive');
@@ -273,7 +371,26 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
   function handleDepartmentChange(department: string) {
     const positions = getPositionsForDepartment(departments, department);
     const position = positions.includes(form.position) ? form.position : (positions[0] ?? '');
-    setForm({ ...form, department, position });
+
+    if (!showWageScales || !position) {
+      setForm({ ...form, department, position });
+      return;
+    }
+
+    const wageScale = hydrateWageScale(
+      { educationLevel: form.wageScale?.educationLevel, extraDuties: form.wageScale?.extraDuties ?? [] },
+      organizationId,
+      position
+    );
+    const education = wageScaleEducationLabel(wageScale);
+
+    setForm({
+      ...form,
+      department,
+      position,
+      wageScale,
+      education: education || form.education,
+    });
   }
 
   return (
@@ -293,9 +410,11 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
           >
             {t('exportEmployees')}
           </button>
-          <button type="button" onClick={() => openModal()} className="btn-primary" disabled={saving}>
-            + {t('addEmployee')}
-          </button>
+          {canEdit && (
+            <button type="button" onClick={() => openModal()} className="btn-primary" disabled={saving}>
+              + {t('addEmployee')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -358,6 +477,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                 <th>{t('staffColNo')}</th>
                 <th>{t('employeeFullName')}</th>
                 <th>{t('employeePosition')}</th>
+                <th>{t('employeeEmploymentWorkType')}</th>
                 <th>{t('employeeDepartment')}</th>
                 <th>{t('employeePersonnelNumber')}</th>
                 <th>{t('employeeRis')}</th>
@@ -370,7 +490,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                 <th>{t('employeeExperience')}</th>
                 <th>{t('employeeBirthYear')}</th>
                 <th>{t('employeeStatus')}</th>
-                <th>{t('employeeActions')}</th>
+                {canEdit && <th>{t('employeeActions')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -387,6 +507,9 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                     </button>
                   </td>
                   <td className="text-[var(--accent)]">{employee.position}</td>
+                  <td className="text-xs">
+                    {employmentWorkTypeLabel(employee.employmentWorkType)}
+                  </td>
                   <td>{employee.department || '—'}</td>
                   <td>{employee.personnelNumber || '—'}</td>
                   <td className="font-mono text-xs">{employee.ris || '—'}</td>
@@ -403,6 +526,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                       {statusLabel(employee.status)}
                     </span>
                   </td>
+                  {canEdit && (
                   <td>
                     <div className="flex flex-nowrap gap-1">
                       <button
@@ -423,6 +547,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                       </button>
                     </div>
                   </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -440,6 +565,10 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
             <dl className="space-y-3 text-sm">
               {[
                 [t('employeePosition'), viewEmployee.position],
+                [
+                  t('employeeEmploymentWorkType'),
+                  employmentWorkTypeLabel(viewEmployee.employmentWorkType),
+                ],
                 [t('employeeDepartment'), viewEmployee.department],
                 [t('employeePersonnelNumber'), viewEmployee.personnelNumber],
                 [t('employeeRis'), viewEmployee.ris],
@@ -452,6 +581,15 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                 [t('employeeExperience'), viewEmployee.experience],
                 [t('employeeBirthYear'), viewEmployee.birthYear],
                 [t('employeeStatus'), statusLabel(viewEmployee.status)],
+                ...(viewEmployee.wageScale?.baseSalary
+                  ? [[t('wageScaleDutySalary'), `${viewEmployee.wageScale.baseSalary} ${t('wageScaleSomoni')}`]]
+                  : []),
+                ...(viewEmployee.wageScale?.calculatedMonthly
+                  ? [[t('wageScaleCalculatedMonthly'), `${viewEmployee.wageScale.calculatedMonthly} ${t('wageScaleSomoni')}`]]
+                  : []),
+                ...(viewEmployee.wageScale?.group
+                  ? [[t('wageScaleGroup'), t(`wageScaleGroup_${viewEmployee.wageScale.group}`)]]
+                  : []),
               ].map(([label, value]) => (
                 <div key={String(label)}>
                   <dt className="text-xs text-[var(--text-muted)]">{label}</dt>
@@ -463,6 +601,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
               <button type="button" onClick={() => setViewEmployee(null)} className="btn-secondary">
                 {t('cancel')}
               </button>
+              {canEdit && (
               <button
                 type="button"
                 onClick={() => {
@@ -473,6 +612,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
               >
                 {t('editEmployee')}
               </button>
+              )}
             </div>
           </div>
         </div>
@@ -483,7 +623,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
           className="modal-overlay"
           onClick={(e) => e.target === e.currentTarget && !saving && closeModal()}
         >
-          <div className="modal-panel max-w-lg">
+          <div className="modal-panel max-h-[90vh] max-w-2xl overflow-y-auto">
             <h3 className="mb-4 text-lg font-bold">
               {editingId ? t('editEmployee') : t('addEmployee')}
             </h3>
@@ -532,7 +672,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                   <label className="field-label">{t('employeePosition')}</label>
                   <select
                     value={form.position}
-                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                    onChange={(e) => handlePositionChange(e.target.value)}
                     required
                     disabled={!form.department}
                     className="input-field disabled:opacity-60"
@@ -549,6 +689,46 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
 
               {departments.length === 0 && (
                 <p className="text-xs text-[var(--warning)]">{t('noStaffingForSelect')}</p>
+              )}
+
+              <div>
+                <label className="field-label">{t('employeeEmploymentWorkType')}</label>
+                <select
+                  value={form.employmentWorkType}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      employmentWorkType: e.target.value as EmploymentWorkType,
+                    })
+                  }
+                  className="input-field"
+                >
+                  <option value="primary">{t('employmentWorkTypePrimary')}</option>
+                  <option value="secondary">{t('employmentWorkTypeSecondary')}</option>
+                </select>
+                <p className="mt-1 text-[10px] leading-relaxed text-[var(--text-muted)]">
+                  {form.employmentWorkType === 'secondary'
+                    ? t('employmentWorkTypeSecondaryTaxFormula')
+                    : t('employmentWorkTypePrimaryTaxFormula')}
+                </p>
+                {estimatedTaxPreview !== null && (
+                  <p className="mt-1 text-[10px] text-[var(--accent)]">
+                    {t('employmentWorkTypeTaxPreview', {
+                      amount: estimatedTaxPreview.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }),
+                    })}
+                  </p>
+                )}
+              </div>
+
+              {showWageScales && (
+                <PreschoolWageScaleFields
+                  organizationId={organizationId}
+                  value={form.wageScale}
+                  onChange={handleWageScaleChange}
+                />
               )}
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -662,15 +842,17 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="field-label">{t('employeeEducation')}</label>
-                  <input
-                    value={form.education}
-                    onChange={(e) => setForm({ ...form, education: e.target.value })}
-                    className="input-field"
-                  />
-                </div>
-                <div>
+                {!showWageScales && (
+                  <div>
+                    <label className="field-label">{t('employeeEducation')}</label>
+                    <input
+                      value={form.education}
+                      onChange={(e) => setForm({ ...form, education: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                )}
+                <div className={showWageScales ? 'sm:col-span-2' : ''}>
                   <label className="field-label">{t('employeeExperience')}</label>
                   <input
                     value={form.experience}

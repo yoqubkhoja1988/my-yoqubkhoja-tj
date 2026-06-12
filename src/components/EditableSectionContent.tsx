@@ -49,6 +49,8 @@ import StaffOverviewStats from './StaffOverviewStats';
 import StaffSectionNav from './StaffSectionNav';
 import StaffFormationReportPanel from './StaffFormationReportPanel';
 import StaffVacancyPanel from './StaffVacancyPanel';
+import LegalDocumentsPanel from './LegalDocumentsPanel';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
   return JSON.parse(JSON.stringify(content)) as OrganizationSectionContent;
@@ -427,7 +429,11 @@ export default function EditableSectionContent({
         </p>
       )}
 
-      {((section !== 'finance' && section !== 'staff') ||
+      {((section !== 'finance' &&
+        section !== 'staff' &&
+        section !== LEGAL_SECTION_SLUGS.laws &&
+        section !== LEGAL_SECTION_SLUGS.decisions &&
+        section !== LEGAL_SECTION_SLUGS.documents) ||
         (section === 'finance' &&
           (activeFinanceSection === 'finance-stats' ||
             activeFinanceSection === 'finance-budget')) ||
@@ -735,8 +741,27 @@ export default function EditableSectionContent({
         />
       )}
 
+      {(section === LEGAL_SECTION_SLUGS.laws ||
+        section === LEGAL_SECTION_SLUGS.decisions ||
+        section === LEGAL_SECTION_SLUGS.documents) && (
+          <LegalDocumentsPanel
+            summary={view.summary}
+            items={view.items ?? []}
+            sectionType={
+              section === LEGAL_SECTION_SLUGS.laws
+                ? 'laws'
+                : section === LEGAL_SECTION_SLUGS.decisions
+                  ? 'decisions'
+                  : 'documents'
+            }
+          />
+        )}
+
       {view.items &&
         view.items.length > 0 &&
+        section !== LEGAL_SECTION_SLUGS.laws &&
+        section !== LEGAL_SECTION_SLUGS.decisions &&
+        section !== LEGAL_SECTION_SLUGS.documents &&
         ((section !== 'finance' && section !== 'staff') ||
           (section === 'finance' && activeFinanceSection === 'finance-contacts') ||
           (section === 'staff' && activeStaffSection === 'staff-stats')) && (
@@ -772,6 +797,16 @@ export default function EditableSectionContent({
                     </div>
                   ))}
                 </dl>
+              )}
+              {item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--accent-hover)]"
+                >
+                  {t('legalDocOpenOfficial')} ↗
+                </a>
               )}
             </div>
           ))}

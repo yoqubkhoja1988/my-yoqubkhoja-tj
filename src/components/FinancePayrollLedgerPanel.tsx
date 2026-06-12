@@ -1,5 +1,6 @@
 'use client';
 
+import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import {
   calcEntryTotals,
   formatLedgerAmount,
@@ -7,6 +8,7 @@ import {
   mergePayrollLedgerForMonth,
   recalculatePayrollLedger,
   removePayrollLedger,
+  resolveEmploymentWorkType,
   resolvePayrollLedgerMonth,
   upsertPayrollLedger,
 } from '@/lib/finance-payroll-ledger';
@@ -15,6 +17,7 @@ import {
   updateOrganizationSection,
 } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
 import { parseAmount } from '@/lib/staff-table-calc';
@@ -79,6 +82,8 @@ export default function FinancePayrollLedgerPanel({
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
+  const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
     () => activeEmployees(staffContent?.employees),
     [staffContent?.employees]
@@ -104,6 +109,7 @@ export default function FinancePayrollLedgerPanel({
   useEffect(() => {
     if (!staffContent) return;
     const merged = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
+      organizationId,
       positionHandovers: financeContent.positionHandovers,
       laborLeaves: financeContent.laborLeaves,
       payrollLedgers: financeContent.payrollLedgers,
@@ -189,6 +195,7 @@ export default function FinancePayrollLedgerPanel({
     if (!staffContent) return;
     const nextLedger = {
       ...recalculatePayrollLedger(ledger, staffContent, {
+        organizationId,
         positionHandovers: financeContent.positionHandovers,
         laborLeaves: financeContent.laborLeaves,
         payrollLedgers: financeContent.payrollLedgers,
@@ -223,6 +230,7 @@ export default function FinancePayrollLedgerPanel({
       month,
       freshStaff,
       {
+        organizationId,
         positionHandovers: financeBase.positionHandovers,
         laborLeaves: financeBase.laborLeaves,
         payrollLedgers: financeBase.payrollLedgers,
@@ -271,6 +279,7 @@ export default function FinancePayrollLedgerPanel({
     if (staffContent) {
       setLedger(
         mergePayrollLedgerForMonth(saved.payrollLedgers, month, staffContent, {
+          organizationId,
           positionHandovers: saved.positionHandovers,
           laborLeaves: saved.laborLeaves,
           payrollLedgers: saved.payrollLedgers,
@@ -310,7 +319,7 @@ export default function FinancePayrollLedgerPanel({
           >
             →
           </button>
-          {staffContent && (
+          {canEdit && staffContent && (
             <button
               type="button"
               onClick={() => void handleRefresh()}
@@ -333,7 +342,8 @@ export default function FinancePayrollLedgerPanel({
             filename={`kitob-muzd-${month}`}
             disabled={!rows.length}
           />
-          {editing ? (
+          {canEdit &&
+            (editing ? (
             <button
               type="button"
               onClick={handleSave}
@@ -361,7 +371,7 @@ export default function FinancePayrollLedgerPanel({
                 {t('payrollLedgerDelete')}
               </button>
             </>
-          )}
+          ))}
         </div>
       </div>
 
@@ -396,6 +406,10 @@ export default function FinancePayrollLedgerPanel({
             <p className="mt-1 text-sm">
               {t('payrollLedgerForMonth', { month: monthLabel })}
             </p>
+            <div className="mt-3 space-y-1 text-[10px] text-slate-600">
+              <p>{t('employmentWorkTypePrimaryTaxFormula')}</p>
+              <p>{t('employmentWorkTypeSecondaryTaxFormula')}</p>
+            </div>
           </header>
 
           <div className="overflow-x-auto print:overflow-visible">
@@ -440,7 +454,14 @@ export default function FinancePayrollLedgerPanel({
                 {rows.map(({ entry, employee, totals }, index) => (
                   <tr key={entry.employeeId}>
                     <td className="border border-slate-300 px-2 py-2 text-center">{index + 1}</td>
-                    <td className="border border-slate-300 px-2 py-2 font-medium">{employee.fullName}</td>
+                    <td className="border border-slate-300 px-2 py-2 font-medium">
+                      {employee.fullName}
+                      {resolveEmploymentWorkType(employee) === 'secondary' && (
+                        <span className="mt-0.5 block text-[9px] font-semibold uppercase text-amber-700">
+                          {t('employmentWorkTypeSecondaryShort')}
+                        </span>
+                      )}
+                    </td>
                     <td className="border border-slate-300 px-2 py-2 text-center">
                       {employee.personnelNumber || '—'}
                     </td>
@@ -566,7 +587,7 @@ export default function FinancePayrollLedgerPanel({
 
           <div className="mt-10 grid gap-8 text-xs text-slate-700 md:grid-cols-3">
             <div>
-              <p className="font-semibold">{t('payrollLedgerDirector')}</p>
+              <p className="font-semibold">{directorSignatureLabel}</p>
               <p className="mt-6 border-t border-slate-400 pt-1">
                 {organization?.director || '________________'}
               </p>

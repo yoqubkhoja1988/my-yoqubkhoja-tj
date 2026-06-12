@@ -23,6 +23,7 @@ import {
 } from '@/lib/staff-timesheet';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { printDocument } from '@/lib/print-document';
 import { OrganizationSectionContent, StaffTimesheet } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
@@ -37,6 +38,7 @@ type Props = {
 export default function StaffTimesheetPanel({ organizationId, content, onUpdate }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const { canEdit } = useOrganizationAccess();
   const employees = activeEmployees(content.employees);
 
   const [month, setMonth] = useState(currentMonthKey());
@@ -199,7 +201,7 @@ export default function StaffTimesheetPanel({ organizationId, content, onUpdate 
           >
             →
           </button>
-          {editing && (
+          {canEdit && editing && (
             <button
               type="button"
               onClick={handleFillDefaults}
@@ -222,7 +224,8 @@ export default function StaffTimesheetPanel({ organizationId, content, onUpdate 
             filename={`tabel-${month}`}
             disabled={employees.length === 0}
           />
-          {editing ? (
+          {canEdit &&
+            (editing ? (
             <button
               type="button"
               onClick={handleSave}
@@ -250,7 +253,7 @@ export default function StaffTimesheetPanel({ organizationId, content, onUpdate 
                 {t('timesheetDelete')}
               </button>
             </>
-          )}
+          ))}
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { verifyAdminCredentials } from '@/lib/admin-credentials';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { verifyPassword } from '@/lib/password-hash';
 import { findUserByUsername } from '@/lib/users-store';
-import { UserPermissions } from '@/types/user';
+import { normalizeUserPermissions } from '@/types/user';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -37,7 +37,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: storedUser.id,
           name: storedUser.username,
           role: 'user' as const,
-          permissions: storedUser.permissions,
+          permissions: normalizeUserPermissions(storedUser.permissions),
         };
       },
     }),
@@ -60,7 +60,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (token.sub) {
           session.user.id = token.sub;
         }
-        session.user.permissions = token.permissions as UserPermissions | undefined;
+        session.user.permissions = token.permissions
+          ? normalizeUserPermissions(token.permissions)
+          : undefined;
         if (isSiteAdmin(session)) {
           session.user.permissions = undefined;
         }

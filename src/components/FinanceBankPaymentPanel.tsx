@@ -7,6 +7,7 @@ import {
   getBankPaymentExportLabels,
   resolveBankPaymentMonth,
 } from '@/lib/finance-bank-payment-export';
+import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import { printDocument } from '@/lib/print-document';
 import { shiftMonth } from '@/lib/staff-timesheet';
@@ -39,6 +40,8 @@ export default function FinanceBankPaymentPanel({
     document.getElementById('finance-bank-payment')?.scrollIntoView({ behavior: 'smooth' });
   }, [preferredMonth, onPreferredMonthApplied]);
 
+  const directorSignatureLabel = getDirectorSignatureLabel(organization?.id);
+
   const documentData = useMemo(() => {
     if (!staffContent) return null;
     return buildBankPaymentDocument(financeContent, staffContent, month, organization);
@@ -51,6 +54,7 @@ export default function FinanceBankPaymentPanel({
       getBankPaymentExportLabels({
         directorName: organization?.director ?? '',
         accountantName: organization?.chiefAccountant ?? '',
+        organizationId: organization?.id,
       })
     );
   }
@@ -193,7 +197,7 @@ export default function FinanceBankPaymentPanel({
 
               <div className="mt-10 grid gap-8 text-xs text-slate-700 md:grid-cols-2">
                 <div>
-                  <p className="font-semibold">{t('payrollLedgerDirector')}</p>
+                  <p className="font-semibold">{directorSignatureLabel}</p>
                   <p className="mt-6 border-t border-slate-400 pt-1">
                     {organization?.director || '________________'}
                   </p>

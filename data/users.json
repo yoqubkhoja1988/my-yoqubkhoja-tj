@@ -7,7 +7,8 @@
     "permissions": {
       "canAccessProjects": true,
       "organizationIds": [
-        "b8c5fe62-c216-410e-9dcf-c845838f0ad7"
+        "b8c5fe62-c216-410e-9dcf-c845838f0ad7",
+        "8c19df05-9925-4a55-8daf-c03d607f954c"
       ],
       "sectionSlugs": [
         "finance",

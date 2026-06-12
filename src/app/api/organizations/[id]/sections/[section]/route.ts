@@ -12,6 +12,9 @@ import {
   syncTimesheetsWithLaborLeaves,
 } from '@/lib/staff-timesheet-leave-sync';
 import { requireAdmin, requireSession } from '@/lib/api-guard';
+import { validateOrganizationSectionIsolation } from '@/lib/organization-scope';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import { syncOfficialLegalForOrganization } from '@/lib/official-legal-sync';
 import { canAccessOrganizationSection } from '@/lib/user-access';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { NextRequest, NextResponse } from 'next/server';
@@ -27,7 +30,16 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const content = await getOrganizationSection(id, section);
+  const isLegalSection =
+    section === LEGAL_SECTION_SLUGS.laws ||
+    section === LEGAL_SECTION_SLUGS.decisions ||
+    section === LEGAL_SECTION_SLUGS.documents;
+
+  let content = await getOrganizationSection(id, section);
+  if (isLegalSection && (!content || !content.items?.length)) {
+    await syncOfficialLegalForOrganization(id);
+    content = await getOrganizationSection(id, section);
+  }
   if (!content) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
@@ -45,6 +57,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (!body.summary?.trim()) {
       return NextResponse.json({ error: 'Summary required' }, { status: 400 });
     }
+
+    validateOrganizationSectionIsolation(id, section, body);
 
     const previousStaff =
       section === 'staff' && body.timesheets !== undefined
@@ -85,6 +99,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
               saved,
               months,
               {
+                organizationId: id,
                 positionHandovers: finance.positionHandovers,
                 laborLeaves: finance.laborLeaves,
                 payrollLedgers: finance.payrollLedgers,
@@ -129,6 +144,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
                 refreshedStaff,
                 ledgerMonths,
                 {
+                  organizationId: id,
                   positionHandovers: financeCurrent.positionHandovers,
                   laborLeaves: body.laborLeaves,
                   payrollLedgers: financeCurrent.payrollLedgers,

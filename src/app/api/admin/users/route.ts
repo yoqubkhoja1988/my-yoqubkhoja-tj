@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/api-guard';
 import { getAdminUsername } from '@/lib/is-admin';
 import { hashPassword } from '@/lib/password-hash';
+import { getAdminUsersOverview } from '@/lib/user-presence';
 import { createUser, findUserByUsername, listPublicUsers } from '@/lib/users-store';
 import { UserPermissions, UserStatus } from '@/types/user';
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,7 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET() {
   const session = await requireAdmin();
   if (session instanceof NextResponse) return session;
-  return NextResponse.json(await listPublicUsers());
+  const users = await listPublicUsers();
+  return NextResponse.json(await getAdminUsersOverview(users));
 }
 
 export async function POST(request: NextRequest) {

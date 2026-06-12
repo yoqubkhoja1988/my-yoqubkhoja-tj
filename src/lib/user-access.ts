@@ -3,10 +3,34 @@ import { isSiteAdmin } from '@/lib/is-admin';
 import { UserPermissions } from '@/types/user';
 import { Organization } from '@/types/organization';
 import { ActivityDirection } from '@/types/activity-direction';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+
+const AUTO_VISIBLE_LEGAL_SECTIONS = new Set<string>([
+  LEGAL_SECTION_SLUGS.laws,
+  LEGAL_SECTION_SLUGS.decisions,
+  LEGAL_SECTION_SLUGS.documents,
+]);
+
+function hasOrganizationAccess(session: Session | null | undefined): boolean {
+  if (!session?.user || isSiteAdmin(session)) return false;
+  return (session.user.permissions?.organizationIds.length ?? 0) > 0;
+}
 
 export function getSessionPermissions(session: Session | null | undefined): UserPermissions | null {
   if (!session?.user || isSiteAdmin(session)) return null;
   return session.user.permissions ?? null;
+}
+
+export function isSupervisionOnlyUser(session: Session | null | undefined): boolean {
+  if (!session?.user || isSiteAdmin(session)) return false;
+  return session.user.permissions?.supervisionOnly === true;
+}
+
+export function canEditOrganizationContent(session: Session | null | undefined): boolean {
+  if (!session?.user) return false;
+  if (isSiteAdmin(session)) return true;
+  if (isSupervisionOnlyUser(session)) return false;
+  return false;
 }
 
 export function canAccessProjects(session: Session | null | undefined): boolean {
@@ -36,7 +60,17 @@ export function canAccessSection(
 ): boolean {
   if (!session?.user) return false;
   if (isSiteAdmin(session)) return true;
-  return session.user.permissions?.sectionSlugs.includes(sectionSlug) ?? false;
+  const permissions = session.user.permissions;
+  if (
+    permissions?.supervisionOnly &&
+    (permissions.organizationIds.length ?? 0) > 0
+  ) {
+    return true;
+  }
+  if (AUTO_VISIBLE_LEGAL_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
+    return true;
+  }
+  return permissions?.sectionSlugs.includes(sectionSlug) ?? false;
 }
 
 export function canAccessOrganizationSection(
@@ -63,6 +97,12 @@ export function filterDirectionsForSession(
   directions: ActivityDirection[]
 ): ActivityDirection[] {
   if (isSiteAdmin(session)) return directions;
+  if (isSupervisionOnlyUser(session)) return directions;
   const allowedSections = session?.user?.permissions?.sectionSlugs ?? [];
-  return directions.filter((direction) => allowedSections.includes(direction.slug));
+  const orgAccess = hasOrganizationAccess(session);
+  return directions.filter(
+    (direction) =>
+      allowedSections.includes(direction.slug) ||
+      (orgAccess && AUTO_VISIBLE_LEGAL_SECTIONS.has(direction.slug))
+  );
 }

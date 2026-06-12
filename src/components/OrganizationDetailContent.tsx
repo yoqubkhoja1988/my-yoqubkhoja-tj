@@ -6,7 +6,8 @@ import {
   getActivityDirections,
   groupActivityDirections,
 } from '@/lib/activity-directions';
-import { filterDirectionsForSession } from '@/lib/user-access';
+import { filterDirectionsForSession, canEditOrganizationContent, isSupervisionOnlyUser } from '@/lib/user-access';
+import { OrganizationAccessProvider } from '@/contexts/organization-access-context';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { useSession } from 'next-auth/react';
@@ -21,7 +22,6 @@ type Props = {
   section: string;
   sectionContent: OrganizationSectionContent | null;
   staffContent?: OrganizationSectionContent | null;
-  canEdit?: boolean;
 };
 
 function ContentCard({ children }: { children: React.ReactNode }) {
@@ -139,10 +139,11 @@ export default function OrganizationDetailContent({
   section,
   sectionContent,
   staffContent,
-  canEdit = false,
 }: Props) {
   const t = useTranslations();
   const { data: session } = useSession();
+  const canEdit = canEditOrganizationContent(session);
+  const supervisionOnly = isSupervisionOnlyUser(session);
   const directions = useMemo(
     () => filterDirectionsForSession(session, getActivityDirections(organization.id)),
     [session, organization.id]
@@ -208,6 +209,12 @@ export default function OrganizationDetailContent({
             </aside>
 
             <section className="min-w-0 w-full">
+              {supervisionOnly && (
+                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                  {t('supervisionOnlyBanner')}
+                </div>
+              )}
+              <OrganizationAccessProvider canEdit={canEdit} supervisionOnly={supervisionOnly}>
               {activeSection === 'overview' ? (
                 <OverviewPanel organization={organization} />
               ) : (
@@ -219,6 +226,7 @@ export default function OrganizationDetailContent({
                 canEdit={canEdit}
               />
               )}
+              </OrganizationAccessProvider>
             </section>
           </main>
 

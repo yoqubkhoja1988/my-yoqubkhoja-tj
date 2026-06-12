@@ -19,9 +19,16 @@ function clearLocalOrganizations() {
 }
 
 async function fetchOrganizations(): Promise<Organization[]> {
-  const res = await fetch('/api/organizations');
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetch('/api/organizations', {
+      credentials: 'same-origin',
+      signal: AbortSignal.timeout(25000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 async function migrateLocalToServer(): Promise<Organization[]> {

@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import {
   readOrganizationsFile,
-  writeOrganizationsFile,
+  upsertOrganization,
 } from '@/lib/organizations-store';
 import { filterOrganizationsForSession } from '@/lib/user-access';
 import { requireAdmin, requireSession } from '@/lib/api-guard';
@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
       ...(body.taxDistrict ? { taxDistrict: body.taxDistrict } : {}),
       ...(body.status ? { status: body.status } : {}),
       ...(body.registeredAt ? { registeredAt: body.registeredAt } : {}),
+      ...(body.sector ? { sector: body.sector } : {}),
     };
 
     if (organizations.some((item) => item.id === newOrganization.id)) {
       return NextResponse.json({ error: 'Already exists' }, { status: 409 });
     }
 
-    organizations.push(newOrganization);
-    await writeOrganizationsFile(organizations);
+    await upsertOrganization(newOrganization);
     return NextResponse.json(newOrganization, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

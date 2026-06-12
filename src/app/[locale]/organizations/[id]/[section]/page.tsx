@@ -1,9 +1,10 @@
 import { auth } from '@/auth';
 import OrganizationDetailContent from '@/components/OrganizationDetailContent';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import { syncOfficialLegalForOrganization } from '@/lib/official-legal-sync';
 import { getOrganizationSection } from '@/lib/organization-sections-store';
 import { readOrganizationsFile } from '@/lib/organizations-store';
 import { canAccessOrganizationSection } from '@/lib/user-access';
-import { isSiteAdmin } from '@/lib/is-admin';
 import { redirect } from '@/i18n/navigation';
 import { notFound } from 'next/navigation';
 
@@ -28,7 +29,16 @@ export default async function OrganizationSectionPage({
     notFound();
   }
 
-  const sectionContent = await getOrganizationSection(id, section);
+  const isLegalSection =
+    section === LEGAL_SECTION_SLUGS.laws ||
+    section === LEGAL_SECTION_SLUGS.decisions ||
+    section === LEGAL_SECTION_SLUGS.documents;
+
+  let sectionContent = await getOrganizationSection(id, section);
+  if (isLegalSection && (!sectionContent || !sectionContent.items?.length)) {
+    await syncOfficialLegalForOrganization(id);
+    sectionContent = await getOrganizationSection(id, section);
+  }
   const staffContent =
     section === 'finance' || section === 'formation-report'
       ? await getOrganizationSection(id, 'staff')
@@ -40,7 +50,6 @@ export default async function OrganizationSectionPage({
       section={section}
       sectionContent={sectionContent}
       staffContent={staffContent}
-      canEdit={isSiteAdmin(session)}
     />
   );
 }

@@ -10,7 +10,8 @@
     "chiefAccountant": "Аҳроров Ёқубхоҷа Яҳёевич",
     "directorPhone": "+992928861819",
     "chiefAccountantPhone": "+992927917704",
-    "taxDistrict": "ноҳияи Ҷаббор Расулов"
+    "taxDistrict": "ноҳияи Ҷаббор Расулов",
+    "sector": "agriculture-food"
   },
   {
     "id": "8c19df05-9925-4a55-8daf-c03d607f954c",
@@ -21,10 +22,11 @@
     "ryam": "6110004359",
     "address": "шаҳраки Меҳробод, кӯчаи Ленин",
     "director": "Шокирова Нилуфар Ҳасановна",
-    "chiefAccountant": "Ахроров Ёқубхоҷа Яҳёевич",
+    "chiefAccountant": "Аҳроров Ёқубхоҷа Яҳёевич",
     "directorPhone": "+992929363080",
     "chiefAccountantPhone": "+992927917704",
     "taxDistrict": "ноҳияи Ҷаббор Расулов",
-    "status": "Амалкунанда"
+    "status": "Амалкунанда",
+    "sector": "education"
   }
 ]

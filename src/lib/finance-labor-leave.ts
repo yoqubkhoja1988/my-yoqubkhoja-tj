@@ -104,7 +104,8 @@ export function syncLedgersAfterLaborLeaveChange(
   payrollLedgers: PayrollLedger[] | undefined,
   laborLeaves: LaborLeave[] | undefined,
   staffContent: OrganizationSectionContent,
-  months: string[]
+  months: string[],
+  organizationId?: string
 ): PayrollLedger[] {
   let ledgers = payrollLedgers ?? [];
 
@@ -134,7 +135,8 @@ export function syncLedgersAfterLaborLeaveChange(
       saved,
       undefined,
       laborLeaves,
-      ledgers
+      ledgers,
+      organizationId
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,

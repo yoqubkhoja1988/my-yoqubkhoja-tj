@@ -10,6 +10,7 @@ import {
   canAccessProjects,
 } from '@/lib/user-access';
 import { isSiteAdmin } from '@/lib/is-admin';
+import { useLiveChat } from '@/contexts/live-chat-context';
 import LangSwitcher from './LangSwitcher';
 import Logo from './Logo';
 
@@ -19,6 +20,7 @@ export default function AppHeader() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = isSiteAdmin(session);
+  const { enabled: liveChatEnabled, openChat } = useLiveChat();
   const [isPending, startTransition] = useTransition();
 
   function handleLogout() {
@@ -84,6 +86,16 @@ export default function AppHeader() {
               >
                 {t('viewGithub')}
               </a>
+            )}
+            {liveChatEnabled && (
+              <button
+                type="button"
+                onClick={openChat}
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-2.5 py-1.5 text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/20"
+              >
+                <span aria-hidden>💬</span>
+                <span className="hidden sm:inline">{t('navLiveChat')}</span>
+              </button>
             )}
             <LangSwitcher />
             <button

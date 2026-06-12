@@ -22,6 +22,19 @@ const FOOD_SAFETY_DIRECTIONS: ActivityDirection[] = [
     labelKey: 'actInvestmentProjects',
     groupKey: 'actGroupActivity',
   },
+  { slug: 'laws', icon: '📕', labelKey: 'actLaws', groupKey: 'actGroupLegalNorms' },
+  {
+    slug: 'government-decisions',
+    icon: '📋',
+    labelKey: 'actGovernmentDecisions',
+    groupKey: 'actGroupLegalNorms',
+  },
+  {
+    slug: 'official-documents',
+    icon: '📁',
+    labelKey: 'actOfficialDocuments',
+    groupKey: 'actGroupLegalNorms',
+  },
   {
     slug: 'central-press',
     icon: '📰',
@@ -110,6 +123,19 @@ const KINDERGARTEN_SCHOOL_DIRECTIONS: ActivityDirection[] = [
   { slug: 'charter', icon: '📜', labelKey: 'actCharter', groupKey: 'actGroupCharterLegal' },
   { slug: 'licensing', icon: '📄', labelKey: 'actLicensing', groupKey: 'actGroupCharterLegal' },
   { slug: 'legal', icon: '⚖️', labelKey: 'actLegal', groupKey: 'actGroupCharterLegal' },
+  { slug: 'laws', icon: '📕', labelKey: 'actLaws', groupKey: 'actGroupCharterLegal' },
+  {
+    slug: 'government-decisions',
+    icon: '📋',
+    labelKey: 'actGovernmentDecisions',
+    groupKey: 'actGroupCharterLegal',
+  },
+  {
+    slug: 'official-documents',
+    icon: '📁',
+    labelKey: 'actOfficialDocuments',
+    groupKey: 'actGroupCharterLegal',
+  },
 
   {
     slug: 'education-standard',

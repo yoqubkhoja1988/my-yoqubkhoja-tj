@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
-import { StoredUser, UserPermissions } from '@/types/user';
+import { DEFAULT_USER_PERMISSIONS, normalizeUserPermissions, StoredUser, UserPermissions } from '@/types/user';
 
 let readyPromise: Promise<void> | null = null;
 
@@ -154,6 +154,50 @@ async function initDatabase(): Promise<void> {
     )
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS user_presence (
+      presence_key TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      role TEXT NOT NULL,
+      last_seen_at TIMESTAMPTZ NOT NULL,
+      path TEXT
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS chat_conversations (
+      id TEXT PRIMARY KEY,
+      access_token TEXT NOT NULL,
+      user_id TEXT,
+      guest_token TEXT,
+      display_name TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL,
+      last_message_at TIMESTAMPTZ NOT NULL,
+      telegram_notified_at TIMESTAMPTZ
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+      sender TEXT NOT NULL,
+      body TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS system_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
   await seedFromFilesIfEmpty();
 }
 
@@ -224,8 +268,5 @@ export async function getDatabaseStatus(): Promise<{
 }
 
 export function parsePermissions(value: unknown): UserPermissions {
-  if (typeof value === 'string') {
-    return JSON.parse(value) as UserPermissions;
-  }
-  return value as UserPermissions;
+  return normalizeUserPermissions(value ?? DEFAULT_USER_PERMISSIONS);
 }

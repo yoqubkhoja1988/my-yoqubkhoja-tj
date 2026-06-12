@@ -6,14 +6,17 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { addProject, getProjects, initializeProjects, removeProject, updateProject } from '@/lib/projects';
 import { Project, ProjectCategory, ProjectStatus } from '@/types/project';
+import AdminChatPanel from './AdminChatPanel';
 import AdminDataPanel from './AdminDataPanel';
 import AdminUsersPanel from './AdminUsersPanel';
 import AppFooter from './AppFooter';
 import AdminTelegramContact from './AdminTelegramContact';
 import AppHeader from './AppHeader';
+import InnovationCenterBuilding from './InnovationCenterBuilding';
+import LegalDocumentsHub from './LegalDocumentsHub';
 
 type DashboardTab = 'projects' | 'admin';
-type AdminSubTab = 'users' | 'data';
+type AdminSubTab = 'users' | 'data' | 'chat';
 
 const statusClass: Record<ProjectStatus, string> = {
   active: 'bg-amber-500/20 text-amber-400',
@@ -218,8 +221,25 @@ export default function DashboardContent({
               >
                 {t('adminDataTab')}
               </button>
+              <button
+                type="button"
+                onClick={() => setAdminSubTab('chat')}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  adminSubTab === 'chat'
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'border border-[var(--border)] text-[var(--text-muted)]'
+                }`}
+              >
+                {t('adminChatTab')}
+              </button>
             </div>
-            {adminSubTab === 'users' ? <AdminUsersPanel /> : <AdminDataPanel />}
+            {adminSubTab === 'users' ? (
+              <AdminUsersPanel />
+            ) : adminSubTab === 'chat' ? (
+              <AdminChatPanel />
+            ) : (
+              <AdminDataPanel />
+            )}
           </div>
         ) : !canAccessProjects ? (
           <div className="empty-state">
@@ -242,126 +262,133 @@ export default function DashboardContent({
           </div>
         ) : (
           <>
-        <section className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {[
-            { label: t('statsTotal'), value: stats.total, color: 'text-blue-400' },
-            { label: t('statsActive'), value: stats.active, color: 'text-amber-400' },
-            { label: t('statsDone'), value: stats.done, color: 'text-green-400' },
-            { label: t('statsNew'), value: stats.new, color: 'text-violet-400' },
-          ].map((item) => (
-            <div key={item.label} className="stat-card">
-              <p className="text-xs text-[var(--text-muted)]">{item.label}</p>
-              <p className={`mt-0.5 text-xl font-bold ${item.color}`}>{item.value}</p>
-            </div>
-          ))}
-        </section>
-
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('searchPlaceholder')}
-            className="input-field sm:max-w-xs"
-          />
-          {isAdmin && (
-            <button type="button" onClick={() => openModal()} className="btn-primary shrink-0">
-              + {t('addProject')}
-            </button>
-          )}
-        </div>
-
-        <div className="mb-4 flex flex-wrap gap-1.5">
-          {filters.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setFilter(key)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                filter === key
-                  ? 'bg-gradient-to-r from-[var(--accent)] to-indigo-500 text-white shadow-md shadow-blue-500/20'
-                  : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {loading ? (
-          <div className="py-16 text-center text-[var(--text-muted)]">...</div>
-        ) : projects.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">📂</div>
-            <p className="text-[var(--text-muted)]">{t('noProjects')}</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">🔍</div>
-            <p className="text-[var(--text-muted)]">{t('noResults')}</p>
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((project) => (
-              <article
-                key={project.id}
-                className="glass-card glass-card-hover flex flex-col gap-2 p-4"
-              >
-                <div className="flex items-start gap-2">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-input)] text-lg">
-                    {project.icon || '📦'}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="truncate text-sm font-bold">{project.name}</h3>
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${statusClass[project.status]}`}
-                      >
-                        {statusLabel(project.status)}
-                      </span>
+            {!isAdmin ? (
+              <InnovationCenterBuilding />
+            ) : (
+              <>
+                <section className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {[
+                    { label: t('statsTotal'), value: stats.total, color: 'text-blue-400' },
+                    { label: t('statsActive'), value: stats.active, color: 'text-amber-400' },
+                    { label: t('statsDone'), value: stats.done, color: 'text-green-400' },
+                    { label: t('statsNew'), value: stats.new, color: 'text-violet-400' },
+                  ].map((item) => (
+                    <div key={item.label} className="stat-card">
+                      <p className="text-xs text-[var(--text-muted)]">{item.label}</p>
+                      <p className={`mt-0.5 text-xl font-bold ${item.color}`}>{item.value}</p>
                     </div>
-                    <p className="mt-1 text-xs text-[var(--accent)]">
-                      {categoryLabel(project.category || 'other')}
-                    </p>
-                  </div>
-                </div>
-                <p className="flex-1 text-sm leading-relaxed text-[var(--text-muted)]">
-                  {project.description || '—'}
-                </p>
-                <div className="flex flex-wrap gap-2 border-t border-[var(--border)] pt-3">
-                  {isAdmin && project.url && (
-                    <a
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--accent-hover)]"
-                    >
-                      {t('open')}
-                    </a>
-                  )}
+                  ))}
+                </section>
+
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t('searchPlaceholder')}
+                    className="input-field sm:max-w-xs"
+                  />
                   {isAdmin && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => openModal(project.id)}
-                        className="rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-1.5 text-xs font-semibold hover:bg-[var(--border)]"
-                      >
-                        {t('editProject')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(project.id)}
-                        className="rounded-lg border border-[var(--danger)] px-3 py-1.5 text-xs font-semibold text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white"
-                      >
-                        {t('deleteProject')}
-                      </button>
-                    </>
+                    <button type="button" onClick={() => openModal()} className="btn-primary shrink-0">
+                      + {t('addProject')}
+                    </button>
                   )}
                 </div>
-              </article>
-            ))}
-          </div>
-        )}
+
+                <div className="mb-4 flex flex-wrap gap-1.5">
+                  {filters.map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFilter(key)}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                        filter === key
+                          ? 'bg-gradient-to-r from-[var(--accent)] to-indigo-500 text-white shadow-md shadow-blue-500/20'
+                          : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {loading ? (
+                  <div className="py-16 text-center text-[var(--text-muted)]">...</div>
+                ) : projects.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-state-icon">📂</div>
+                    <p className="text-[var(--text-muted)]">{t('noProjects')}</p>
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-state-icon">🔍</div>
+                    <p className="text-[var(--text-muted)]">{t('noResults')}</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {filtered.map((project) => (
+                      <article
+                        key={project.id}
+                        className="glass-card glass-card-hover flex flex-col gap-2 p-4"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-input)] text-lg">
+                            {project.icon || '📦'}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="truncate text-sm font-bold">{project.name}</h3>
+                              <span
+                                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${statusClass[project.status]}`}
+                              >
+                                {statusLabel(project.status)}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-[var(--accent)]">
+                              {categoryLabel(project.category || 'other')}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="flex-1 text-sm leading-relaxed text-[var(--text-muted)]">
+                          {project.description || '—'}
+                        </p>
+                        <div className="flex flex-wrap gap-2 border-t border-[var(--border)] pt-3">
+                          {isAdmin && project.url && (
+                            <a
+                              href={project.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--accent-hover)]"
+                            >
+                              {t('open')}
+                            </a>
+                          )}
+                          {isAdmin && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => openModal(project.id)}
+                                className="rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-1.5 text-xs font-semibold hover:bg-[var(--border)]"
+                              >
+                                {t('editProject')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(project.id)}
+                                className="rounded-lg border border-[var(--danger)] px-3 py-1.5 text-xs font-semibold text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white"
+                              >
+                                {t('deleteProject')}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            <LegalDocumentsHub />
           </>
         )}
       </main>

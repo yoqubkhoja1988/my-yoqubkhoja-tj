@@ -1,17 +1,21 @@
 'use client';
 
-import { toIntlLocale } from '@/lib/intl-locale';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 
 const locales = ['ru', 'en', 'tj', 'uz'] as const;
+const labelKeys = {
+  ru: 'langRu',
+  en: 'langEn',
+  tj: 'langTj',
+  uz: 'langUz',
+} as const;
 
 export default function LangSwitcher() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const displayNames = new Intl.DisplayNames([toIntlLocale(locale)], { type: 'language' });
 
   return (
     <div
@@ -20,8 +24,7 @@ export default function LangSwitcher() {
       aria-label={t('language')}
     >
       {locales.map((code) => {
-        const intlCode = code === 'tj' ? 'tg' : code;
-        const label = displayNames.of(intlCode) ?? code.toUpperCase();
+        const label = t(labelKeys[code]);
 
         return (
           <button

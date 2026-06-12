@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { FOOD_SAFETY_CENTER_ID } from '@/lib/activity-directions';
+import { FOOD_SAFETY_CENTER_ID, KINDERGARTEN_SCHOOL_ID } from '@/lib/activity-directions';
 import { ensureDatabaseReady, isDatabaseEnabled, sql } from '@/lib/db';
 import { Organization } from '@/types/organization';
 
@@ -19,6 +19,23 @@ const FALLBACK_ORGANIZATIONS: Organization[] = [
     directorPhone: '+992928861819',
     chiefAccountantPhone: '+992927917704',
     taxDistrict: 'ноҳияи Ҷаббор Расулов',
+    sector: 'agriculture-food',
+  },
+  {
+    id: KINDERGARTEN_SCHOOL_ID,
+    name: 'МУАССИСАИ ДАВЛАТИИ ТАЪЛИМИИ ТОМАКТАБИИ МАКТАБ- КӮДАКИСТОНИ №1 НОҲИЯИ ҶАББОР РАСУЛОВ',
+    description: '',
+    createdAt: '2026-06-11T00:00:00.000Z',
+    rma: '610007948',
+    ryam: '6110004359',
+    address: 'шаҳраки Меҳробод, кӯчаи Ленин',
+    director: 'Шокирова Нилуфар Ҳасановна',
+    chiefAccountant: 'Ахроров Ёқубхоҷа Яҳёевич',
+    directorPhone: '+992929363080',
+    chiefAccountantPhone: '+992927917704',
+    taxDistrict: 'ноҳияи Ҷаббор Расулов',
+    status: 'Амалкунанда',
+    sector: 'education',
   },
 ];
 
@@ -57,20 +74,10 @@ export async function readOrganizationsFile(): Promise<Organization[]> {
   return organizations.length > 0 ? organizations : FALLBACK_ORGANIZATIONS;
 }
 
+/** Upserts each organization without deleting others missing from the array. */
 export async function writeOrganizationsFile(organizations: Organization[]): Promise<void> {
-  if (!isDatabaseEnabled()) {
-    writeOrganizationsFileSync(organizations);
-    return;
-  }
-
-  await ensureDatabaseReady();
-  await sql`DELETE FROM organizations`;
   for (const org of organizations) {
-    await sql`
-      INSERT INTO organizations (id, payload, created_at)
-      VALUES (${org.id}, ${JSON.stringify(org)}::jsonb, ${org.createdAt})
-      ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload
-    `;
+    await upsertOrganization(org);
   }
 }
 
@@ -90,6 +97,13 @@ export async function upsertOrganization(organization: Organization): Promise<Or
     VALUES (${organization.id}, ${JSON.stringify(organization)}::jsonb, ${organization.createdAt})
     ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload
   `;
+
+  const fileOrgs = readOrganizationsFileSync();
+  const index = fileOrgs.findIndex((item) => item.id === organization.id);
+  if (index >= 0) fileOrgs[index] = organization;
+  else fileOrgs.push(organization);
+  writeOrganizationsFileSync(fileOrgs);
+
   return organization;
 }
 
@@ -104,5 +118,10 @@ export async function deleteOrganizationById(id: string): Promise<boolean> {
 
   await ensureDatabaseReady();
   const result = await sql`DELETE FROM organizations WHERE id = ${id}`;
-  return (result.rowCount ?? 0) > 0;
+  const deleted = (result.rowCount ?? 0) > 0;
+  if (deleted) {
+    const fileOrgs = readOrganizationsFileSync().filter((item) => item.id !== id);
+    writeOrganizationsFileSync(fileOrgs);
+  }
+  return deleted;
 }

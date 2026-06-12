@@ -16,9 +16,11 @@ import {
   upsertPositionHandover,
   vacantHandoverFromId,
 } from '@/lib/finance-position-handover';
+import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { printDocument } from '@/lib/print-document';
 import { analyzeStaffing } from '@/lib/staff-analytics';
 import {
@@ -61,6 +63,8 @@ export default function FinancePositionHandoverPanel({
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
+  const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
     () => activeEmployees(staffContent?.employees),
     [staffContent?.employees]
@@ -202,7 +206,8 @@ export default function FinancePositionHandoverPanel({
           nextHandovers,
           staffContent,
           monthsToSyncHandover(nextHandover, previousHandover),
-          financeContent.laborLeaves
+          financeContent.laborLeaves,
+          organizationId
         )
       : financeContent.payrollLedgers;
 
@@ -268,7 +273,8 @@ export default function FinancePositionHandoverPanel({
             nextHandovers,
             staffContent,
             [handoverMonthKey(deleted.effectiveDate)],
-            financeContent.laborLeaves
+            financeContent.laborLeaves,
+            organizationId
           )
         : financeContent.payrollLedgers;
     const payload: OrganizationSectionContent = {
@@ -376,6 +382,7 @@ export default function FinancePositionHandoverPanel({
               ))}
             </select>
           )}
+          {canEdit && (
           <button
             type="button"
             onClick={handleCreate}
@@ -384,6 +391,7 @@ export default function FinancePositionHandoverPanel({
           >
             + {t('positionHandoverAdd')}
           </button>
+          )}
           <button
             type="button"
             onClick={() => printDocument('finance-position-handover-document')}
@@ -397,7 +405,8 @@ export default function FinancePositionHandoverPanel({
             filename={`voguzori-${draft.effectiveDate || 'hujjat'}`}
             disabled={!canPrint}
           />
-          {editing ? (
+          {canEdit &&
+            (editing ? (
             <button
               type="button"
               onClick={handleSave}
@@ -427,7 +436,7 @@ export default function FinancePositionHandoverPanel({
                 </button>
               )}
             </>
-          )}
+          ))}
         </div>
       </div>
 
@@ -749,7 +758,7 @@ export default function FinancePositionHandoverPanel({
                 </p>
               </div>
               <div>
-                <p className="font-semibold">{t('payrollLedgerDirector')}</p>
+                <p className="font-semibold">{directorSignatureLabel}</p>
                 <p className="mt-6 border-t border-slate-400 pt-1">
                   {organization?.director || '________________'}
                 </p>

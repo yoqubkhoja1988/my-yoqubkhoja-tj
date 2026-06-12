@@ -1,6 +1,24 @@
+export type OrganizationSectorId =
+  | 'state-governance'
+  | 'ministries-agencies'
+  | 'local-government'
+  | 'education'
+  | 'healthcare'
+  | 'social-protection'
+  | 'agriculture-food'
+  | 'industry-energy'
+  | 'finance-economy'
+  | 'transport-communications'
+  | 'justice-security'
+  | 'culture-sports'
+  | 'science-innovation';
+
 export interface Organization {
 
   id: string;
+
+  /** Соҳаи гуруҳбандӣ мувофиқи сохтори иқтисодии ҶТ */
+  sector?: OrganizationSectorId;
 
   rma?: string;
 

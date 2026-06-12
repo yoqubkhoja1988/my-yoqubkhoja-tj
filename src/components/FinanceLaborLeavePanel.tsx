@@ -19,9 +19,11 @@ import {
   syncLedgersAfterLaborLeaveChange,
   upsertLaborLeave,
 } from '@/lib/finance-labor-leave';
+import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
 import {
@@ -66,6 +68,8 @@ export default function FinanceLaborLeavePanel({
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
+  const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
     () => activeEmployees(staffContent?.employees),
     [staffContent?.employees]
@@ -193,7 +197,8 @@ export default function FinanceLaborLeavePanel({
           financeContent.payrollLedgers,
           nextLeaves,
           staffContent,
-          monthsToSyncLeave(nextLeave, previousLeave)
+          monthsToSyncLeave(nextLeave, previousLeave),
+          organizationId
         )
       : financeContent.payrollLedgers;
 
@@ -264,7 +269,8 @@ export default function FinanceLaborLeavePanel({
             financeContent.payrollLedgers,
             nextLeaves,
             staffContent,
-            leaveMonthsAffected(deleted)
+            leaveMonthsAffected(deleted),
+            organizationId
           )
         : financeContent.payrollLedgers;
     const payload: OrganizationSectionContent = {
@@ -352,9 +358,11 @@ export default function FinanceLaborLeavePanel({
               ))}
             </select>
           )}
+          {canEdit && (
           <button type="button" onClick={handleCreate} className="btn-secondary text-xs" disabled={saving}>
             + {t('laborLeaveAdd')}
           </button>
+          )}
           <button
             type="button"
             onClick={() => printDocument('finance-labor-leave-document')}
@@ -368,7 +376,8 @@ export default function FinanceLaborLeavePanel({
             filename={`rukhsat-${draft.orderNumber || 'hujjat'}`}
             disabled={!canPrint}
           />
-          {editing ? (
+          {canEdit &&
+            (editing ? (
             <button
               type="button"
               onClick={handleSave}
@@ -398,7 +407,7 @@ export default function FinanceLaborLeavePanel({
                 </button>
               )}
             </>
-          )}
+          ))}
         </div>
       </div>
 
@@ -782,7 +791,7 @@ export default function FinanceLaborLeavePanel({
 
             <div className="grid gap-8 text-xs text-slate-700 md:grid-cols-2">
               <div>
-                <p className="font-semibold">{t('payrollLedgerDirector')}</p>
+                <p className="font-semibold">{directorSignatureLabel}</p>
                 <p className="mt-6 border-t border-slate-400 pt-1">
                   {organization?.director || '________________'}
                 </p>

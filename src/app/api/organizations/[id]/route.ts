@@ -1,6 +1,7 @@
 import {
+  deleteOrganizationById,
   readOrganizationsFile,
-  writeOrganizationsFile,
+  upsertOrganization,
 } from '@/lib/organizations-store';
 import { requireAdmin, requireSession } from '@/lib/api-guard';
 import {
@@ -57,7 +58,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           : organizations[index].description,
     };
 
-    await writeOrganizationsFile(organizations);
+    await upsertOrganization(organizations[index]);
     return NextResponse.json(organizations[index]);
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
@@ -69,13 +70,15 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   if (session instanceof NextResponse) return session;
 
   const { id } = await context.params;
-  const organizations = await readOrganizationsFile();
-  const filtered = organizations.filter((item) => item.id !== id);
-
-  if (filtered.length === organizations.length) {
+  const organization = (await readOrganizationsFile()).find((item) => item.id === id);
+  if (!organization) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  await writeOrganizationsFile(filtered);
+  const deleted = await deleteOrganizationById(id);
+  if (!deleted) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   return NextResponse.json({ ok: true });
 }

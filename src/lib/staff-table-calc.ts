@@ -10,8 +10,9 @@ export function parseAmount(value: string): number | null {
 
 export function parseStaffCount(value: string): number | null {
   const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number.parseInt(trimmed.replace(/\s/g, ''), 10);
+  if (!trimmed || trimmed === '—' || trimmed === '-') return null;
+  const normalized = trimmed.replace(/\s/g, '').replace(',', '.');
+  const parsed = Number.parseFloat(normalized);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
@@ -22,7 +23,13 @@ export function formatAmount(value: number): string {
 }
 
 export function formatStaffCount(value: number): string {
-  return String(Math.max(0, Math.round(value)));
+  const safe = Math.max(0, value);
+  if (Number.isInteger(safe)) return String(safe);
+  return safe
+    .toFixed(2)
+    .replace('.', ',')
+    .replace(/,?0+$/, '')
+    .replace(/,$/, '');
 }
 
 export type StaffColumnMap = {

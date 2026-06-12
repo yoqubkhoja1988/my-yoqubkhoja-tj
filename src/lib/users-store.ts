@@ -13,6 +13,7 @@ import {
   StoredUser,
   UserPermissions,
   UserStatus,
+  normalizeUserPermissions,
 } from '@/types/user';
 
 const FILE = join(process.cwd(), 'data', 'users.json');
@@ -145,7 +146,7 @@ export async function createUser(input: {
     username,
     passwordHash: input.passwordHash,
     status: input.status ?? 'pending',
-    permissions: input.permissions ?? { ...DEFAULT_USER_PERMISSIONS },
+    permissions: normalizeUserPermissions(input.permissions ?? DEFAULT_USER_PERMISSIONS),
     createdAt: now,
   };
 
@@ -182,6 +183,9 @@ export async function updateUser(
   const updated: StoredUser = {
     ...current,
     ...patch,
+    ...(patch.permissions
+      ? { permissions: normalizeUserPermissions(patch.permissions) }
+      : {}),
     updatedAt: new Date().toISOString(),
   };
 
