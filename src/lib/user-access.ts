@@ -46,7 +46,17 @@ export function isCharterLegalSection(sectionSlug: string): boolean {
   return (CHARTER_LEGAL_SECTION_SLUGS as readonly string[]).includes(sectionSlug);
 }
 
-/** Таҳрири ҳуҷҷатҳои оиннома/қонунӣ — барои корбари ташкилот бо дастрасӣ ба бахш */
+/** Бахшҳои таҳриршаванда барои корбари ташкилот */
+export const ORG_USER_EDITABLE_SECTIONS = [
+  ...CHARTER_LEGAL_SECTION_SLUGS,
+  'financial-reports',
+] as const;
+
+export function isOrgUserEditableSection(sectionSlug: string): boolean {
+  return (ORG_USER_EDITABLE_SECTIONS as readonly string[]).includes(sectionSlug);
+}
+
+/** Таҳрири мундариҷа — барои корбари ташкилот бо дастрасӣ ба бахш */
 export function canEditOrganizationSection(
   session: Session | null | undefined,
   organizationId: string,
@@ -55,7 +65,7 @@ export function canEditOrganizationSection(
   if (!session?.user) return false;
   if (isSiteAdmin(session)) return true;
   if (isSupervisionOnlyUser(session)) return false;
-  if (!isCharterLegalSection(sectionSlug)) return false;
+  if (!isOrgUserEditableSection(sectionSlug)) return false;
   return canAccessOrganizationSection(session, organizationId, sectionSlug);
 }
 

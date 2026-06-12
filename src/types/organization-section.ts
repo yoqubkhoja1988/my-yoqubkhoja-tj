@@ -22,6 +22,8 @@ export interface SectionItem {
   officialNumber?: string;
   adoptedAt?: string;
   status?: string;
+  /** Шакли ҳисобот (form-1, form-5, ...) мувофиқи дастур №204 */
+  reportFormId?: string;
 }
 
 export interface EmployeeWageScale {

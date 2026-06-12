@@ -180,6 +180,12 @@ const KINDERGARTEN_SCHOOL_DIRECTIONS: ActivityDirection[] = [
   { slug: 'staff', icon: '👥', labelKey: 'actStaff', groupKey: 'actGroupMaterialFinance' },
   { slug: 'finance', icon: '💰', labelKey: 'actFinance', groupKey: 'actGroupMaterialFinance' },
   {
+    slug: 'financial-reports',
+    icon: '📊',
+    labelKey: 'actFinancialReports',
+    groupKey: 'actGroupMaterialFinance',
+  },
+  {
     slug: 'formation-report',
     icon: '📋',
     labelKey: 'actFormationReport',

@@ -33,6 +33,7 @@ import FinanceLaborLeavePanel from './FinanceLaborLeavePanel';
 import FinanceMaternityLeavePanel from './FinanceMaternityLeavePanel';
 import FinanceSickLeavePanel from './FinanceSickLeavePanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
+import FinanceReportsPanel from './FinanceReportsPanel';
 import FinanceSectionNav from './FinanceSectionNav';
 import {
   DEFAULT_FINANCE_SECTION,
@@ -52,6 +53,7 @@ import StaffFormationReportPanel from './StaffFormationReportPanel';
 import StaffVacancyPanel from './StaffVacancyPanel';
 import LegalDocumentsPanel from './LegalDocumentsPanel';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
+import { ensureForm5Tables, form5TablesFromAll } from '@/lib/financial-report-form5';
 import { isCharterLegalSection } from '@/lib/user-access';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
@@ -389,6 +391,50 @@ export default function EditableSectionContent({
     setDraft({ ...draft, items });
   }
 
+  function initForm5InDraft() {
+    if (!draft) return;
+    setDraft({ ...draft, tables: ensureForm5Tables(draft.tables) });
+  }
+
+  function updateForm5Cell(
+    form5TableIndex: number,
+    rowIndex: number,
+    cellIndex: number,
+    value: string
+  ) {
+    if (!draft?.tables) return;
+    const form5Tables = form5TablesFromAll(draft.tables);
+    const targetTitle = form5Tables[form5TableIndex]?.title;
+    if (!targetTitle) return;
+
+    const tableIndex = draft.tables.findIndex((table) => table.title === targetTitle);
+    if (tableIndex < 0) return;
+
+    const tables = [...draft.tables];
+    const table = tables[tableIndex];
+    const rows = table.rows.map((row, ri) =>
+      ri === rowIndex ? row.map((cell, ci) => (ci === cellIndex ? value : cell)) : [...row]
+    );
+    tables[tableIndex] = { ...table, rows };
+    setDraft({ ...draft, tables });
+  }
+
+  function addForm5Row(form5TableIndex: number) {
+    if (!draft?.tables) return;
+    const form5Tables = form5TablesFromAll(draft.tables);
+    const targetTitle = form5Tables[form5TableIndex]?.title;
+    if (!targetTitle) return;
+
+    const tableIndex = draft.tables.findIndex((table) => table.title === targetTitle);
+    if (tableIndex < 0) return;
+
+    const table = draft.tables[tableIndex];
+    const emptyRow = table.columns.map((_, cellIndex) => (cellIndex < 2 ? '' : '0,00'));
+    const tables = [...draft.tables];
+    tables[tableIndex] = { ...table, rows: [...table.rows, emptyRow] };
+    setDraft({ ...draft, tables });
+  }
+
   function removeStaffingRow(tableIndex: number, rowIndex: number) {
     if (!draft?.tables) return;
     const table = draft.tables[tableIndex];
@@ -449,6 +495,7 @@ export default function EditableSectionContent({
 
       {((section !== 'finance' &&
         section !== 'staff' &&
+        section !== 'financial-reports' &&
         !isCharterLegalSection(section)) ||
         (section === 'finance' &&
           (activeFinanceSection === 'finance-stats' ||
@@ -529,6 +576,30 @@ export default function EditableSectionContent({
           organizationName={organizationName}
           analytics={staffAnalytics}
         />
+      )}
+
+      {section === 'financial-reports' && (
+        <>
+          {editing && draft ? (
+            <textarea
+              value={draft.summary}
+              onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+              rows={3}
+              className="input-field text-sm"
+              placeholder={t('financeReportsDefaultSummary')}
+            />
+          ) : null}
+          <FinanceReportsPanel
+            summary={view.summary}
+            items={view.items ?? []}
+            tables={view.tables ?? []}
+            editing={editing && !!draft}
+            onItemsChange={editing && draft ? updateDraftItems : undefined}
+            onForm5CellChange={editing && draft ? updateForm5Cell : undefined}
+            onForm5AddRow={editing && draft ? addForm5Row : undefined}
+            onInitForm5={editing && draft ? initForm5InDraft : undefined}
+          />
+        </>
       )}
 
       {view.tables &&
