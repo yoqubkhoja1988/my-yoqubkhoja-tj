@@ -10,9 +10,13 @@ type Props = {
   onChange?: (reportHeader: OrganizationReportHeader) => void;
 };
 
-function normalizeAuthorities(lines: string[] | undefined): string[] {
-  const values = (lines ?? []).map((line) => line.trim()).filter(Boolean);
-  return values.length > 0 ? values : [''];
+function displayAuthorities(lines: string[] | undefined): string[] {
+  return (lines ?? []).map((line) => line.trim()).filter(Boolean);
+}
+
+function editingAuthorities(lines: string[] | undefined): string[] {
+  if (!lines?.length) return [''];
+  return lines;
 }
 
 export default function OrganizationInfoPanel({
@@ -23,7 +27,9 @@ export default function OrganizationInfoPanel({
 }: Props) {
   const t = useTranslations();
   const displayName = reportHeader?.reportOrganizationName?.trim() || organizationName;
-  const authorities = normalizeAuthorities(reportHeader?.superiorAuthorities);
+  const authorities = editing
+    ? editingAuthorities(reportHeader?.superiorAuthorities)
+    : displayAuthorities(reportHeader?.superiorAuthorities);
 
   function patch(next: OrganizationReportHeader) {
     onChange?.(next);
@@ -65,7 +71,7 @@ export default function OrganizationInfoPanel({
           <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
             {t('vacancyNoticeRepublic')}
           </p>
-          {(editing ? authorities : authorities.filter(Boolean)).map((line, index) => (
+          {(editing ? authorities.filter((line) => line.trim()) : authorities).map((line, index) => (
             <p key={`${line}-${index}`} className="text-xs text-[var(--text-muted)]">
               {line || t('orgInfoAuthorityPlaceholder')}
             </p>
@@ -134,7 +140,7 @@ export default function OrganizationInfoPanel({
               {t('orgInfoFieldSuperiorAuthorities')}
             </dt>
             <dd className="mt-1 space-y-1 text-sm">
-              {authorities.filter(Boolean).map((line, index) => (
+              {authorities.map((line, index) => (
                 <p key={`${line}-${index}`}>{line}</p>
               ))}
             </dd>
