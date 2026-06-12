@@ -207,6 +207,14 @@ export interface LaborLeave {
   sickIsTuberculosis?: boolean;
 }
 
+/** Маълумот барои сарлавҳаи расмии ҳисоботҳои ташкилот */
+export interface OrganizationReportHeader {
+  /** Номи ташкилот дар титули ҳисобот (агар холӣ — номи асосии ташкилот) */
+  reportOrganizationName?: string;
+  /** Сатрҳои мақомоти болоии ташкилот */
+  superiorAuthorities?: string[];
+}
+
 export interface OrganizationSectionContent {
   summary: string;
   tables?: SectionTable[];
@@ -217,6 +225,7 @@ export interface OrganizationSectionContent {
   payrollLedgers?: PayrollLedger[];
   positionHandovers?: PositionHandover[];
   laborLeaves?: LaborLeave[];
+  reportHeader?: OrganizationReportHeader;
 }
 
 export type OrganizationSectionsMap = Record<string, OrganizationSectionContent>;

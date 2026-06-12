@@ -21,6 +21,7 @@ import {
 } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from '@/i18n/navigation';
 import { analyzeFinance } from '@/lib/finance-analytics';
 import { analyzeStaffing } from '@/lib/staff-analytics';
 import { Organization } from '@/types/organization';
@@ -51,6 +52,7 @@ import StaffOverviewStats from './StaffOverviewStats';
 import StaffSectionNav from './StaffSectionNav';
 import StaffFormationReportPanel from './StaffFormationReportPanel';
 import StaffVacancyPanel from './StaffVacancyPanel';
+import OrganizationInfoPanel from './OrganizationInfoPanel';
 import LegalDocumentsPanel from './LegalDocumentsPanel';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { ensureForm5Tables, form5TablesFromAll } from '@/lib/financial-report-form5';
@@ -59,6 +61,10 @@ import {
   resolveFinancialReportStorageSlug,
   resolveFinancialReportView,
 } from '@/lib/financial-reports-menu';
+import {
+  ORG_INFO_DEFAULT_SUMMARY,
+  ORG_INFO_SECTION_SLUG,
+} from '@/lib/organization-info';
 import { isCharterLegalSection } from '@/lib/user-access';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
@@ -118,6 +124,7 @@ export default function EditableSectionContent({
   canEdit = false,
 }: Props) {
   const t = useTranslations();
+  const router = useRouter();
   const [data, setData] = useState(content);
   const [liveStaffContent, setLiveStaffContent] = useState(staffContent ?? null);
   const [payrollLedgerMonth, setPayrollLedgerMonth] = useState<string | null>(null);
@@ -284,9 +291,14 @@ export default function EditableSectionContent({
 
     const payload = applyStaffCalculations({
       ...draft,
+      summary:
+        section === ORG_INFO_SECTION_SLUG
+          ? draft.summary?.trim() || ORG_INFO_DEFAULT_SUMMARY
+          : draft.summary,
       employees: draft.employees ?? data.employees,
       vacancyNotice: draft.vacancyNotice ?? data.vacancyNotice,
       timesheets: draft.timesheets ?? data.timesheets,
+      reportHeader: draft.reportHeader ?? data.reportHeader,
     });
     const storageSlug = resolveFinancialReportStorageSlug(section);
     const saved = await updateOrganizationSection(organizationId, storageSlug, payload);
@@ -300,6 +312,9 @@ export default function EditableSectionContent({
     setData(applyStaffCalculations(saved));
     setDraft(null);
     setEditing(false);
+    if (section === ORG_INFO_SECTION_SLUG) {
+      router.refresh();
+    }
   }
 
   function updateCell(tableIndex: number, rowIndex: number, cellIndex: number, value: string) {
@@ -501,6 +516,7 @@ export default function EditableSectionContent({
 
       {((section !== 'finance' &&
         section !== 'staff' &&
+        section !== ORG_INFO_SECTION_SLUG &&
         !isFinancialReportSection(section) &&
         !isCharterLegalSection(section)) ||
         (section === 'finance' &&
@@ -578,9 +594,19 @@ export default function EditableSectionContent({
       )}
 
       {section === 'formation-report' && (
-        <StaffFormationReportPanel
+        <StaffFormationReportPanel analytics={staffAnalytics} />
+      )}
+
+      {section === ORG_INFO_SECTION_SLUG && (
+        <OrganizationInfoPanel
           organizationName={organizationName}
-          analytics={staffAnalytics}
+          reportHeader={editing && draft ? draft.reportHeader : view.reportHeader}
+          editing={editing && !!draft}
+          onChange={
+            editing && draft
+              ? (reportHeader) => setDraft({ ...draft, reportHeader })
+              : undefined
+          }
         />
       )}
 

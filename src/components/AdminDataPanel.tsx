@@ -27,6 +27,7 @@ const CATEGORY_LABEL_KEYS: Record<AdminDataCategory, string> = {
 
 const SECTION_LABEL_KEYS: Record<string, string> = {
   overview: 'actOverview',
+  'org-info': 'actOrgInfo',
   staff: 'actStaff',
   finance: 'actFinance',
   legal: 'actLegal',

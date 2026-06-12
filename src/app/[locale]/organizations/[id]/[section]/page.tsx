@@ -5,6 +5,10 @@ import {
   isFinancialReportSection,
   resolveFinancialReportStorageSlug,
 } from '@/lib/financial-reports-menu';
+import {
+  ORG_INFO_SECTION_SLUG,
+  defaultOrgInfoContent,
+} from '@/lib/organization-info';
 import { syncOfficialLegalForOrganization } from '@/lib/official-legal-sync';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { getOrganizationSection } from '@/lib/organization-sections-store';
@@ -49,6 +53,17 @@ export default async function OrganizationSectionPage({
   if (isFinancialReportSection(section) && !sectionContent) {
     sectionContent = { ...DEFAULT_FINANCIAL_REPORTS_CONTENT };
   }
+  if (section === ORG_INFO_SECTION_SLUG && !sectionContent) {
+    sectionContent = defaultOrgInfoContent(id);
+  }
+
+  let orgInfoContent =
+    section === ORG_INFO_SECTION_SLUG
+      ? sectionContent
+      : await getOrganizationSection(id, ORG_INFO_SECTION_SLUG);
+  if (!orgInfoContent) {
+    orgInfoContent = defaultOrgInfoContent(id);
+  }
   const staffContent =
     section === 'finance' || section === 'formation-report'
       ? await getOrganizationSection(id, 'staff')
@@ -60,6 +75,7 @@ export default async function OrganizationSectionPage({
       section={section}
       sectionContent={sectionContent}
       staffContent={staffContent}
+      orgInfoContent={orgInfoContent}
     />
   );
 }

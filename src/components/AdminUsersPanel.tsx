@@ -9,6 +9,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 
 const SECTION_LABEL_KEYS: Record<string, string> = {
   overview: 'actOverview',
+  'org-info': 'actOrgInfo',
   staff: 'actStaff',
   finance: 'actFinance',
   legal: 'actLegal',

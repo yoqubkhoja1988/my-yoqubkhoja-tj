@@ -12,6 +12,7 @@ import {
   isSupervisionOnlyUser,
 } from '@/lib/user-access';
 import { OrganizationAccessProvider } from '@/contexts/organization-access-context';
+import { OrganizationReportHeaderProvider } from '@/contexts/organization-report-header-context';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { useSession } from 'next-auth/react';
@@ -26,6 +27,7 @@ type Props = {
   section: string;
   sectionContent: OrganizationSectionContent | null;
   staffContent?: OrganizationSectionContent | null;
+  orgInfoContent?: OrganizationSectionContent | null;
 };
 
 function ContentCard({ children }: { children: React.ReactNode }) {
@@ -143,6 +145,7 @@ export default function OrganizationDetailContent({
   section,
   sectionContent,
   staffContent,
+  orgInfoContent = null,
 }: Props) {
   const t = useTranslations();
   const { data: session } = useSession();
@@ -219,6 +222,10 @@ export default function OrganizationDetailContent({
                 </div>
               )}
               <OrganizationAccessProvider canEdit={canEdit} supervisionOnly={supervisionOnly}>
+              <OrganizationReportHeaderProvider
+                organization={organization}
+                orgInfoContent={orgInfoContent}
+              >
               {activeSection === 'overview' ? (
                 <OverviewPanel organization={organization} />
               ) : (
@@ -230,6 +237,7 @@ export default function OrganizationDetailContent({
                 canEdit={canEdit}
               />
               )}
+              </OrganizationReportHeaderProvider>
               </OrganizationAccessProvider>
             </section>
           </main>

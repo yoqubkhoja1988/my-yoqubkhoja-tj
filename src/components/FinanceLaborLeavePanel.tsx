@@ -23,6 +23,8 @@ import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
+import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
@@ -68,6 +70,7 @@ export default function FinanceLaborLeavePanel({
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
@@ -663,18 +666,16 @@ export default function FinanceLaborLeavePanel({
             translate="no"
             className="labor-leave-document notranslate mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-6 text-slate-900 shadow-sm print:border-0 print:shadow-none md:p-8"
           >
-            <header className="mb-6 text-center text-xs leading-relaxed text-slate-700">
-              <p>{t('payrollLedgerRepublic')}</p>
-              <p>{t('payrollLedgerCommittee')}</p>
-              <p className="mt-2 text-sm font-bold uppercase text-slate-900">
-                {organization?.name ?? t('payrollLedgerOrganization')}
-              </p>
-              {organization?.address && <p className="mt-1">{organization.address}</p>}
-              <h3 className="mt-4 text-lg font-bold tracking-wide text-slate-900">
+            <OrganizationReportDocumentHeader
+              variant="document"
+              showAddress={organization?.address}
+            />
+            <div className="mb-6 text-center text-xs leading-relaxed text-slate-700">
+              <h3 className="text-lg font-bold tracking-wide text-slate-900">
                 {t('laborLeaveDocumentTitle')}
               </h3>
               <p className="mt-1 text-sm print-supplement">{t('laborLeaveDocumentSubtitle')}</p>
-            </header>
+            </div>
 
             <div className="mb-5 flex flex-wrap justify-between gap-2 text-xs text-slate-700">
               <p>
@@ -687,7 +688,7 @@ export default function FinanceLaborLeavePanel({
 
             <p className="mb-4 text-justify text-xs leading-relaxed md:text-sm">
               {t('laborLeaveIntro', {
-                organization: organization?.name ?? t('payrollLedgerOrganization'),
+                organization: reportOrganizationName || t('payrollLedgerOrganization'),
                 employee: employee?.fullName ?? '________________',
                 leaveType: t(`laborLeaveType_${draft.leaveType}`),
                 startDate: formatDate(draft.startDate),

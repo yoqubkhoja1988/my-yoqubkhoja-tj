@@ -8,12 +8,15 @@ import {
   FINANCIAL_REPORT_SECTION_SLUGS,
   isFinancialReportSection,
 } from '@/lib/financial-reports-menu';
+import { ORG_INFO_SECTION_SLUG } from '@/lib/organization-info';
 
 const AUTO_VISIBLE_LEGAL_SECTIONS = new Set<string>([
   LEGAL_SECTION_SLUGS.laws,
   LEGAL_SECTION_SLUGS.decisions,
   LEGAL_SECTION_SLUGS.documents,
 ]);
+
+const AUTO_VISIBLE_ORG_INFO_SECTIONS = new Set<string>([ORG_INFO_SECTION_SLUG]);
 
 const AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS = new Set<string>(FINANCIAL_REPORT_SECTION_SLUGS);
 
@@ -55,11 +58,13 @@ export function isCharterLegalSection(sectionSlug: string): boolean {
 /** Бахшҳои таҳриршаванда барои корбари ташкилот */
 export const ORG_USER_EDITABLE_SECTIONS = [
   ...CHARTER_LEGAL_SECTION_SLUGS,
+  ORG_INFO_SECTION_SLUG,
   ...FINANCIAL_REPORT_SECTION_SLUGS,
 ] as const;
 
 export function isOrgUserEditableSection(sectionSlug: string): boolean {
   if (isCharterLegalSection(sectionSlug)) return true;
+  if (sectionSlug === ORG_INFO_SECTION_SLUG) return true;
   return isFinancialReportSection(sectionSlug);
 }
 
@@ -116,6 +121,9 @@ export function canAccessSection(
   if (AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
     return true;
   }
+  if (AUTO_VISIBLE_ORG_INFO_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
+    return true;
+  }
   return permissions?.sectionSlugs.includes(sectionSlug) ?? false;
 }
 
@@ -150,6 +158,7 @@ export function filterDirectionsForSession(
     (direction) =>
       allowedSections.includes(direction.slug) ||
       (orgAccess && AUTO_VISIBLE_LEGAL_SECTIONS.has(direction.slug)) ||
-      (orgAccess && AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(direction.slug))
+      (orgAccess && AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(direction.slug)) ||
+      (orgAccess && AUTO_VISIBLE_ORG_INFO_SECTIONS.has(direction.slug))
   );
 }

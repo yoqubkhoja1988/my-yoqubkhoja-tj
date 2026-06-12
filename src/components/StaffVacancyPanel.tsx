@@ -70,7 +70,6 @@ export default function StaffVacancyPanel({
       )}
 
       <StaffVacancyNotice
-        organizationName={organizationName}
         analytics={analytics}
         notice={vacancyNotice}
         editing={editing}

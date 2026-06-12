@@ -257,7 +257,8 @@ export function buildBankPaymentDocument(
   financeContent: OrganizationSectionContent,
   staffContent: OrganizationSectionContent,
   month: string,
-  organization?: Organization
+  organization?: Organization,
+  reportOrganizationName?: string
 ): BankPaymentDocument {
   const ledger = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
     organizationId: organization?.id,
@@ -339,7 +340,7 @@ export function buildBankPaymentDocument(
     periodLabel,
     year,
     preparedAt,
-    organizationName: organization?.name ?? '',
+    organizationName: reportOrganizationName?.trim() || organization?.name || '',
     rows,
     totalNetPay,
     totalInWords: amountInWordsTj(totalNetPay),

@@ -17,6 +17,7 @@ import {
   updateOrganizationSection,
 } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
@@ -393,14 +394,12 @@ export default function FinancePayrollLedgerPanel({
           translate="no"
           className="payroll-ledger-document notranslate mx-auto min-w-[72rem] rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm print:min-w-0 print:border-0 print:p-2 print:shadow-none md:p-6"
         >
-          <header className="mb-6 text-center text-xs leading-relaxed text-slate-700">
-            <p>{t('payrollLedgerRepublic')}</p>
-            <p>{t('payrollLedgerCommittee')}</p>
-            <p className="mt-2 text-sm font-bold uppercase text-slate-900">
-              {organization?.name ?? t('payrollLedgerOrganization')}
-            </p>
-            {organization?.address && <p className="mt-1">{organization.address}</p>}
-            <h3 className="mt-4 text-lg font-bold tracking-wide text-slate-900">
+          <OrganizationReportDocumentHeader
+            variant="document"
+            showAddress={organization?.address}
+          />
+          <div className="mb-6 text-center text-xs leading-relaxed text-slate-700">
+            <h3 className="text-lg font-bold tracking-wide text-slate-900">
               {t('payrollLedgerDocumentTitle')}
             </h3>
             <p className="mt-1 text-sm">
@@ -410,7 +409,7 @@ export default function FinancePayrollLedgerPanel({
               <p>{t('employmentWorkTypePrimaryTaxFormula')}</p>
               <p>{t('employmentWorkTypeSecondaryTaxFormula')}</p>
             </div>
-          </header>
+          </div>
 
           <div className="overflow-x-auto print:overflow-visible">
             <table className="w-full min-w-[68rem] border-collapse text-[10px] md:text-xs">

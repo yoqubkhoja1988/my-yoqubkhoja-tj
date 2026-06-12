@@ -12,6 +12,7 @@ const FINANCIAL_REPORT_MENU = getFinancialReportMenuDirections();
  */
 const FOOD_SAFETY_DIRECTIONS: ActivityDirection[] = [
   { slug: 'overview', icon: '🏠', labelKey: 'actOverview', groupKey: 'actGroupGeneral' },
+  { slug: 'org-info', icon: '🏢', labelKey: 'actOrgInfo', groupKey: 'actGroupGeneral' },
 
   {
     slug: 'sectoral-programs',
@@ -124,6 +125,7 @@ const FOOD_SAFETY_DIRECTIONS: ActivityDirection[] = [
  */
 const KINDERGARTEN_SCHOOL_DIRECTIONS: ActivityDirection[] = [
   { slug: 'overview', icon: '🏠', labelKey: 'actOverview', groupKey: 'actGroupGeneral' },
+  { slug: 'org-info', icon: '🏢', labelKey: 'actOrgInfo', groupKey: 'actGroupGeneral' },
 
   { slug: 'charter', icon: '📜', labelKey: 'actCharter', groupKey: 'actGroupCharterLegal' },
   { slug: 'licensing', icon: '📄', labelKey: 'actLicensing', groupKey: 'actGroupCharterLegal' },
@@ -210,6 +212,7 @@ export function getActivityDirections(organizationId: string): ActivityDirection
   return (
     DIRECTIONS_BY_ORG[organizationId] ?? [
       { slug: 'overview', icon: '🏠', labelKey: 'actOverview', groupKey: 'actGroupGeneral' },
+      { slug: 'org-info', icon: '🏢', labelKey: 'actOrgInfo', groupKey: 'actGroupGeneral' },
       ...FINANCIAL_REPORT_MENU,
     ]
   );

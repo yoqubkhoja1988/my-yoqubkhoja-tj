@@ -96,6 +96,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         ? { positionHandovers: body.positionHandovers }
         : {}),
       ...(body.laborLeaves !== undefined ? { laborLeaves: body.laborLeaves } : {}),
+      ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
     });
 
     if (section === 'staff' && body.timesheets !== undefined) {

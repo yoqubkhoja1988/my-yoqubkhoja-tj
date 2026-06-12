@@ -3,11 +3,11 @@
 import { StaffAnalytics } from '@/lib/staff-analytics';
 import { VacancyNoticeInfo } from '@/types/organization-section';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { printDocument } from '@/lib/print-document';
 import { useTranslations } from 'next-intl';
 
 type Props = {
-  organizationName: string;
   analytics: StaffAnalytics;
   notice?: VacancyNoticeInfo;
   editing?: boolean;
@@ -21,7 +21,6 @@ const defaultNotice = (t: (key: string) => string): VacancyNoticeInfo => ({
 });
 
 export default function StaffVacancyNotice({
-  organizationName,
   analytics,
   notice,
   editing = false,
@@ -116,13 +115,7 @@ export default function StaffVacancyNotice({
           id="vacancy-notice-document"
           className="vacancy-notice-document rounded-xl border border-[var(--border)] bg-white/5 p-5 md:p-6"
         >
-          <header className="border-b border-[var(--border)] pb-4 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
-              {t('vacancyNoticeRepublic')}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">{t('vacancyNoticeCommittee')}</p>
-            <h5 className="mt-3 text-sm font-bold leading-snug md:text-base">{organizationName}</h5>
-          </header>
+          <OrganizationReportDocumentHeader />
 
           <div className="py-4 text-center">
             <h6 className="text-base font-bold uppercase tracking-wide md:text-lg">

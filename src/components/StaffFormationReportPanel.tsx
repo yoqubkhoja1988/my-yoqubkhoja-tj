@@ -1,5 +1,6 @@
 'use client';
 
+import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
@@ -8,11 +9,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 type Props = {
-  organizationName: string;
   analytics: StaffAnalytics | null;
 };
 
-export default function StaffFormationReportPanel({ organizationName, analytics }: Props) {
+export default function StaffFormationReportPanel({ analytics }: Props) {
   const t = useTranslations();
   const locale = useLocale();
 
@@ -86,13 +86,7 @@ export default function StaffFormationReportPanel({ organizationName, analytics 
         id="formation-report-document"
         className="rounded-xl border border-[var(--border)] bg-white/5 p-5 md:p-6"
       >
-        <header className="border-b border-[var(--border)] pb-4 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
-            {t('vacancyNoticeRepublic')}
-          </p>
-          <p className="mt-1 text-xs text-[var(--text-muted)]">{t('vacancyNoticeCommittee')}</p>
-          <h5 className="mt-3 text-sm font-bold leading-snug md:text-base">{organizationName}</h5>
-        </header>
+        <OrganizationReportDocumentHeader />
 
         <div className="py-4 text-center">
           <h6 className="text-base font-bold uppercase tracking-wide md:text-lg">

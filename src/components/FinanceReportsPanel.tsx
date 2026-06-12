@@ -1,6 +1,7 @@
 'use client';
 
 import FinanceReportForm5Panel from '@/components/FinanceReportForm5Panel';
+import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import {
   FINANCIAL_REPORT_INSTRUCTION,
   FINANCIAL_REPORT_FORMS,
@@ -301,6 +302,10 @@ export default function FinanceReportsPanel({
           {summary || t('financeReportsDefaultSummary')}
         </p>
       </div>
+
+      {view !== 'overview' && (
+        <OrganizationReportDocumentHeader className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/20 p-4" />
+      )}
 
       {view === 'overview' && (
         <>
