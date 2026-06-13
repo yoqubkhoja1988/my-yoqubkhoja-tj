@@ -100,7 +100,6 @@ export default function PublicPortalFooter() {
         <div className="public-footer-info__grid">
           <div className="public-footer-info__col">
             <p>{t('publicFooterCopyright', { year })}</p>
-            <p className="mt-1 font-semibold">{t('publicSiteOrgName')}</p>
           </div>
           <div className="public-footer-info__col">
             <p>{t('publicFooterRights')}</p>
