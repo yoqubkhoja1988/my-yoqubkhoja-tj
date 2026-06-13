@@ -659,6 +659,30 @@ html.theme-gov .nav-pill-active {
   background-image: linear-gradient(180deg, #e8eef5 0%, #dce6f0 100%);
 }
 
+.user-room-shell .gov-header-top {
+  background: rgba(17, 24, 39, 0.92);
+  background-image: none;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+}
+
+.user-room-shell header {
+  box-shadow: none;
+}
+
+.user-room-shell .gov-emblem {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.user-room-shell .gov-nav-toggle {
+  background: var(--bg-input);
+}
+
+.user-room-shell .gov-nav-toggle:hover {
+  background: rgba(59, 130, 246, 0.12);
+}
+
 .gov-header-nav {
   background: linear-gradient(180deg, var(--gov-nav, #1a3d6b) 0%, #153258 100%);
   border-bottom: 3px solid #1a7a4c;

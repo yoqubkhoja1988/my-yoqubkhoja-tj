@@ -128,7 +128,7 @@ export default function GovPortalHeader() {
 
           <div className="flex flex-wrap items-center gap-2">
             {session?.user?.name && (
-              <span className="hidden rounded-lg border border-[var(--border)] bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-[var(--text)] sm:inline">
+              <span className="hidden rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text)] sm:inline">
                 {t('userRoomWelcomeShort')}: {session.user.name}
               </span>
             )}
