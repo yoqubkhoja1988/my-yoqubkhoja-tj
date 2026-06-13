@@ -733,4 +733,152 @@ html.theme-gov .nav-pill-active {
   filter: brightness(1.06);
 }
 
+/* ——— Public footer (ahd.tj style) ——— */
+.public-footer {
+  @apply mt-8;
+}
+
+.public-footer-symbols {
+  @apply mx-auto grid max-w-6xl gap-3 px-3 py-4 md:grid-cols-3 md:px-6;
+}
+
+.public-footer-symbol-card {
+  @apply flex min-h-[88px] items-center justify-between gap-3 rounded-sm border border-[#b8c4d4] bg-white px-4 py-3 shadow-sm;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 100%);
+}
+
+.public-footer-symbol-card__title {
+  @apply max-w-[9rem] text-[11px] font-extrabold uppercase leading-snug tracking-wide text-[#1a3050];
+}
+
+.public-footer-flag {
+  @apply relative h-12 w-[4.5rem] shrink-0 overflow-hidden rounded-sm border border-[#333];
+}
+
+.public-footer-flag__stripe {
+  @apply absolute inset-x-0 block;
+  height: 33.34%;
+}
+
+.public-footer-flag__stripe--red {
+  top: 0;
+  background: #cc0000;
+}
+
+.public-footer-flag__stripe--white {
+  top: 33.33%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.public-footer-flag__stripe--green {
+  bottom: 0;
+  background: #006600;
+}
+
+.public-footer-flag__crown {
+  @apply text-[8px] leading-none;
+}
+
+.public-footer-emblem {
+  @apply relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[#c9a227] bg-gradient-to-b from-[#fff] to-[#eef2f6] text-lg;
+}
+
+.public-footer-emblem__ring {
+  @apply absolute -top-0.5 text-sm;
+}
+
+.public-footer-emblem__crown {
+  @apply relative z-[1] text-xs;
+}
+
+.public-footer-emblem__mountains {
+  @apply absolute bottom-1 text-[10px];
+}
+
+.public-footer-anthem {
+  @apply shrink-0 transition hover:scale-105;
+}
+
+.public-footer-anthem__disc {
+  @apply flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#333];
+  background: conic-gradient(#cc0000 0 33%, #ffffff 33% 66%, #006600 66% 100%);
+}
+
+.public-footer-anthem__play {
+  @apply flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[10px] text-[#1a3050] shadow;
+}
+
+.public-footer-sites {
+  @apply border-y border-[#8fa3bc];
+  background: linear-gradient(180deg, #c5d0de 0%, #b8c6d8 35%, #aebdd0 100%);
+}
+
+.public-footer-sites__title {
+  @apply px-3 pt-4 text-center text-sm font-extrabold uppercase tracking-[0.2em] text-[#1a3050] md:px-6;
+}
+
+.public-footer-sites__viewport {
+  @apply overflow-hidden py-4;
+}
+
+.public-footer-sites__track {
+  display: flex;
+  width: max-content;
+  animation: public-footer-sites-scroll 45s linear infinite;
+}
+
+.public-footer-sites__track:hover {
+  animation-play-state: paused;
+}
+
+.public-footer-site-link {
+  @apply mx-2.5 inline-flex h-20 min-w-[9.5rem] shrink-0 items-center justify-center rounded-md border-2 border-[#1a3050] bg-white px-3 text-center text-[10px] font-bold uppercase leading-tight text-[#1a3050] transition;
+  box-shadow: 0 2px 6px rgba(15, 40, 71, 0.12);
+}
+
+.public-footer-site-link:hover {
+  transform: scale(1.04);
+  border-color: #a0adca;
+}
+
+.public-footer-info {
+  @apply border-t border-[#8fa3bc] bg-[#d8e2ec];
+  background-image: linear-gradient(180deg, #e2eaf2 0%, #d4dee8 100%);
+}
+
+.public-footer-info__grid {
+  @apply mx-auto grid max-w-6xl gap-4 px-3 py-5 text-[11px] leading-relaxed text-[#1a3050] md:grid-cols-3 md:px-6;
+}
+
+.public-footer-info__col {
+  @apply text-center md:text-left;
+}
+
+.public-footer-info__link {
+  @apply font-semibold text-[var(--accent)] hover:underline;
+}
+
+@keyframes public-footer-sites-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-footer-sites__track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+  }
+}
+
 
