@@ -39,12 +39,12 @@ export const PUBLIC_GOV_SITES: PublicGovSite[] = [
   {
     href: 'https://www.egov.tj',
     labelKey: 'publicGovSiteEgov',
-    logoSrc: '/images/gov-sites/egov.svg',
+    logoSrc: '/images/gov-sites/egov.jpg',
   },
   {
     href: 'https://www.education.tj',
     labelKey: 'publicGovSiteEducation',
-    logoSrc: '/images/gov-sites/education.svg',
+    logoSrc: '/images/gov-sites/education.jpg',
   },
   {
     href: 'https://www.mehnat.tj',

@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80" viewBox="0 0 320 80" role="img" aria-label="Electronic government">
-  <rect width="320" height="80" rx="6" fill="#ffffff" stroke="#1a3050" stroke-width="2"/>
-  <rect x="16" y="18" width="44" height="44" rx="8" fill="#1a5f9e"/>
-  <path d="M28 34 H48 M28 40 H48 M28 46 H40" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-  <text x="72" y="34" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#1a3050">%" !</text>
-  <text x="72" y="50" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#1a3050">" -" â</text>
-</svg>
