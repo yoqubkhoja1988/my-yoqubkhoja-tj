@@ -72,6 +72,8 @@
   "userRoomMyOrganizations": "Mening tashkilotlarim",
   "userRoomViewAll": "Hammasi",
   "userRoomNoAccessHint": "Kirish uchun sayt administratoriga murojaat qiling.",
+  "userRoomHideMenu": "Menyuni yashirish",
+  "userRoomShowMenu": "Menyuni ko'rsatish",
   "siteDescription": "Loyihalar markazi — shaxsiy portfel",
   "financeDefaultSummary": "Markaz buxgalteriyasi va moliyasi.",
   "login": "Kirish",

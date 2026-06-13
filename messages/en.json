@@ -72,6 +72,8 @@
   "userRoomMyOrganizations": "My organizations",
   "userRoomViewAll": "View all",
   "userRoomNoAccessHint": "Contact the site administrator to request access.",
+  "userRoomHideMenu": "Hide menu",
+  "userRoomShowMenu": "Show menu",
   "siteDescription": "Project hub — personal portfolio",
   "financeDefaultSummary": "Center accounting and finance.",
   "login": "Login",

@@ -72,6 +72,8 @@
   "userRoomMyOrganizations": "Мои организации",
   "userRoomViewAll": "Все",
   "userRoomNoAccessHint": "Для получения доступа обратитесь к администратору сайта.",
+  "userRoomHideMenu": "Скрыть меню",
+  "userRoomShowMenu": "Показать меню",
   "siteDescription": "Центр проектов — личный портфолио",
   "financeDefaultSummary": "Бухгалтерия и финансы центра.",
   "login": "Вход",
