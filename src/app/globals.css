@@ -835,12 +835,25 @@ html.theme-gov .nav-pill-active {
 }
 
 .public-footer-site-link {
-  @apply mx-2.5 inline-flex h-20 min-w-[9.5rem] shrink-0 items-center justify-center rounded-md border-2 border-[#1a3050] bg-white px-3 text-center text-[10px] font-bold uppercase leading-tight text-[#1a3050] transition;
-  box-shadow: 0 2px 6px rgba(15, 40, 71, 0.12);
+  @apply mx-2.5 inline-flex shrink-0 items-center justify-center transition;
 }
 
-.public-footer-site-link:hover {
-  transform: scale(1.04);
+.public-footer-site-link__logo {
+  height: 80px;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border-radius: 6px;
+  border: 2px solid #1a3050;
+  padding: 4px;
+  box-sizing: border-box;
+  background: #ffffff;
+  object-fit: contain;
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.public-footer-site-link:hover .public-footer-site-link__logo {
+  transform: scale(1.05);
   border-color: #a0adca;
 }
 

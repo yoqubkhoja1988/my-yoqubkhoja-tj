@@ -53,8 +53,10 @@ function GovSitesBanner() {
       target="_blank"
       rel="noopener noreferrer"
       className="public-footer-site-link"
+      aria-label={t(site.labelKey)}
     >
-      {t(site.labelKey)}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={site.logoSrc} alt={t(site.labelKey)} className="public-footer-site-link__logo" loading="lazy" />
     </a>
   ));
 

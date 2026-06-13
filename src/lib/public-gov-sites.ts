@@ -1,18 +1,59 @@
 export type PublicGovSite = {
   href: string;
   labelKey: string;
+  logoSrc: string;
 };
 
 /** Пайвандҳои расмии мақомоти давлатӣ (монанди ahd.tj) */
 export const PUBLIC_GOV_SITES: PublicGovSite[] = [
-  { href: 'https://president.tj', labelKey: 'publicGovSitePresident' },
-  { href: 'https://majmilli.tj', labelKey: 'publicGovSiteMajlisiMillii' },
-  { href: 'https://www.gov.tj', labelKey: 'publicGovSiteGovernment' },
-  { href: 'https://www.mfa.tj', labelKey: 'publicGovSiteMfa' },
-  { href: 'https://khovar.tj', labelKey: 'publicGovSiteKhovar' },
-  { href: 'https://www.stat.tj', labelKey: 'publicGovSiteStat' },
-  { href: 'https://www.egov.tj', labelKey: 'publicGovSiteEgov' },
-  { href: 'https://www.education.tj', labelKey: 'publicGovSiteEducation' },
-  { href: 'https://www.mehnat.tj', labelKey: 'publicGovSiteMehnat' },
-  { href: 'https://www.anticorruption.tj', labelKey: 'publicGovSiteAnticorruption' },
+  {
+    href: 'https://president.tj',
+    labelKey: 'publicGovSitePresident',
+    logoSrc: '/images/gov-sites/president.jpg',
+  },
+  {
+    href: 'https://majmilli.tj',
+    labelKey: 'publicGovSiteMajlisiMillii',
+    logoSrc: '/images/gov-sites/majmilli.jpg',
+  },
+  {
+    href: 'https://www.gov.tj',
+    labelKey: 'publicGovSiteGovernment',
+    logoSrc: '/images/gov-sites/government.jpg',
+  },
+  {
+    href: 'https://www.mfa.tj',
+    labelKey: 'publicGovSiteMfa',
+    logoSrc: '/images/gov-sites/mfa.jpg',
+  },
+  {
+    href: 'https://khovar.tj',
+    labelKey: 'publicGovSiteKhovar',
+    logoSrc: '/images/gov-sites/khovar.jpg',
+  },
+  {
+    href: 'https://www.stat.tj',
+    labelKey: 'publicGovSiteStat',
+    logoSrc: '/images/gov-sites/stat.jpg',
+  },
+  {
+    href: 'https://www.egov.tj',
+    labelKey: 'publicGovSiteEgov',
+    logoSrc: '/images/gov-sites/egov.svg',
+  },
+  {
+    href: 'https://www.education.tj',
+    labelKey: 'publicGovSiteEducation',
+    logoSrc: '/images/gov-sites/education.svg',
+  },
+  {
+    href: 'https://www.mehnat.tj',
+    labelKey: 'publicGovSiteMehnat',
+    logoSrc: '/images/gov-sites/mehnat.jpg',
+  },
+  {
+    href: 'https://www.anticorruption.tj',
+    labelKey: 'publicGovSiteAnticorruption',
+    logoSrc: '/images/gov-sites/anticorruption.jpg',
+  },
 ];
