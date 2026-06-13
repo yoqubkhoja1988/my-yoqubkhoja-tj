@@ -1,0 +1,145 @@
+'use client';
+
+import { logoutAction } from '@/app/actions/auth';
+import { useLiveChat } from '@/contexts/live-chat-context';
+import { Link, usePathname } from '@/i18n/navigation';
+import {
+  canAccessOrganizations,
+  canAccessProjects,
+} from '@/lib/user-access';
+import { isSiteAdmin } from '@/lib/is-admin';
+import { useSession } from 'next-auth/react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useTransition } from 'react';
+import LangSwitcher from './LangSwitcher';
+
+type NavItem = {
+  href: '/room' | '/dashboard' | '/organizations';
+  labelKey: string;
+  icon: string;
+  match: (path: string) => boolean;
+};
+
+export default function GovPortalHeader() {
+  const t = useTranslations();
+  const locale = useLocale();
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = isSiteAdmin(session);
+  const { enabled: liveChatEnabled, openChat } = useLiveChat();
+  const [isPending, startTransition] = useTransition();
+
+  const navItems: NavItem[] = [
+    {
+      href: '/room',
+      labelKey: 'userRoomNavHome',
+      icon: '🏠',
+      match: (path) => path === '/room',
+    },
+    ...(canAccessProjects(session)
+      ? [
+          {
+            href: '/dashboard' as const,
+            labelKey: 'navProjects',
+            icon: '📂',
+            match: (path: string) => path === '/dashboard' || path.startsWith('/dashboard/'),
+          },
+        ]
+      : []),
+    ...(canAccessOrganizations(session)
+      ? [
+          {
+            href: '/organizations' as const,
+            labelKey: 'navOrganizations',
+            icon: '🏢',
+            match: (path: string) => path.startsWith('/organizations'),
+          },
+        ]
+      : []),
+  ];
+
+  function handleLogout() {
+    startTransition(async () => {
+      try {
+        await logoutAction(locale);
+      } catch {
+        window.location.assign(`/${locale}/login`);
+      }
+    });
+  }
+
+  return (
+    <header className="sticky top-0 z-50 shadow-md">
+      <div className="gov-header-top">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-3 py-3 md:px-6">
+          <Link href="/room" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90">
+            <div className="gov-emblem" aria-hidden>
+              🦅
+            </div>
+            <div className="min-w-0">
+              <p className="gov-site-title">{t('siteName')}</p>
+              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                {t('userRoomPortalTagline')}
+              </p>
+            </div>
+          </Link>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {session?.user?.name && (
+              <span className="hidden rounded-lg border border-[var(--border)] bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-[var(--text)] sm:inline">
+                {t('userRoomWelcomeShort')}: {session.user.name}
+              </span>
+            )}
+            {liveChatEnabled && (
+              <button
+                type="button"
+                onClick={openChat}
+                className="btn-secondary text-[11px]"
+              >
+                <span aria-hidden>💬</span>
+                <span className="hidden sm:inline">{t('navLiveChat')}</span>
+              </button>
+            )}
+            {isAdmin && (
+              <a
+                href="https://github.com/yoqubkhoja1988"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary hidden text-[11px] lg:inline-flex"
+              >
+                {t('viewGithub')}
+              </a>
+            )}
+            <LangSwitcher />
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isPending}
+              className="btn-secondary text-[11px] disabled:opacity-60"
+            >
+              {isPending ? '...' : t('logout')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <nav className="gov-header-nav" aria-label={t('navMenu')}>
+        <div className="mx-auto flex max-w-6xl flex-wrap px-3 md:px-6">
+          {navItems.map(({ href, labelKey, icon, match }) => {
+            const active = match(pathname);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`gov-nav-link ${active ? 'gov-nav-link-active' : ''}`}
+              >
+                <span aria-hidden>{icon}</span>
+                <span>{t(labelKey)}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </header>
+  );
+}

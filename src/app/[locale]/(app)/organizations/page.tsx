@@ -12,12 +12,8 @@ export default async function OrganizationsPage({
   const { locale } = await params;
   const session = await auth();
 
-  if (!session) {
-    redirect({ href: '/login', locale });
-  }
-
   if (!canAccessOrganizations(session)) {
-    redirect({ href: '/dashboard', locale });
+    redirect({ href: '/room', locale });
   }
 
   return <OrganizationsContent canManage={isSiteAdmin(session)} />;

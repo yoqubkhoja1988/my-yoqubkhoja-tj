@@ -33,7 +33,7 @@ export default function Logo({
 
   if (compact) {
     return (
-      <Link href="/dashboard" className="transition-opacity hover:opacity-90">
+      <Link href="/room" className="transition-opacity hover:opacity-90">
         {content}
       </Link>
     );

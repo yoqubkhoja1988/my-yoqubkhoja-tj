@@ -18,8 +18,6 @@ import {
   inferOrganizationSector,
 } from '@/lib/organization-sectors';
 import { Organization, OrganizationSectorId } from '@/types/organization';
-import AppFooter from './AppFooter';
-import AppHeader from './AppHeader';
 
 type SectorFilter = 'all' | OrganizationSectorGroupId;
 
@@ -291,8 +289,6 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
 
   return (
     <>
-      <AppHeader />
-
       <main className="page-shell-wide animate-in">
         <section className="hero-gradient mb-5 rounded-xl p-5 md:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -477,8 +473,6 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
           </div>
         )}
       </main>
-
-      <AppFooter />
 
       {modalOpen && (
         <div

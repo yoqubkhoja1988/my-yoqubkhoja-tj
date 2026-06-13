@@ -7,7 +7,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
   const session = await auth();
 
   if (session) {
-    redirect({ href: '/dashboard', locale });
+    redirect({ href: '/room', locale });
   }
 
   return <RegisterForm />;

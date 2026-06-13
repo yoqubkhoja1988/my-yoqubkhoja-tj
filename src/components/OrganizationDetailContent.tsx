@@ -20,8 +20,6 @@ import { OrganizationSectionContent } from '@/types/organization-section';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useMemo } from 'react';
-import AppFooter from './AppFooter';
-import AppHeader from './AppHeader';
 import EditableSectionContent from './EditableSectionContent';
 
 type Props = {
@@ -205,10 +203,8 @@ export default function OrganizationDetailContent({
 
   return (
     <>
-      <AppHeader />
-
       <div className="flex w-full">
-        <aside className="hidden w-56 shrink-0 border-r border-[var(--border)] bg-[var(--bg-elevated)]/70 backdrop-blur-xl lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start">
+        <aside className="hidden w-56 shrink-0 border-r border-[var(--border)] bg-[var(--bg-elevated)]/70 backdrop-blur-xl lg:sticky lg:top-[8.5rem] lg:block lg:h-[calc(100vh-8.5rem)] lg:self-start">
           {sidebar}
         </aside>
 
@@ -224,7 +220,7 @@ export default function OrganizationDetailContent({
 
             <section className="min-w-0 w-full">
               {supervisionOnly && (
-                <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                   {t('supervisionOnlyBanner')}
                 </div>
               )}
@@ -248,8 +244,6 @@ export default function OrganizationDetailContent({
               </OrganizationAccessProvider>
             </section>
           </main>
-
-          <AppFooter />
         </div>
       </div>
     </>

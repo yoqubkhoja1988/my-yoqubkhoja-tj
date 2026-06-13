@@ -9,9 +9,7 @@ import { Project, ProjectCategory, ProjectStatus } from '@/types/project';
 import AdminChatPanel from './AdminChatPanel';
 import AdminDataPanel from './AdminDataPanel';
 import AdminUsersPanel from './AdminUsersPanel';
-import AppFooter from './AppFooter';
 import AdminTelegramContact from './AdminTelegramContact';
-import AppHeader from './AppHeader';
 import InnovationCenterBuilding from './InnovationCenterBuilding';
 import LegalDocumentsHub from './LegalDocumentsHub';
 
@@ -156,8 +154,6 @@ export default function DashboardContent({
 
   return (
     <>
-      <AppHeader />
-
       <main className="page-shell animate-in">
         <section className="hero-gradient mb-5 rounded-xl p-5 md:p-6">
           <p className="page-eyebrow">
@@ -392,8 +388,6 @@ export default function DashboardContent({
           </>
         )}
       </main>
-
-      <AppFooter />
 
       {isAdmin && modalOpen && (
         <div

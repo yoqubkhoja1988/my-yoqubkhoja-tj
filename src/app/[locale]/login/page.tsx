@@ -7,7 +7,7 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
   const session = await auth();
 
   if (session) {
-    redirect({ href: '/dashboard', locale });
+    redirect({ href: '/room', locale });
   }
 
   return <LoginForm />;

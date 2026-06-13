@@ -12,16 +12,12 @@ export default async function DashboardPage({
   const { locale } = await params;
   const session = await auth();
 
-  if (!session) {
-    redirect({ href: '/login', locale });
-  }
-
   const isAdmin = isSiteAdmin(session);
   const projects = canAccessProjects(session);
   const organizations = canAccessOrganizations(session);
 
-  if (!isAdmin && !projects && organizations) {
-    redirect({ href: '/organizations', locale });
+  if (!isAdmin && !projects) {
+    redirect({ href: organizations ? '/organizations' : '/room', locale });
   }
 
   return (

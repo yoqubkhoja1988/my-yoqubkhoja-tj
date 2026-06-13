@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
@@ -15,6 +16,13 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [showAdminContact, setShowAdminContact] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.add('theme-gov');
+    return () => {
+      document.documentElement.classList.remove('theme-gov');
+    };
+  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,7 +76,7 @@ export default function LoginForm() {
     setLoading(false);
 
     if (result?.ok) {
-      router.push('/dashboard');
+      router.push('/room');
       router.refresh();
     } else {
       setError(t('invalidCredentials'));

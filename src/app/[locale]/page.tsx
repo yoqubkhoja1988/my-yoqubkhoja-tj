@@ -6,7 +6,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const session = await auth();
 
   if (session) {
-    redirect({ href: '/dashboard', locale });
+    redirect({ href: '/room', locale });
   } else {
     redirect({ href: '/login', locale });
   }
