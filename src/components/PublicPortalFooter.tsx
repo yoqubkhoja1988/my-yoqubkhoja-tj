@@ -1,46 +1,63 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { PUBLIC_GOV_SITES } from '@/lib/public-gov-sites';
 import { getTelegramUrl, getTelegramUsername } from '@/lib/contact';
 import { useTranslations } from 'next-intl';
 
-function TajikFlagIcon() {
-  return (
-    <div className="public-footer-flag" aria-hidden>
-      <span className="public-footer-flag__stripe public-footer-flag__stripe--red" />
-      <span className="public-footer-flag__stripe public-footer-flag__stripe--white">
-        <span className="public-footer-flag__crown">👑</span>
-      </span>
-      <span className="public-footer-flag__stripe public-footer-flag__stripe--green" />
-    </div>
-  );
-}
+const NATIONAL_SYMBOLS = {
+  flag: {
+    src: '/images/national-symbols/flag.jpg',
+    href: 'https://www.president.tj/tj/about-tajikistan/state-symbols/state-flag',
+  },
+  emblem: {
+    src: '/images/national-symbols/emblem.png',
+    href: 'https://www.president.tj/tj/about-tajikistan/state-symbols/state-emblem',
+  },
+  anthem: {
+    src: '/images/national-symbols/anthem.mp3',
+    href: 'https://www.president.tj/tj/node/3744',
+  },
+} as const;
 
-function TajikEmblemIcon() {
-  return (
-    <div className="public-footer-emblem" aria-hidden>
-      <span className="public-footer-emblem__ring">☀</span>
-      <span className="public-footer-emblem__crown">👑</span>
-      <span className="public-footer-emblem__mountains">⛰</span>
-    </div>
-  );
-}
-
-function NationalAnthemButton() {
+function NationalAnthemPlayer() {
   const t = useTranslations();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  function togglePlayback() {
+    const player = audioRef.current;
+    if (!player) return;
+
+    if (player.paused) {
+      void player.play();
+      setPlaying(true);
+      return;
+    }
+
+    player.pause();
+    player.currentTime = 0;
+    setPlaying(false);
+  }
 
   return (
-    <a
-      href="https://www.president.tj/tj/node/3744"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="public-footer-anthem"
-      aria-label={t('publicFooterAnthem')}
-    >
-      <span className="public-footer-anthem__disc">
-        <span className="public-footer-anthem__play">▶</span>
-      </span>
-    </a>
+    <div className="public-footer-anthem">
+      <audio
+        ref={audioRef}
+        src={NATIONAL_SYMBOLS.anthem.src}
+        preload="none"
+        onEnded={() => setPlaying(false)}
+        className="public-footer-anthem__audio"
+      />
+      <button
+        type="button"
+        className="public-footer-anthem__btn"
+        aria-label={t('publicFooterAnthem')}
+        onClick={togglePlayback}
+      >
+        {playing ? '⏹' : '▶'}
+      </button>
+    </div>
   );
 }
 
@@ -83,16 +100,48 @@ export default function PublicPortalFooter() {
     <footer className="public-footer">
       <section className="public-footer-symbols" aria-label={t('publicFooterSymbolsLabel')}>
         <article className="public-footer-symbol-card">
-          <h3 className="public-footer-symbol-card__title">{t('publicFooterFlag')}</h3>
-          <TajikFlagIcon />
+          <h3 className="public-footer-symbol-card__title">
+            <a href={NATIONAL_SYMBOLS.flag.href} target="_blank" rel="noopener noreferrer">
+              {t('publicFooterFlag')}
+            </a>
+          </h3>
+          <a
+            href={NATIONAL_SYMBOLS.flag.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="public-footer-symbol-card__media"
+            aria-label={t('publicFooterFlag')}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={NATIONAL_SYMBOLS.flag.src} alt={t('publicFooterFlag')} className="public-footer-symbol-card__flag" />
+          </a>
         </article>
+
         <article className="public-footer-symbol-card">
-          <h3 className="public-footer-symbol-card__title">{t('publicFooterEmblem')}</h3>
-          <TajikEmblemIcon />
+          <h3 className="public-footer-symbol-card__title">
+            <a href={NATIONAL_SYMBOLS.emblem.href} target="_blank" rel="noopener noreferrer">
+              {t('publicFooterEmblem')}
+            </a>
+          </h3>
+          <a
+            href={NATIONAL_SYMBOLS.emblem.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="public-footer-symbol-card__media public-footer-symbol-card__emblem-wrap"
+            aria-label={t('publicFooterEmblem')}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={NATIONAL_SYMBOLS.emblem.src} alt={t('publicFooterEmblem')} className="public-footer-symbol-card__emblem" />
+          </a>
         </article>
+
         <article className="public-footer-symbol-card">
-          <h3 className="public-footer-symbol-card__title">{t('publicFooterAnthem')}</h3>
-          <NationalAnthemButton />
+          <h3 className="public-footer-symbol-card__title">
+            <a href={NATIONAL_SYMBOLS.anthem.href} target="_blank" rel="noopener noreferrer">
+              {t('publicFooterAnthem')}
+            </a>
+          </h3>
+          <NationalAnthemPlayer />
         </article>
       </section>
 

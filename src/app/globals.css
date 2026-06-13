@@ -751,64 +751,42 @@ html.theme-gov .nav-pill-active {
   @apply max-w-[9rem] text-[11px] font-extrabold uppercase leading-snug tracking-wide text-[#1a3050];
 }
 
-.public-footer-flag {
-  @apply relative h-12 w-[4.5rem] shrink-0 overflow-hidden rounded-sm border border-[#333];
+.public-footer-symbol-card__title a {
+  @apply text-[#1a3050] no-underline transition hover:text-[var(--accent)];
 }
 
-.public-footer-flag__stripe {
-  @apply absolute inset-x-0 block;
-  height: 33.34%;
+.public-footer-symbol-card__media {
+  @apply shrink-0 transition hover:scale-[1.03];
 }
 
-.public-footer-flag__stripe--red {
-  top: 0;
-  background: #cc0000;
+.public-footer-symbol-card__flag {
+  @apply block h-14 w-auto max-w-[5.5rem] rounded-sm border border-[#333] object-contain;
 }
 
-.public-footer-flag__stripe--white {
-  top: 33.33%;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.public-footer-symbol-card__emblem-wrap {
+  @apply flex h-[4.5rem] w-[4.5rem] items-center justify-center overflow-hidden rounded-full border-[3px] border-[#c9a227] bg-white p-1;
 }
 
-.public-footer-flag__stripe--green {
-  bottom: 0;
-  background: #006600;
-}
-
-.public-footer-flag__crown {
-  @apply text-[8px] leading-none;
-}
-
-.public-footer-emblem {
-  @apply relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[#c9a227] bg-gradient-to-b from-[#fff] to-[#eef2f6] text-lg;
-}
-
-.public-footer-emblem__ring {
-  @apply absolute -top-0.5 text-sm;
-}
-
-.public-footer-emblem__crown {
-  @apply relative z-[1] text-xs;
-}
-
-.public-footer-emblem__mountains {
-  @apply absolute bottom-1 text-[10px];
+.public-footer-symbol-card__emblem {
+  @apply h-full w-full object-contain;
 }
 
 .public-footer-anthem {
-  @apply shrink-0 transition hover:scale-105;
+  @apply shrink-0;
 }
 
-.public-footer-anthem__disc {
-  @apply flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#333];
-  background: conic-gradient(#cc0000 0 33%, #ffffff 33% 66%, #006600 66% 100%);
+.public-footer-anthem__audio {
+  display: none;
 }
 
-.public-footer-anthem__play {
-  @apply flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[10px] text-[#1a3050] shadow;
+.public-footer-anthem__btn {
+  @apply flex h-[4.5rem] w-[4.5rem] cursor-pointer items-center justify-center rounded-full border-[3px] border-[#ffd700] text-[1.75rem] leading-none text-[#ffd700] shadow-md transition;
+  background: linear-gradient(to bottom, #d52b1e 0%, #ffffff 50%, #00ab45 100%);
+}
+
+.public-footer-anthem__btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .public-footer-sites {
