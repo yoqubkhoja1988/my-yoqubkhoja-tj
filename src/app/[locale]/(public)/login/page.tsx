@@ -10,5 +10,11 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
     redirect({ href: '/room', locale });
   }
 
-  return <LoginForm />;
+  return (
+    <div className="public-portal-main">
+      <div className="mx-auto max-w-md animate-in py-8">
+        <LoginForm />
+      </div>
+    </div>
+  );
 }

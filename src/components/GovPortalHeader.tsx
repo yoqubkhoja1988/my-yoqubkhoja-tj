@@ -72,7 +72,7 @@ export default function GovPortalHeader() {
     <header className="sticky top-0 z-50 shadow-md">
       <div className="gov-header-top">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-3 py-3 md:px-6">
-          <Link href="/room" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90">
+          <Link href="/" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90">
             <div className="gov-emblem" aria-hidden>
               🦅
             </div>
@@ -111,6 +111,9 @@ export default function GovPortalHeader() {
               </a>
             )}
             <LangSwitcher />
+            <Link href="/" className="btn-secondary text-[11px]">
+              ← {t('publicBackToSite')}
+            </Link>
             <button
               type="button"
               onClick={handleLogout}

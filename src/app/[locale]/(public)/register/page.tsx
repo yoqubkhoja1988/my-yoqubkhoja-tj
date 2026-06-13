@@ -10,5 +10,11 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
     redirect({ href: '/room', locale });
   }
 
-  return <RegisterForm />;
+  return (
+    <div className="public-portal-main">
+      <div className="mx-auto max-w-md animate-in py-8">
+        <RegisterForm />
+      </div>
+    </div>
+  );
 }

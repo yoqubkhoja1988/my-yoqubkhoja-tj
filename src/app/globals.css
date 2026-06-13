@@ -691,3 +691,46 @@ html.theme-gov .nav-pill-active {
   box-shadow: var(--shadow-card);
 }
 
+.public-portal-main {
+  @apply mx-auto max-w-6xl px-3 py-5 md:px-6;
+}
+
+.public-portal-grid {
+  @apply grid gap-5 lg:grid-cols-[1fr_280px];
+}
+
+.public-portal-content {
+  @apply min-w-0;
+}
+
+.public-portal-sidebar {
+  @apply min-w-0 lg:sticky lg:top-36 lg:self-start;
+}
+
+.public-section-title {
+  @apply text-sm font-extrabold uppercase tracking-wide text-[var(--text)];
+}
+
+.public-cabinet-card {
+  @apply rounded-xl border-2 p-5 text-center;
+  border-color: var(--accent);
+  background: linear-gradient(160deg, #ffffff 0%, #e8f2fa 55%, #dceaf5 100%);
+  box-shadow: 0 4px 20px rgba(26, 95, 158, 0.15);
+}
+
+.public-cabinet-card__icon {
+  @apply mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full text-2xl;
+  background: rgba(26, 95, 158, 0.12);
+}
+
+.public-cabinet-card__btn {
+  @apply inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+  box-shadow: 0 3px 12px var(--accent-glow);
+}
+
+.public-cabinet-card__btn:hover {
+  filter: brightness(1.06);
+}
+
+
