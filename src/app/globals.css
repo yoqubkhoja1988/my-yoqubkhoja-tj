@@ -407,6 +407,27 @@ textarea::placeholder {
   color: var(--text);
 }
 
+.org-sidebar-toggle {
+  @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-[var(--border)] text-[11px] font-bold text-[var(--text-muted)] transition;
+  background: var(--bg-input);
+}
+
+.org-sidebar-toggle:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.org-sidebar-show-btn {
+  @apply inline-flex items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-semibold transition;
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.org-sidebar-show-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* ——— Empty state ——— */
 .empty-state {
   @apply rounded-xl py-10 text-center;

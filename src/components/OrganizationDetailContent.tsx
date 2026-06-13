@@ -19,8 +19,10 @@ import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import EditableSectionContent from './EditableSectionContent';
+
+const ORG_SIDEBAR_STORAGE_KEY = 'org-sidebar-open';
 
 type Props = {
   organization: Organization;
@@ -162,18 +164,57 @@ export default function OrganizationDetailContent({
     [session, organization.id]
   );
   const grouped = groupActivityDirections(directions);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(ORG_SIDEBAR_STORAGE_KEY);
+      if (stored === '0') {
+        setSidebarOpen(false);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  function toggleSidebar() {
+    setSidebarOpen((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem(ORG_SIDEBAR_STORAGE_KEY, next ? '1' : '0');
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  }
 
   const sidebar = (
     <div className="flex h-full flex-col p-3">
-      <p className="page-eyebrow">{t('orgMenu')}</p>
-      <h2 className="mt-2 text-sm font-bold leading-snug">{displayOrgName}</h2>
-      {organization.rma && (
-        <p className="mt-2 inline-block rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
-          {t('organizationRma')}: {organization.rma}
-        </p>
-      )}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="page-eyebrow">{t('orgMenu')}</p>
+          <h2 className="mt-2 text-sm font-bold leading-snug">{displayOrgName}</h2>
+          {organization.rma && (
+            <p className="mt-2 inline-block rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
+              {t('organizationRma')}: {organization.rma}
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          className="org-sidebar-toggle"
+          onClick={toggleSidebar}
+          aria-expanded={sidebarOpen}
+          aria-controls="org-section-nav"
+          title={sidebarOpen ? t('userRoomHideMenu') : t('userRoomShowMenu')}
+          aria-label={sidebarOpen ? t('userRoomHideMenu') : t('userRoomShowMenu')}
+        >
+          <span aria-hidden>{sidebarOpen ? '◀' : '▶'}</span>
+        </button>
+      </div>
 
-      <nav className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1">
+      <nav id="org-section-nav" className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1" aria-label={t('orgMenu')}>
         {grouped.map((group) => (
           <div key={group.groupKey}>
             <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
@@ -204,19 +245,31 @@ export default function OrganizationDetailContent({
   return (
     <>
       <div className="flex w-full">
-        <aside className="hidden w-56 shrink-0 border-r border-[var(--border)] bg-[var(--bg-elevated)]/70 backdrop-blur-xl lg:sticky lg:top-[8.5rem] lg:block lg:h-[calc(100vh-8.5rem)] lg:self-start">
-          {sidebar}
-        </aside>
+        {sidebarOpen && (
+          <aside className="hidden w-56 shrink-0 border-r border-[var(--border)] bg-[var(--bg-elevated)]/70 backdrop-blur-xl lg:sticky lg:top-[8.5rem] lg:block lg:h-[calc(100vh-8.5rem)] lg:self-start">
+            {sidebar}
+          </aside>
+        )}
 
         <div className="min-w-0 flex-1">
           <main className="animate-in px-3 py-5 md:px-6">
-            <Link href="/organizations" className="btn-ghost mb-4">
-              ← {t('orgBackToList')}
-            </Link>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Link href="/organizations" className="btn-ghost">
+                ← {t('orgBackToList')}
+              </Link>
+              {!sidebarOpen && (
+                <button type="button" className="org-sidebar-show-btn" onClick={toggleSidebar}>
+                  <span aria-hidden>☰</span>
+                  {t('userRoomShowMenu')}
+                </button>
+              )}
+            </div>
 
-            <aside className="mb-4 lg:hidden">
-              <div className="glass-card">{sidebar}</div>
-            </aside>
+            {sidebarOpen && (
+              <aside className="mb-4 lg:hidden">
+                <div className="glass-card">{sidebar}</div>
+              </aside>
+            )}
 
             <section className="min-w-0 w-full">
               {supervisionOnly && (
