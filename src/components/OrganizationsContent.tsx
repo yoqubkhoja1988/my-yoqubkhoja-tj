@@ -1,7 +1,6 @@
 'use client';
 
 import { Link } from '@/i18n/navigation';
-import UserContentText from '@/components/UserContentText';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -430,7 +429,7 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
                             href={`/organizations/${org.id}/overview`}
                             className="text-sm font-bold leading-snug transition hover:text-[var(--accent)]"
                           >
-                            <UserContentText text={org.name} as="span" />
+                            {org.name}
                           </Link>
 
                           {sectorMeta && (

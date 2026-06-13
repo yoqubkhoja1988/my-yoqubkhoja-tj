@@ -208,9 +208,15 @@ export interface LaborLeave {
 }
 
 /** Маълумот барои сарлавҳаи расмии ҳисоботҳои ташкилот */
+export type OrganizationReportLocale = 'tj' | 'ru' | 'en' | 'uz';
+
+export type OrganizationReportNames = Partial<Record<OrganizationReportLocale, string>>;
+
 export interface OrganizationReportHeader {
-  /** Номи ташкилот дар титули ҳисобот (агар холӣ — номи асосии ташкилот) */
+  /** Номи ташкилот (TJ) — мувофиқи reportOrganizationNames.tj */
   reportOrganizationName?: string;
+  /** Номи ташкилот барои ҳар забон — бе тарҷумаи автоматӣ */
+  reportOrganizationNames?: OrganizationReportNames;
   /** Сатрҳои мақомоти болоии ташкилот */
   superiorAuthorities?: string[];
 }

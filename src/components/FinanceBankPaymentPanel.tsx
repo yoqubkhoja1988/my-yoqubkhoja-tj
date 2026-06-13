@@ -10,7 +10,6 @@ import {
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
-import { useTranslatedUserContent } from '@/hooks/useTranslatedUserContent';
 import { printDocument } from '@/lib/print-document';
 import { shiftMonth } from '@/lib/staff-timesheet';
 import { Organization } from '@/types/organization';
@@ -35,7 +34,6 @@ export default function FinanceBankPaymentPanel({
 }: Props) {
   const t = useTranslations();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
-  const translatedOrganizationName = useTranslatedUserContent(reportOrganizationName);
   const [month, setMonth] = useState(() => resolveBankPaymentMonth(financeContent, preferredMonth));
   useEffect(() => {
     if (!preferredMonth) return;
@@ -53,9 +51,9 @@ export default function FinanceBankPaymentPanel({
       staffContent,
       month,
       organization,
-      translatedOrganizationName
+      reportOrganizationName
     );
-  }, [financeContent, staffContent, month, organization, translatedOrganizationName]);
+  }, [financeContent, staffContent, month, organization, reportOrganizationName]);
 
   async function handleExcelExport() {
     if (!documentData) return;
@@ -138,7 +136,7 @@ export default function FinanceBankPaymentPanel({
               <header className="mb-4 rounded-lg bg-amber-100 px-4 py-3 text-center text-xs leading-relaxed text-slate-800">
                 <h3 className="text-sm font-bold text-slate-900">
                   {t('bankPaymentDocumentHeading', {
-                    organization: translatedOrganizationName || t('payrollLedgerOrganization'),
+                    organization: reportOrganizationName || t('payrollLedgerOrganization'),
                   })}
                 </h3>
                 <p className="mt-2">{documentData.periodLabel}</p>

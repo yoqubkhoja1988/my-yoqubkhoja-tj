@@ -1,7 +1,7 @@
 'use client';
 
-import UserContentText from '@/components/UserContentText';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
+import UserContentText from '@/components/UserContentText';
 import { useTranslations } from 'next-intl';
 
 type Props = {
@@ -27,9 +27,7 @@ export default function OrganizationReportDocumentHeader({
             <UserContentText text={line} as="span" />
           </p>
         ))}
-        <p className="mt-2 text-sm font-bold uppercase text-slate-900">
-          <UserContentText text={organizationName} as="span" />
-        </p>
+        <p className="mt-2 text-sm font-bold uppercase text-slate-900">{organizationName}</p>
         {showAddress ? (
           <p className="mt-1">
             <UserContentText text={showAddress} as="span" />
@@ -49,9 +47,7 @@ export default function OrganizationReportDocumentHeader({
           <UserContentText text={line} as="span" />
         </p>
       ))}
-      <h5 className="mt-3 text-sm font-bold leading-snug md:text-base">
-        <UserContentText text={organizationName} as="span" />
-      </h5>
+      <h5 className="mt-3 text-sm font-bold leading-snug md:text-base">{organizationName}</h5>
     </header>
   );
 }

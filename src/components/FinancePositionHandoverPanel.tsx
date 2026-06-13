@@ -22,7 +22,6 @@ import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
-import { useTranslatedUserContent } from '@/hooks/useTranslatedUserContent';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { printDocument } from '@/lib/print-document';
 import { analyzeStaffing } from '@/lib/staff-analytics';
@@ -67,7 +66,6 @@ export default function FinancePositionHandoverPanel({
   const t = useTranslations();
   const locale = useLocale();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
-  const translatedOrganizationName = useTranslatedUserContent(reportOrganizationName);
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
@@ -649,7 +647,7 @@ export default function FinancePositionHandoverPanel({
 
             <p className="mb-4 text-justify text-xs leading-relaxed md:text-sm">
               {t('positionHandoverIntro', {
-                organization: translatedOrganizationName || t('payrollLedgerOrganization'),
+                organization: reportOrganizationName || t('payrollLedgerOrganization'),
                 date: effectiveDate,
               })}
             </p>

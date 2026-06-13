@@ -1,14 +1,31 @@
 'use client';
 
 import UserContentText from '@/components/UserContentText';
-import { OrganizationReportHeader } from '@/types/organization-section';
-import { useTranslations } from 'next-intl';
+import {
+  ORG_REPORT_LOCALES,
+  normalizeReportOrganizationNames,
+  reportHeaderWithOrganizationNames,
+  resolveOrganizationReportName,
+} from '@/lib/organization-info';
+import {
+  OrganizationReportHeader,
+  OrganizationReportLocale,
+  OrganizationReportNames,
+} from '@/types/organization-section';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   organizationName: string;
   reportHeader?: OrganizationReportHeader;
   editing?: boolean;
   onChange?: (reportHeader: OrganizationReportHeader) => void;
+};
+
+const LOCALE_LABEL_KEYS: Record<OrganizationReportLocale, string> = {
+  tj: 'orgInfoLangTj',
+  ru: 'orgInfoLangRu',
+  en: 'orgInfoLangEn',
+  uz: 'orgInfoLangUz',
 };
 
 function displayAuthorities(lines: string[] | undefined): string[] {
@@ -27,13 +44,20 @@ export default function OrganizationInfoPanel({
   onChange,
 }: Props) {
   const t = useTranslations();
-  const displayName = reportHeader?.reportOrganizationName?.trim() || organizationName;
+  const locale = useLocale();
+  const displayName = resolveOrganizationReportName(reportHeader, organizationName, locale);
+  const nameFields = normalizeReportOrganizationNames(reportHeader);
   const authorities = editing
     ? editingAuthorities(reportHeader?.superiorAuthorities)
     : displayAuthorities(reportHeader?.superiorAuthorities);
 
   function patch(next: OrganizationReportHeader) {
     onChange?.(next);
+  }
+
+  function updateNameField(code: OrganizationReportLocale, value: string) {
+    const nextNames: OrganizationReportNames = { ...nameFields, [code]: value };
+    patch(reportHeaderWithOrganizationNames(reportHeader, nextNames));
   }
 
   function updateAuthority(index: number, value: string) {
@@ -81,30 +105,30 @@ export default function OrganizationInfoPanel({
               )}
             </p>
           ))}
-          <p className="mt-2 text-sm font-bold">
-            <UserContentText text={displayName} as="span" />
-          </p>
+          <p className="mt-2 text-sm font-bold">{displayName}</p>
         </div>
       </div>
 
       {editing && onChange ? (
         <div className="space-y-4">
-          <div>
+          <div className="space-y-3">
             <label className="field-label">{t('orgInfoFieldOrganizationName')}</label>
-            <input
-              type="text"
-              value={reportHeader?.reportOrganizationName ?? ''}
-              onChange={(e) =>
-                patch({
-                  ...reportHeader,
-                  reportOrganizationName: e.target.value,
-                })
-              }
-              className="input-field text-sm"
-              placeholder={organizationName}
-            />
-            <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-              {t('orgInfoFieldOrganizationNameHint')}
+            {ORG_REPORT_LOCALES.map((code) => (
+              <div key={code}>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                  {t(LOCALE_LABEL_KEYS[code])}
+                </label>
+                <input
+                  type="text"
+                  value={nameFields[code] ?? ''}
+                  onChange={(e) => updateNameField(code, e.target.value)}
+                  className="input-field text-sm"
+                  placeholder={code === 'tj' ? organizationName : ''}
+                />
+              </div>
+            ))}
+            <p className="text-[10px] text-[var(--text-muted)]">
+              {t('orgInfoFieldOrganizationNamesHint')}
             </p>
           </div>
 
@@ -136,14 +160,18 @@ export default function OrganizationInfoPanel({
         </div>
       ) : (
         <dl className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
-              {t('orgInfoFieldOrganizationName')}
-            </dt>
-            <dd className="mt-1 text-sm font-medium">
-              <UserContentText text={displayName} as="span" />
-            </dd>
-          </div>
+          {ORG_REPORT_LOCALES.map((code) => {
+            const value = nameFields[code]?.trim();
+            if (!value) return null;
+            return (
+              <div key={code} className={code === 'tj' ? 'sm:col-span-2' : ''}>
+                <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                  {t('orgInfoFieldOrganizationName')} ({t(LOCALE_LABEL_KEYS[code])})
+                </dt>
+                <dd className="mt-1 text-sm font-medium">{value}</dd>
+              </div>
+            );
+          })}
           <div className="sm:col-span-2">
             <dt className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
               {t('orgInfoFieldSuperiorAuthorities')}

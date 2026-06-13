@@ -3,6 +3,12 @@
     "org-info": {
       "summary": "Маълумот барои сарлавҳаи расмии ҳисоботҳои ташкилот.",
       "reportHeader": {
+        "reportOrganizationNames": {
+          "tj": "МАРКАЗИ ТАЪМИНОТИ БЕХАТАРИИ ОЗУҚОВОРИИ НОҲИЯИ ҶАББОР РАСУЛОВ",
+          "ru": "Центр обеспечения пищевой безопасности района имени Джаббор Расулова",
+          "en": "Jabbor Rasulov District Food Safety Center",
+          "uz": "Jabbor Rasulov tumani oziq-ovqat xavfsizligini ta'minlash markazi"
+        },
         "superiorAuthorities": [
           "Кумитаи бехатарии озуқавории назди Ҳукумати Ҷумҳурии Тоҷикистон"
         ]
@@ -2490,6 +2496,12 @@
     "org-info": {
       "summary": "Маълумот барои сарлавҳаи расмии ҳисоботҳои ташкилот.",
       "reportHeader": {
+        "reportOrganizationNames": {
+          "tj": "МУАССИСАИ ДАВЛАТИИ ТАЪЛИМИИ ТОМАКТАБИИ МАКТАБ- КӮДАКИСТОНИ №1 НОҲИЯИ ҶАББОР РАСУЛОВ",
+          "ru": "Государственное дошкольное образовательное учреждение «Школа-детский сад № 1» района имени Джаббор Расулова",
+          "en": "State Preschool Educational Institution «School-Kindergarten No. 1» of Jabbor Rasulov District",
+          "uz": "Jabbor Rasulov tumani 1-son maktab-bog'cha davlat maktabgacha ta'lim muassasasi"
+        },
         "superiorAuthorities": [
           "Вазорати таълим ва илми Ҷумҳурии Тоҷикистон",
           "Назорати давлатии таълими вилояти Суғд"

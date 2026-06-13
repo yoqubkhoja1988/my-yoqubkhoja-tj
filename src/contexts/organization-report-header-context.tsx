@@ -6,7 +6,7 @@ import {
 } from '@/lib/organization-info';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { createContext, useContext, useMemo } from 'react';
 
 export type ResolvedOrganizationReportHeader = {
@@ -29,17 +29,19 @@ export function OrganizationReportHeaderProvider({
   children: React.ReactNode;
 }) {
   const t = useTranslations();
+  const locale = useLocale();
   const value = useMemo(
     () => ({
       organizationName: resolveOrganizationReportName(
         orgInfoContent?.reportHeader,
-        organization.name
+        organization.name,
+        locale
       ),
       superiorAuthorities: resolveSuperiorAuthorities(orgInfoContent?.reportHeader, [
         t('payrollLedgerCommittee'),
       ]),
     }),
-    [organization.name, orgInfoContent?.reportHeader, t]
+    [organization.name, orgInfoContent?.reportHeader, locale, t]
   );
 
   return (

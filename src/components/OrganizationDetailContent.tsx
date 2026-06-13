@@ -1,5 +1,6 @@
 'use client';
 
+import { resolveOrganizationReportName } from '@/lib/organization-info';
 import UserContentText from '@/components/UserContentText';
 import { Link } from '@/i18n/navigation';
 import {
@@ -17,7 +18,7 @@ import { OrganizationReportHeaderProvider } from '@/contexts/organization-report
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useMemo } from 'react';
 import AppFooter from './AppFooter';
 import AppHeader from './AppHeader';
@@ -149,7 +150,12 @@ export default function OrganizationDetailContent({
   orgInfoContent = null,
 }: Props) {
   const t = useTranslations();
+  const locale = useLocale();
   const { data: session } = useSession();
+  const displayOrgName = useMemo(
+    () => resolveOrganizationReportName(orgInfoContent?.reportHeader, organization.name, locale),
+    [orgInfoContent?.reportHeader, organization.name, locale]
+  );
   const activeSection = section || 'overview';
   const canEdit = canEditOrganizationSection(session, organization.id, activeSection);
   const supervisionOnly = isSupervisionOnlyUser(session);
@@ -162,9 +168,7 @@ export default function OrganizationDetailContent({
   const sidebar = (
     <div className="flex h-full flex-col p-3">
       <p className="page-eyebrow">{t('orgMenu')}</p>
-      <h2 className="mt-2 text-sm font-bold leading-snug">
-        <UserContentText text={organization.name} as="span" />
-      </h2>
+      <h2 className="mt-2 text-sm font-bold leading-snug">{displayOrgName}</h2>
       {organization.rma && (
         <p className="mt-2 inline-block rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
           {t('organizationRma')}: {organization.rma}
