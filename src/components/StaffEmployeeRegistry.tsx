@@ -706,11 +706,6 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                   <option value="primary">{t('employmentWorkTypePrimary')}</option>
                   <option value="secondary">{t('employmentWorkTypeSecondary')}</option>
                 </select>
-                <p className="mt-1 text-[10px] leading-relaxed text-[var(--text-muted)]">
-                  {form.employmentWorkType === 'secondary'
-                    ? t('employmentWorkTypeSecondaryTaxFormula')
-                    : t('employmentWorkTypePrimaryTaxFormula')}
-                </p>
                 {estimatedTaxPreview !== null && (
                   <p className="mt-1 text-[10px] text-[var(--accent)]">
                     {t('employmentWorkTypeTaxPreview', {

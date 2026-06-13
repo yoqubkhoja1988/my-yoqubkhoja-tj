@@ -790,8 +790,6 @@
   "employmentWorkTypePrimary": "Основная работа",
   "employmentWorkTypeSecondary": "Дополнительная работа",
   "employmentWorkTypeSecondaryShort": "Доп.",
-  "employmentWorkTypePrimaryTaxFormula": "Основная работа — налог: (Всего − 1% − 156) × 12%",
-  "employmentWorkTypeSecondaryTaxFormula": "Дополнительная работа — налог: (Всего − 1%) × 15%",
   "employmentWorkTypeTaxPreview": "Ориентировочный налог (от расчётной зарплаты): {amount} сомони",
   "employeePosition": "Должность",
   "employeeDepartment": "Отдел / сектор",

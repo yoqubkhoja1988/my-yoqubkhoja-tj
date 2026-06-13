@@ -791,8 +791,6 @@
   "employmentWorkTypePrimary": "Asosiy ish",
   "employmentWorkTypeSecondary": "Qo'shimcha ish",
   "employmentWorkTypeSecondaryShort": "Qo'shimcha",
-  "employmentWorkTypePrimaryTaxFormula": "Asosiy ish — soliq: (Jami − 1% − 156) × 12%",
-  "employmentWorkTypeSecondaryTaxFormula": "Qo'shimcha ish — soliq: (Jami − 1%) × 15%",
   "employmentWorkTypeTaxPreview": "Taxminiy soliq (hisoblangan maoshdan): {amount} somoni",
   "employeePosition": "Lavozim",
   "employeeDepartment": "Bo'lim / sektor",

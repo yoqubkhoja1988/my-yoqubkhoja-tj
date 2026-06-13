@@ -788,8 +788,6 @@
   "employmentWorkTypePrimary": "Кори асосӣ",
   "employmentWorkTypeSecondary": "Кори иловагӣ",
   "employmentWorkTypeSecondaryShort": "Иловагӣ",
-  "employmentWorkTypePrimaryTaxFormula": "Кори асосӣ — андоз: (Ҳамагӣ − 1% − 156) × 12%",
-  "employmentWorkTypeSecondaryTaxFormula": "Кори иловагӣ — андоз: (Ҳамагӣ − 1%) × 15%",
   "employmentWorkTypeTaxPreview": "Андози тахминӣ (аз музди ҳисобшуда): {amount} сомонӣ",
   "employeePosition": "Вазифа",
   "employeeDepartment": "Шуъба / бахш",

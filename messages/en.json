@@ -791,8 +791,6 @@
   "employmentWorkTypePrimary": "Primary employment",
   "employmentWorkTypeSecondary": "Secondary employment",
   "employmentWorkTypeSecondaryShort": "Secondary",
-  "employmentWorkTypePrimaryTaxFormula": "Primary — tax: (Gross − 1% − 156) × 12%",
-  "employmentWorkTypeSecondaryTaxFormula": "Secondary — tax: (Gross − 1%) × 15%",
   "employmentWorkTypeTaxPreview": "Estimated tax (from calculated wage): {amount} somoni",
   "employeePosition": "Position",
   "employeeDepartment": "Department / section",

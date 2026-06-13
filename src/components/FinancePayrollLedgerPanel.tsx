@@ -404,10 +404,6 @@ export default function FinancePayrollLedgerPanel({
             <p className="mt-1 text-sm">
               {t('payrollLedgerForMonth', { month: monthLabel })}
             </p>
-            <div className="mt-3 space-y-1 text-[10px] text-slate-600">
-              <p>{t('employmentWorkTypePrimaryTaxFormula')}</p>
-              <p>{t('employmentWorkTypeSecondaryTaxFormula')}</p>
-            </div>
           </div>
 
           <div className="overflow-x-auto print:overflow-visible">
