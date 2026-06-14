@@ -376,7 +376,11 @@ export default function OrganizationContractsPanel({
 
       {tab === 'registry' && (
         <OrganizationServiceContractRegistry
+          organizationId={organizationId}
+          organizationName={displayOrganizationName}
+          organization={organization}
           contracts={contracts}
+          counterpartyMap={counterpartyMap}
           canEdit={canEdit}
           onOpen={openContract}
           onAdd={startNewContract}

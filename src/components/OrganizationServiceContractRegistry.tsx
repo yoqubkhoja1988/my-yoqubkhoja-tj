@@ -1,6 +1,8 @@
 'use client';
 
+import OrganizationServiceContractDocument from '@/components/OrganizationServiceContractDocument';
 import UserContentText from '@/components/UserContentText';
+import { exportDocument, type ExportFormat } from '@/lib/document-export';
 import { formatAppDate } from '@/lib/intl-locale';
 import {
   contractValidityLabel,
@@ -8,12 +10,23 @@ import {
   filterServiceContracts,
   ServiceContractRegistryFilters,
 } from '@/lib/org-service-contracts';
-import { OrganizationServiceContract } from '@/types/organization-section';
+import { printDocument } from '@/lib/print-document';
+import { Organization } from '@/types/organization';
+import {
+  ContractCounterparty,
+  OrganizationServiceContract,
+} from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
+const EXPORT_DOCUMENT_ID = 'org-contract-registry-export';
+
 type Props = {
+  organizationId: string;
+  organizationName: string;
+  organization?: Organization;
   contracts: OrganizationServiceContract[];
+  counterpartyMap: Map<string, ContractCounterparty>;
   canEdit: boolean;
   onOpen: (contract: OrganizationServiceContract) => void;
   onAdd: () => void;
@@ -27,7 +40,11 @@ const STATUS_CLASS: Record<OrganizationServiceContract['status'], string> = {
 };
 
 export default function OrganizationServiceContractRegistry({
+  organizationId,
+  organizationName,
+  organization,
   contracts,
+  counterpartyMap,
   canEdit,
   onOpen,
   onAdd,
@@ -37,6 +54,9 @@ export default function OrganizationServiceContractRegistry({
   const [filters, setFilters] = useState<ServiceContractRegistryFilters>(
     EMPTY_CONTRACT_REGISTRY_FILTERS
   );
+  const [exportContract, setExportContract] = useState<OrganizationServiceContract | null>(null);
+  const [busyContractId, setBusyContractId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
 
   const filtered = useMemo(() => filterServiceContracts(contracts, filters), [contracts, filters]);
   const hasActiveFilters =
@@ -64,6 +84,56 @@ export default function OrganizationServiceContractRegistry({
       case 'terminated':
         return t('orgContractsStatusTerminated');
     }
+  }
+
+  async function mountContractDocument(contract: OrganizationServiceContract) {
+    setExportContract(contract);
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+  }
+
+  async function runDocumentAction(
+    contract: OrganizationServiceContract,
+    action: 'print' | ExportFormat
+  ) {
+    setBusyContractId(contract.id);
+    setActionError('');
+    try {
+      await mountContractDocument(contract);
+      if (action === 'print') {
+        printDocument(EXPORT_DOCUMENT_ID);
+      } else {
+        await exportDocument({
+          documentId: EXPORT_DOCUMENT_ID,
+          format: action,
+          filename: `contract-${contract.contractNumber}`,
+        });
+      }
+    } catch (error) {
+      console.error('Contract document action failed:', error);
+      setActionError(t('documentExportError'));
+    } finally {
+      setBusyContractId(null);
+    }
+  }
+
+  function actionButton(
+    contract: OrganizationServiceContract,
+    label: string,
+    action: 'print' | ExportFormat
+  ) {
+    const busy = busyContractId === contract.id;
+    return (
+      <button
+        type="button"
+        className="btn-secondary px-1.5 py-0.5 text-[10px] whitespace-nowrap disabled:opacity-50"
+        disabled={busy}
+        onClick={() => void runDocumentAction(contract, action)}
+      >
+        {busy ? '...' : label}
+      </button>
+    );
   }
 
   return (
@@ -138,13 +208,19 @@ export default function OrganizationServiceContractRegistry({
         </p>
       </div>
 
+      {actionError && (
+        <p className="text-xs text-[var(--danger)]" role="alert">
+          {actionError}
+        </p>
+      )}
+
       {contracts.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)]">{t('orgContractsRegistryNoContracts')}</p>
       ) : filtered.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)]">{t('orgContractsRegistryEmpty')}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-          <table className="w-full min-w-[880px] border-collapse text-xs">
+          <table className="w-full min-w-[1080px] border-collapse text-xs">
             <thead>
               <tr className="bg-[var(--bg-input)]/60 text-left text-[var(--text-muted)]">
                 <th className="border-b border-[var(--border)] px-3 py-2.5 font-semibold">
@@ -170,6 +246,9 @@ export default function OrganizationServiceContractRegistry({
                 </th>
                 <th className="border-b border-[var(--border)] px-3 py-2.5 font-semibold">
                   {t('orgContractsRegistryColStatus')}
+                </th>
+                <th className="border-b border-[var(--border)] px-3 py-2.5 font-semibold">
+                  {t('orgContractsRegistryColDocument')}
                 </th>
                 <th className="border-b border-[var(--border)] px-3 py-2.5 font-semibold">
                   {t('orgContractsRegistryColActions')}
@@ -207,6 +286,14 @@ export default function OrganizationServiceContractRegistry({
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
+                    <div className="flex flex-wrap gap-1">
+                      {actionButton(contract, t('print'), 'print')}
+                      {actionButton(contract, 'PDF', 'pdf')}
+                      {actionButton(contract, 'Word', 'word')}
+                      {actionButton(contract, 'Excel', 'excel')}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5">
                     <button
                       type="button"
                       className="btn-secondary px-2 py-1 text-[11px]"
@@ -221,6 +308,20 @@ export default function OrganizationServiceContractRegistry({
           </table>
         </div>
       )}
+
+      <div className="pointer-events-none fixed left-[-10000px] top-0 z-[-1]" aria-hidden>
+        {exportContract && (
+          <div id={EXPORT_DOCUMENT_ID}>
+            <OrganizationServiceContractDocument
+              organizationId={organizationId}
+              organizationName={organizationName}
+              organization={organization}
+              contract={exportContract}
+              counterparty={counterpartyMap.get(exportContract.counterpartyId)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
