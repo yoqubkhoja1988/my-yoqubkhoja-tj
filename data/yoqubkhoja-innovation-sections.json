@@ -112,6 +112,12 @@
     },
     "staff": {
       "summary": "Кадри марказ мувofiqи КМҶ ва оиннома."
+    },
+    "organization-contracts": {
+      "summary": "Шартномаҳои хизматрасмонӣ ва ҳисобнома-фактураҳо мувофиқи Кодекси шаҳрвандӣ, Кодекси андоз ва қонунгузории амалкунандаи Ҷумҳурии Тоҷикистон.",
+      "contractCounterparties": [],
+      "serviceContracts": [],
+      "serviceInvoices": []
     }
   }
 }

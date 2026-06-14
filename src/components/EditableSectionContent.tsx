@@ -35,6 +35,7 @@ import FinanceMaternityLeavePanel from './FinanceMaternityLeavePanel';
 import FinanceSickLeavePanel from './FinanceSickLeavePanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
 import FinanceFuneralAllowancePanel from './FinanceFuneralAllowancePanel';
+import OrganizationContractsPanel from './OrganizationContractsPanel';
 import FinanceReportsPanel from './FinanceReportsPanel';
 import FinanceSectionNav from './FinanceSectionNav';
 import {
@@ -68,6 +69,7 @@ import {
   ORG_INFO_SECTION_SLUG,
 } from '@/lib/organization-info';
 import { isCharterLegalSection, LIST_OF_ENTERPRISES_SECTION_SLUG } from '@/lib/user-access';
+import { ORGANIZATION_CONTRACTS_SECTION_SLUG } from '@/lib/org-service-contracts';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
   return JSON.parse(JSON.stringify(content)) as OrganizationSectionContent;
@@ -523,6 +525,7 @@ export default function EditableSectionContent({
       {((section !== 'finance' &&
         section !== 'staff' &&
         section !== ORG_INFO_SECTION_SLUG &&
+        section !== ORGANIZATION_CONTRACTS_SECTION_SLUG &&
         !isFinancialReportSection(section) &&
         !isCharterLegalSection(section)) ||
         (section === 'finance' &&
@@ -613,6 +616,15 @@ export default function EditableSectionContent({
               ? (reportHeader) => setDraft({ ...draft, reportHeader })
               : undefined
           }
+        />
+      )}
+
+      {section === ORGANIZATION_CONTRACTS_SECTION_SLUG && (
+        <OrganizationContractsPanel
+          organizationId={organizationId}
+          organization={organization}
+          content={displayData}
+          onUpdate={setData}
         />
       )}
 

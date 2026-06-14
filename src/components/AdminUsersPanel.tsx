@@ -17,6 +17,7 @@ const SECTION_LABEL_KEYS: Record<string, string> = {
   'government-decisions': 'actGovernmentDecisions',
   'official-documents': 'actOfficialDocuments',
   'formation-report': 'actFormationReport',
+  'organization-contracts': 'actOrganizationContracts',
   'financial-reports': 'actFinancialReportsOverview',
   'financial-reports-form1': 'actFinancialReportsForm1',
   'financial-reports-form2': 'actFinancialReportsForm2',

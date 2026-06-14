@@ -247,6 +247,12 @@ const YOQUBKHOJA_INNOVATION_DIRECTIONS: ActivityDirection[] = [
     groupKey: 'actGroupBusinessActivity',
   },
   { slug: 'governance', icon: '🏛️', labelKey: 'actGovernancePrivate', groupKey: 'actGroupBusinessActivity' },
+  {
+    slug: 'organization-contracts',
+    icon: '📝',
+    labelKey: 'actOrganizationContracts',
+    groupKey: 'actGroupBusinessActivity',
+  },
 
   { slug: 'staff', icon: '👥', labelKey: 'actStaff', groupKey: 'actGroupMaterialFinance' },
   { slug: 'finance', icon: '💰', labelKey: 'actFinance', groupKey: 'actGroupMaterialFinance' },
@@ -257,8 +263,6 @@ const YOQUBKHOJA_INNOVATION_DIRECTIONS: ActivityDirection[] = [
     groupKey: 'actGroupMaterialFinance',
   },
   { slug: 'reports', icon: '📈', labelKey: 'actReports', groupKey: 'actGroupMaterialFinance' },
-
-  ...FINANCIAL_REPORT_MENU,
 
   { slug: 'news', icon: '📢', labelKey: 'actNews', groupKey: 'actGroupInfo' },
   { slug: 'reception', icon: '✉️', labelKey: 'actReception', groupKey: 'actGroupAppeals' },

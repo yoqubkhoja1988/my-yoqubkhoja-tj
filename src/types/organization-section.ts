@@ -253,6 +253,74 @@ export interface FuneralAllowance {
   reason?: string;
 }
 
+/** Ташкилоти харидор / мизоҷ барои шартномаҳо */
+export interface ContractCounterparty {
+  id: string;
+  name: string;
+  legalForm?: string;
+  tin?: string;
+  address?: string;
+  director?: string;
+  phone?: string;
+  bankAccount?: string;
+  bankName?: string;
+}
+
+export type ServiceContractStatus = 'draft' | 'active' | 'completed' | 'terminated';
+
+/** Шартномаи хизматрасмонӣ бо ташкилот */
+export interface OrganizationServiceContract {
+  id: string;
+  contractNumber: string;
+  preparedAt: string;
+  signedAt?: string;
+  validFrom: string;
+  validTo?: string;
+  counterpartyId: string;
+  counterpartyName: string;
+  subject: string;
+  servicesDescription: string;
+  amount: string;
+  currency: 'TJS';
+  vatApplicable: boolean;
+  vatRate: number;
+  paymentTerms: string;
+  legalBasis: string;
+  status: ServiceContractStatus;
+}
+
+export type ServiceInvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled';
+
+export interface ServiceInvoiceLineItem {
+  description: string;
+  quantity: string;
+  unit: string;
+  unitPrice: string;
+  amount: string;
+}
+
+/** Ҳисобнома-фактура мувофиқи Кодекси андоз */
+export interface OrganizationServiceInvoice {
+  id: string;
+  invoiceNumber: string;
+  contractId: string;
+  contractNumber: string;
+  preparedAt: string;
+  dueDate: string;
+  counterpartyId: string;
+  counterpartyName: string;
+  counterpartyTin?: string;
+  counterpartyAddress?: string;
+  lineItems: ServiceInvoiceLineItem[];
+  subtotal: string;
+  vatRate: number;
+  vatAmount: string;
+  total: string;
+  paymentPurpose: string;
+  legalBasis: string;
+  status: ServiceInvoiceStatus;
+}
+
 /** Маълумот барои сарлавҳаи расмии ҳисоботҳои ташкилот */
 export type OrganizationReportLocale = 'tj' | 'ru' | 'en' | 'uz';
 
@@ -278,6 +346,9 @@ export interface OrganizationSectionContent {
   positionHandovers?: PositionHandover[];
   laborLeaves?: LaborLeave[];
   funeralAllowances?: FuneralAllowance[];
+  contractCounterparties?: ContractCounterparty[];
+  serviceContracts?: OrganizationServiceContract[];
+  serviceInvoices?: OrganizationServiceInvoice[];
   reportHeader?: OrganizationReportHeader;
 }
 
