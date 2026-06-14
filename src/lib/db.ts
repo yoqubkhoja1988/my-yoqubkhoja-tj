@@ -84,7 +84,13 @@ async function syncMissingUsersFromFiles(): Promise<void> {
         ${user.createdAt},
         ${user.updatedAt ?? null}
       )
-      ON CONFLICT (id) DO NOTHING
+      ON CONFLICT (id) DO UPDATE SET
+        status = EXCLUDED.status,
+        permissions = EXCLUDED.permissions,
+        updated_at = EXCLUDED.updated_at
+      WHERE users.updated_at IS NULL
+         OR EXCLUDED.updated_at IS NULL
+         OR EXCLUDED.updated_at > users.updated_at
     `;
   }
 }
