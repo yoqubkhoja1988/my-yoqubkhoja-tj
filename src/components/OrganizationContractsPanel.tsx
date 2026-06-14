@@ -392,7 +392,7 @@ export default function OrganizationContractsPanel({
                 </div>
                 <input value={cpDraft.address ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, address: e.target.value })} placeholder={t('orgContractsAddress')} className="input-field" />
                 <input value={cpDraft.bankName ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, bankName: e.target.value })} placeholder={t('orgContractsBankName')} className="input-field" />
-                <input value={cpDraft.bankAccount ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, bankAccount: e.target.value })} placeholder={t('orgContractsBankAccount')} className="input-field" />
+                <input value={cpDraft.bankAccount ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, bankAccount: e.target.value.replace(/\D/g, '').slice(0, 20) })} placeholder={t('orgContractsBankAccount')} className="input-field font-mono" inputMode="numeric" maxLength={20} />
                 {canEdit && (
                   <div className="flex flex-wrap gap-2">
                     {cpEditing ? (
