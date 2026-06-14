@@ -1,4 +1,5 @@
 import { requireAdmin } from '@/lib/api-guard';
+import { hashPassword } from '@/lib/password-hash';
 import { deleteUser, updateUser } from '@/lib/users-store';
 import { UserPermissions, UserStatus } from '@/types/user';
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,11 +16,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as {
       status?: UserStatus;
       permissions?: UserPermissions;
+      password?: string;
     };
+
+    const password = body.password?.trim();
+    if (password !== undefined && password.length > 0 && password.length < 6) {
+      return NextResponse.json({ error: 'PASSWORD_TOO_SHORT' }, { status: 400 });
+    }
 
     const updated = await updateUser(id, {
       ...(body.status ? { status: body.status } : {}),
       ...(body.permissions ? { permissions: body.permissions } : {}),
+      ...(password ? { passwordHash: hashPassword(password) } : {}),
     });
 
     if (!updated) {

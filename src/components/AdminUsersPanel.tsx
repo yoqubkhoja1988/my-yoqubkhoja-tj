@@ -238,6 +238,9 @@ export default function AdminUsersPanel() {
   const [editingUser, setEditingUser] = useState<PublicUser | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [draftPermissions, setDraftPermissions] = useState<UserPermissions>(emptyPermissions());
+  const [draftPassword, setDraftPassword] = useState('');
+  const [draftConfirmPassword, setDraftConfirmPassword] = useState('');
+  const [permissionsError, setPermissionsError] = useState('');
   const [createForm, setCreateForm] = useState({
     username: '',
     password: '',
@@ -323,20 +326,42 @@ export default function AdminUsersPanel() {
   function openPermissions(user: PublicUser) {
     setEditingUser(user);
     setDraftPermissions(normalizeUserPermissions(user.permissions));
+    setDraftPassword('');
+    setDraftConfirmPassword('');
+    setPermissionsError('');
   }
 
   async function savePermissions() {
     if (!editingUser) return;
+    setPermissionsError('');
+
+    const wantsPasswordReset = draftPassword.length > 0 || draftConfirmPassword.length > 0;
+    if (wantsPasswordReset) {
+      if (draftPassword.length < 6) {
+        setPermissionsError(t('adminUsersPasswordTooShort'));
+        return;
+      }
+      if (draftPassword !== draftConfirmPassword) {
+        setPermissionsError(t('registerPasswordMismatch'));
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const response = await fetch(`/api/admin/users/${editingUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ permissions: draftPermissions }),
+        body: JSON.stringify({
+          permissions: draftPermissions,
+          ...(wantsPasswordReset ? { password: draftPassword } : {}),
+        }),
         credentials: 'same-origin',
       });
       if (!response.ok) throw new Error('save');
       setEditingUser(null);
+      setDraftPassword('');
+      setDraftConfirmPassword('');
       await load();
     } catch {
       setError(t('adminUsersSaveError'));
@@ -662,6 +687,43 @@ export default function AdminUsersPanel() {
           <div className="modal-panel max-h-[90vh] max-w-2xl overflow-y-auto">
             <h3 className="mb-2 text-xl font-bold">{t('adminUsersPermissions')}</h3>
             <p className="mb-4 text-sm text-[var(--text-muted)]">{editingUser.username}</p>
+
+            {permissionsError && (
+              <div className="mb-4 rounded-lg border border-[var(--danger)]/40 bg-red-500/10 p-3 text-sm text-red-300">
+                {permissionsError}
+              </div>
+            )}
+
+            <div className="mb-4 space-y-3 rounded-lg border border-[var(--border)] p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+                {t('adminUsersResetPassword')}
+              </p>
+              <p className="text-xs text-[var(--text-muted)]">{t('adminUsersResetPasswordHint')}</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">{t('adminUsersNewPassword')}</label>
+                  <input
+                    type="password"
+                    value={draftPassword}
+                    onChange={(e) => setDraftPassword(e.target.value)}
+                    minLength={6}
+                    autoComplete="new-password"
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">{t('registerConfirmPassword')}</label>
+                  <input
+                    type="password"
+                    value={draftConfirmPassword}
+                    onChange={(e) => setDraftConfirmPassword(e.target.value)}
+                    minLength={6}
+                    autoComplete="new-password"
+                    className="input-field"
+                  />
+                </div>
+              </div>
+            </div>
 
             <PermissionsEditor
               permissions={draftPermissions}
