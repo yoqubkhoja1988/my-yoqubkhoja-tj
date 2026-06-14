@@ -135,8 +135,12 @@ export default function OrganizationContractsPanel({
     setError('');
     setNotice('');
     try {
-      await updateOrganizationSection(organizationId, 'organization-contracts', next);
-      onUpdate(next);
+      const saved = await updateOrganizationSection(organizationId, 'organization-contracts', next);
+      if (!saved) {
+        setError(t('orgContractsSaveError'));
+        return;
+      }
+      onUpdate(saved);
       setNotice(t('orgContractsSaved'));
     } catch {
       setError(t('orgContractsSaveError'));

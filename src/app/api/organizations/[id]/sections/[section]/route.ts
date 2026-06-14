@@ -97,6 +97,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         : {}),
       ...(body.laborLeaves !== undefined ? { laborLeaves: body.laborLeaves } : {}),
       ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
+      ...(body.contractCounterparties !== undefined
+        ? { contractCounterparties: body.contractCounterparties }
+        : {}),
+      ...(body.serviceContracts !== undefined ? { serviceContracts: body.serviceContracts } : {}),
+      ...(body.serviceInvoices !== undefined ? { serviceInvoices: body.serviceInvoices } : {}),
     });
 
     if (section === 'staff' && body.timesheets !== undefined) {
