@@ -1,5 +1,6 @@
 import { ActivityDirection } from '@/types/activity-direction';
 import { getFinancialReportMenuDirections } from '@/lib/financial-reports-menu';
+import { YOQUBKHOJA_INNOVATION_CENTER_ID } from '@/lib/yoqubkhoja-innovation-center';
 
 export const FOOD_SAFETY_CENTER_ID = 'b8c5fe62-c216-410e-9dcf-c845838f0ad7';
 export const KINDERGARTEN_SCHOOL_ID = '8c19df05-9925-4a55-8daf-c03d607f954c';
@@ -203,9 +204,70 @@ const KINDERGARTEN_SCHOOL_DIRECTIONS: ActivityDirection[] = [
   { slug: 'reception', icon: '✉️', labelKey: 'actReception', groupKey: 'actGroupAppeals' },
 ];
 
+/**
+ * Меню мувофиқи:
+ * — Қонуни ҶТ «Дар бораи соhibкорӣ»;
+ * — Кодекси шаҳрвандии ҶТ;
+ * — КМҶ, Кодекси андоз;
+ * — Қонуни ҶТ «Дар бораи иҷозатномаҳои хizmatrasmonӣ ва фaъoliyatҳои иҷозатnopaz»;
+ * — Қонуни ҶТ «Дar boroи фарhoangi маълумot»;
+ * — тартиботи ташкилоти хususӣ (ҶДММ).
+ */
+const YOQUBKHOJA_INNOVATION_DIRECTIONS: ActivityDirection[] = [
+  { slug: 'overview', icon: '🏠', labelKey: 'actOverview', groupKey: 'actGroupGeneral' },
+  { slug: 'org-info', icon: '🏢', labelKey: 'actOrgInfo', groupKey: 'actGroupGeneral' },
+
+  { slug: 'charter', icon: '📜', labelKey: 'actCharterPrivate', groupKey: 'actGroupPrivateOrg' },
+  { slug: 'licensing', icon: '📄', labelKey: 'actLicensing', groupKey: 'actGroupPrivateOrg' },
+  { slug: 'legal', icon: '⚖️', labelKey: 'actLegal', groupKey: 'actGroupPrivateOrg' },
+  { slug: 'laws', icon: '📕', labelKey: 'actLaws', groupKey: 'actGroupPrivateOrg' },
+  {
+    slug: 'government-decisions',
+    icon: '📋',
+    labelKey: 'actGovernmentDecisions',
+    groupKey: 'actGroupPrivateOrg',
+  },
+  {
+    slug: 'official-documents',
+    icon: '📁',
+    labelKey: 'actOfficialDocuments',
+    groupKey: 'actGroupPrivateOrg',
+  },
+
+  {
+    slug: 'list-of-services',
+    icon: '📋',
+    labelKey: 'actListOfServices',
+    groupKey: 'actGroupBusinessActivity',
+  },
+  {
+    slug: 'investment-projects',
+    icon: '💻',
+    labelKey: 'actSoftwareProjects',
+    groupKey: 'actGroupBusinessActivity',
+  },
+  { slug: 'governance', icon: '🏛️', labelKey: 'actGovernancePrivate', groupKey: 'actGroupBusinessActivity' },
+
+  { slug: 'staff', icon: '👥', labelKey: 'actStaff', groupKey: 'actGroupMaterialFinance' },
+  { slug: 'finance', icon: '💰', labelKey: 'actFinance', groupKey: 'actGroupMaterialFinance' },
+  {
+    slug: 'formation-report',
+    icon: '📋',
+    labelKey: 'actFormationReport',
+    groupKey: 'actGroupMaterialFinance',
+  },
+  { slug: 'reports', icon: '📈', labelKey: 'actReports', groupKey: 'actGroupMaterialFinance' },
+
+  ...FINANCIAL_REPORT_MENU,
+
+  { slug: 'news', icon: '📢', labelKey: 'actNews', groupKey: 'actGroupInfo' },
+  { slug: 'reception', icon: '✉️', labelKey: 'actReception', groupKey: 'actGroupAppeals' },
+];
+
 const DIRECTIONS_BY_ORG: Record<string, ActivityDirection[]> = {
   [FOOD_SAFETY_CENTER_ID]: FOOD_SAFETY_DIRECTIONS,
   [KINDERGARTEN_SCHOOL_ID]: KINDERGARTEN_SCHOOL_DIRECTIONS,
+  [YOQUBKHOJA_INNOVATION_CENTER_ID]: YOQUBKHOJA_INNOVATION_DIRECTIONS,
 };
 
 export function getActivityDirections(organizationId: string): ActivityDirection[] {
@@ -244,6 +306,10 @@ export function groupActivityDirections(
 
 export const ALL_SECTION_SLUGS = Array.from(
   new Set(
-    [...FOOD_SAFETY_DIRECTIONS, ...KINDERGARTEN_SCHOOL_DIRECTIONS].map((item) => item.slug)
+    [
+      ...FOOD_SAFETY_DIRECTIONS,
+      ...KINDERGARTEN_SCHOOL_DIRECTIONS,
+      ...YOQUBKHOJA_INNOVATION_DIRECTIONS,
+    ].map((item) => item.slug)
   )
 );

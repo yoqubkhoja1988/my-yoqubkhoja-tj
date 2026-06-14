@@ -1,6 +1,10 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { FOOD_SAFETY_CENTER_ID, KINDERGARTEN_SCHOOL_ID } from '@/lib/activity-directions';
+import {
+  YOQUBKHOJA_INNOVATION_CENTER_ID,
+  YOQUBKHOJA_INNOVATION_CENTER_NAME,
+} from '@/lib/yoqubkhoja-innovation-center';
 import { ensureDatabaseReady, isDatabaseEnabled, sql } from '@/lib/db';
 import { Organization } from '@/types/organization';
 
@@ -36,6 +40,21 @@ const FALLBACK_ORGANIZATIONS: Organization[] = [
     taxDistrict: 'ноҳияи Ҷаббор Расулов',
     status: 'Амалкунанда',
     sector: 'education',
+  },
+  {
+    id: YOQUBKHOJA_INNOVATION_CENTER_ID,
+    name: YOQUBKHOJA_INNOVATION_CENTER_NAME,
+    description:
+      'Ташкилоти хусусӣ (ҶДММ) — таҳияи барномаҳо, платформаҳои идоракунии ташкилотҳо, ҳисоботҳои молиявӣ ва хизматрасмонии технологӣ.',
+    createdAt: '2026-06-11T12:00:00.000Z',
+    address: 'Ҷумҳурии Тоҷикистон, вилояти Суғд, ноҳияи Ҷаббор Расулов',
+    director: 'Ахроров Ёқубхоҷа Яҳёевич',
+    chiefAccountant: 'Ахроров Ёқубхоҷа Яҳёевич',
+    directorPhone: '+992927917704',
+    chiefAccountantPhone: '+992927917704',
+    taxDistrict: 'ноҳияи Ҷаббор Расулов',
+    status: 'Амалкунанда',
+    sector: 'science-innovation',
   },
 ];
 

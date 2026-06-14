@@ -1,11 +1,16 @@
 import { FOOD_SAFETY_CENTER_ID, KINDERGARTEN_SCHOOL_ID } from '@/lib/activity-directions';
+import {
+  YOQUBKHOJA_INNOVATION_CENTER_ID,
+  YOQUBKHOJA_INNOVATION_CENTER_NAME,
+} from '@/lib/yoqubkhoja-innovation-center';
 import { OrganizationSectionContent } from '@/types/organization-section';
 
-export type OrganizationKind = 'food_safety_center' | 'kindergarten_school';
+export type OrganizationKind = 'food_safety_center' | 'kindergarten_school' | 'private_innovation_center';
 
 export const ORGANIZATION_KIND_BY_ID: Record<string, OrganizationKind> = {
   [FOOD_SAFETY_CENTER_ID]: 'food_safety_center',
   [KINDERGARTEN_SCHOOL_ID]: 'kindergarten_school',
+  [YOQUBKHOJA_INNOVATION_CENTER_ID]: 'private_innovation_center',
 };
 
 /** Маркази таъминоти бехатарии озуқаворӣ — ноҳияи Ҷ. Расулов */
@@ -27,6 +32,10 @@ export function isKindergartenOrganization(organizationId?: string): boolean {
 
 export function isFoodSafetyCenterOrganization(organizationId?: string): boolean {
   return organizationId === FOOD_SAFETY_CENTER_ID;
+}
+
+export function isYoqubkhojaInnovationCenter(organizationId?: string): boolean {
+  return organizationId === YOQUBKHOJA_INNOVATION_CENTER_ID;
 }
 
 export function requireOrganizationId(organizationId?: string): string {

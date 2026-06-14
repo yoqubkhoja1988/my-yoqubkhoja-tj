@@ -2,6 +2,7 @@ import {
   FOOD_SAFETY_CENTER_ID,
   KINDERGARTEN_SCHOOL_ID,
 } from '@/lib/activity-directions';
+import { YOQUBKHOJA_INNOVATION_CENTER_ID } from '@/lib/yoqubkhoja-innovation-center';
 import { OfficialLegalBundle, OfficialLegalEntry, OfficialLegalSource } from '@/types/official-legal';
 
 /** Сомонаҳои расмии манбаъҳои қонунгузорӣ */
@@ -242,7 +243,150 @@ const KINDERGARTEN_DOCUMENTS: OfficialLegalEntry[] = [
   },
 ];
 
-/** Маркази инноватсионӣ — қонунгузории умумии барномасозӣ ва технология */
+/** Маркази инноватсионӣ — қонунгузории ташкилоти хусусӣ (ҶДММ) */
+const YOQUBKHOJA_PRIVATE_LAWS: OfficialLegalEntry[] = [
+  {
+    id: 'yq-law-entrepreneurship',
+    type: 'law',
+    title: 'Қонуни ҶТ «Дар бораи соҳибкорӣ»',
+    detail: 'Соҳибкорӣ',
+    description:
+      'Қонуни асосӣ оид ба ҳуқуқ ва ӯҳдадориҳои соҳибкорон, тартиби баҳридагирӣ, бақайдгирӣ ва фаъолияти ташкилоти хусусӣ.',
+    officialUrl: 'https://www.majlisioli.tj/tj/legislation/',
+    sourceId: 'majlisioli',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-law-civil-code',
+    type: 'law',
+    title: 'Кодекси шаҳрвандии Ҷумҳурии Тоҷикистон',
+    detail: 'КШҶ',
+    description:
+      'Оиннома, шартномаҳо, моликият, масъулияти маҳдуди ҷамъият (ҶДММ) ва дигар муносибатҳои шаҳрвандӣ.',
+    officialUrl: 'https://www.majlisioli.tj/tj/legislation/',
+    sourceId: 'majlisioli',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-law-labor',
+    type: 'law',
+    title: 'Кодекси меҳнати Ҷумҳурии Тоҷикистон',
+    detail: 'КМҶ',
+    description: 'Қонунгузории меҳнат барои кормандони ташкилоти хусусӣ.',
+    officialUrl: 'https://normativka-pro.akdt.tj/',
+    sourceId: 'normativka',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-law-tax',
+    type: 'law',
+    title: 'Кодекси андози Ҷумҳурии Тоҷикистон',
+    detail: 'Кодекси андоз',
+    description: 'Ҳисобот, пардохт ва ӯҳдадориҳои андозии ташкилоти хусусӣ.',
+    officialUrl: 'https://www.andoz.tj/',
+    sourceId: 'adliya',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-law-licensing',
+    type: 'law',
+    title:
+      'Қонуни ҶТ «Дар бораи иҷозатномаҳои хизматрасмонӣ ва фаъолиятҳои иҷозатпазир»',
+    detail: 'Иҷозатнома',
+    description: '\u0424\u0430\u044a\u043e\u043b\u0438\u044f\u0442\u04b3\u043e\u0438 \u0438\u04b7\u043e\u0437\u0430\u0442\u043f\u0430\u0437\u0438\u0440 \u0432\u0430 \u0442\u0430\u0440\u0442\u0438\u0431\u0438 \u0433\u0438\u0440\u0438\u0444\u0442\u0430\u043d\u0438 \u0438\u04b7\u043e\u0437\u0430\u0442\u043d\u043e\u043c\u0430.',
+    officialUrl: 'https://www.majlisioli.tj/tj/legislation/',
+    sourceId: 'majlisioli',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-law-personal-data',
+    type: 'law',
+    title: 'Қонуни ҶТ «Дар бораи фарhangi маъlumot»',
+    detail: 'Маъlумot',
+    description: 'Ҳифзи маъlumoti шахсӣ дар хizmatrasmonии барномавӣ.',
+    officialUrl: 'https://www.majlisioli.tj/tj/legislation/',
+    sourceId: 'majlisioli',
+    status: 'Эътибор дорад',
+  },
+];
+
+const YOQUBKHOJA_PRIVATE_DECISIONS: OfficialLegalEntry[] = [
+  {
+    id: 'yq-decree-digital',
+    type: 'decision',
+    title: '\u049a\u0430\u0440\u043e\u0440\u04b3\u043e\u0438 \u04b2\u0443\u043a\u0443\u043c\u0430\u0442\u0438 \u04b6\u0422 \u043e\u0438\u0434 \u0431\u0430 \u0440\u0430\u049b\u0430\u043c\u043a\u0443\u043d\u043e\u043d\u04e3',
+    detail: '\u0421\u0438\u0451\u0441\u0430\u0442\u0438 \u0434\u0430\u0432\u043b\u0430\u0442\u04e3',
+    description: '\u049a\u0430\u0440\u043e\u0440\u04b3\u043e \u043e\u0438\u0434 \u0431\u0430 \u0440\u0443\u0448\u0434\u0438 \u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u044f\u04b3\u043e\u0438 \u0438\u0442\u0442\u0438\u043b\u043e\u043e\u0442\u04e3 \u0432\u0430 \u0438\u049b\u0442\u0438\u0441\u043e\u0434\u0438 \u0440\u0430\u049b\u0430\u043c\u04e3.',
+    officialUrl: 'https://www.president.tj/',
+    sourceId: 'president',
+    status: 'Манбаи расмӣ',
+  },
+  {
+    id: 'yq-decree-registration',
+    type: 'decision',
+    title: 'Қarorho оид ба бақayдгирии тashkilotи хususӣ',
+    detail: 'Сабти давlatӣ',
+    description: 'Тартиби бақayдгирии соhibкor ва тashkilotи хususӣ.',
+    officialUrl: 'https://www.adliya.tj/',
+    sourceId: 'adliya',
+    status: 'Манбаи расмӣ',
+  },
+];
+
+const YOQUBKHOJA_PRIVATE_DOCUMENTS: OfficialLegalEntry[] = [
+  {
+    id: 'yq-doc-charter',
+    type: 'document',
+    title: 'Устав (Оиннома)и ҶДММ',
+    detail: 'Ҳуҷҷати таъсисӣ',
+    description: 'Оиннома мувофиқи Кодекси шаҳрвандӣ ва Қонуни соhibкorӣ.',
+    officialUrl: 'https://www.adliya.tj/',
+    sourceId: 'adliya',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-doc-tax-registration',
+    type: 'document',
+    title: 'Шahodatномaи бақayдгирии андоз',
+    detail: 'РМА / РЯМ',
+    description: 'Бақayдгирии тashkilot дар мақомоти андоз.',
+    officialUrl: 'https://www.andoz.tj/',
+    sourceId: 'adliya',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-doc-labor-rules',
+    type: 'document',
+    title: 'Қоидаҳои дохилии меҳнат',
+    detail: 'КМҶ',
+    description: 'Қоидаҳои дохилӣ мувофиқи Кодекси меҳнат.',
+    officialUrl: 'https://normativka-pro.akdt.tj/',
+    sourceId: 'normativka',
+    status: 'Эътибор дорад',
+  },
+  {
+    id: 'yq-doc-adliya',
+    type: 'document',
+    title: 'Базаи қонунгузории Ҷумҳурии Тоҷикистон',
+    detail: 'Вазорати адлия',
+    description: 'Портали расмии қонунҳо, кодексҳо, қарорҳо ва санадҳои меъёрии ҳуқуқӣ.',
+    officialUrl: 'https://www.adliya.tj/',
+    sourceId: 'adliya',
+    status: 'Манбаи расмӣ',
+  },
+  {
+    id: 'yq-doc-normativka',
+    type: 'document',
+    title: 'Базаи меъёрҳои ҳуқуқӣ (normativka)',
+    detail: '\u0410\u0433\u0435\u043d\u0442\u0438\u0438 \u043d\u0430\u0437\u043e\u0440\u0430\u0442\u0438 \u0434\u0430\u0432\u043b\u0430\u0442\u04e3',
+    description: 'Ҷустуҷӯ ва дастрасӣ ба қонунҳо, қарорҳо ва санадҳои меъёрии ҳуқуқӣ.',
+    officialUrl: 'https://normativka-pro.akdt.tj/',
+    sourceId: 'normativka',
+    status: 'Манбаи расмӣ',
+  },
+];
+
+/** Маркази инноватсионӣ — қonungузории умumии барномасозӣ (утоқи корбар) */
 const HUB_LAWS: OfficialLegalEntry[] = [
   {
     id: 'hub-law-education',
@@ -346,6 +490,11 @@ const CATALOG_BY_ORG: Record<string, OfficialLegalBundle> = {
     laws: KINDERGARTEN_LAWS,
     decisions: KINDERGARTEN_DECISIONS,
     documents: KINDERGARTEN_DOCUMENTS,
+  },
+  [YOQUBKHOJA_INNOVATION_CENTER_ID]: {
+    laws: YOQUBKHOJA_PRIVATE_LAWS,
+    decisions: YOQUBKHOJA_PRIVATE_DECISIONS,
+    documents: YOQUBKHOJA_PRIVATE_DOCUMENTS,
   },
   [OFFICIAL_LEGAL_HUB_ID]: {
     laws: HUB_LAWS,

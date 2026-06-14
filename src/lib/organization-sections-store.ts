@@ -4,14 +4,35 @@ import { ensureDatabaseReady, isDatabaseEnabled, sql } from '@/lib/db';
 import { OrganizationSectionContent, OrganizationSectionsMap } from '@/types/organization-section';
 
 const FILE = join(process.cwd(), 'data', 'organization-sections.json');
+const SEED_FILE = join(process.cwd(), 'data', 'yoqubkhoja-innovation-sections.json');
+
+function readSectionSeeds(): Record<string, OrganizationSectionsMap> {
+  try {
+    if (!existsSync(SEED_FILE)) return {};
+    const parsed = JSON.parse(readFileSync(SEED_FILE, 'utf-8'));
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function applySectionSeeds(all: Record<string, OrganizationSectionsMap>): Record<string, OrganizationSectionsMap> {
+  const seeds = readSectionSeeds();
+  const merged = { ...all };
+  for (const [organizationId, sections] of Object.entries(seeds)) {
+    merged[organizationId] = { ...sections, ...(merged[organizationId] ?? {}) };
+  }
+  return merged;
+}
 
 function readOrganizationSectionsSync(): Record<string, OrganizationSectionsMap> {
   try {
     const data = readFileSync(FILE, 'utf-8');
     const parsed = JSON.parse(data);
-    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    const base = typeof parsed === 'object' && parsed !== null ? parsed : {};
+    return applySectionSeeds(base);
   } catch {
-    return {};
+    return applySectionSeeds({});
   }
 }
 
@@ -52,7 +73,7 @@ export async function readOrganizationSections(): Promise<Record<string, Organiz
     }
     all[row.organization_id][row.section_slug] = parseSectionContent(row.content);
   }
-  return all;
+  return applySectionSeeds(all);
 }
 
 export async function getOrganizationSection(
