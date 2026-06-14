@@ -1,0 +1,42 @@
+{
+  "updatedAt": "2026-06-11",
+  "source": "https://nbt.tj/upload/files/bic/bic_ru.pdf",
+  "banks": [
+    {
+      "bik": "350101369",
+      "name": "ОАО \"Ориёнбонк\"",
+      "correspondentAccount": "20402972413691",
+      "source": "nbt"
+    },
+    {
+      "bik": "350101626",
+      "name": "ГУП СБ РТ \"Амонатбонк\"",
+      "correspondentAccount": "20402972316264",
+      "source": "nbt"
+    },
+    {
+      "bik": "350101706",
+      "name": "Филиал КБ \"Тижорат\" ИРИ",
+      "correspondentAccount": "20802972517061",
+      "source": "nbt"
+    },
+    {
+      "bik": "350101808",
+      "name": "ЗАО \"Спитамен Бонк\"",
+      "correspondentAccount": "20402972418081",
+      "source": "nbt"
+    },
+    {
+      "bik": "350101900",
+      "name": "ОАО \"Алиф Бонк\"",
+      "correspondentAccount": "20402972919001",
+      "source": "nbt"
+    },
+    {
+      "bik": "350101800",
+      "name": "ГУЦК МФ Ҷумҳурии Тоҷикистон",
+      "correspondentAccount": "22402972000002",
+      "source": "moliya"
+    }
+  ]
+}

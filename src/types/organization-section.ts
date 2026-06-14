@@ -262,8 +262,10 @@ export interface ContractCounterparty {
   address?: string;
   director?: string;
   phone?: string;
-  bankAccount?: string;
+  bankBik?: string;
   bankName?: string;
+  correspondentAccount?: string;
+  bankAccount?: string;
 }
 
 export type ServiceContractStatus = 'draft' | 'active' | 'completed' | 'terminated';

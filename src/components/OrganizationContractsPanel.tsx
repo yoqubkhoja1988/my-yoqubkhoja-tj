@@ -31,6 +31,12 @@ import {
   isValidRma,
   normalizeRmaInput,
 } from '@/lib/counterparty-from-andoz';
+import {
+  applyBicToCounterparty,
+  fetchBicLookup,
+  isValidBik,
+  normalizeBikInput,
+} from '@/lib/counterparty-from-bic';
 import { printDocument } from '@/lib/print-document';
 import { Organization } from '@/types/organization';
 import {
@@ -79,6 +85,8 @@ export default function OrganizationContractsPanel({
   const [cpEditing, setCpEditing] = useState(false);
   const [cpLookupLoading, setCpLookupLoading] = useState(false);
   const [cpLookupError, setCpLookupError] = useState('');
+  const [cpBicLookupLoading, setCpBicLookupLoading] = useState(false);
+  const [cpBicLookupError, setCpBicLookupError] = useState('');
 
   const [contractDraft, setContractDraft] = useState<OrganizationServiceContract>(
     createServiceContract(contracts.map((item) => item.contractNumber))
@@ -182,6 +190,36 @@ export default function OrganizationContractsPanel({
 
     setCpDraft((current) => applyAndozToCounterparty(current, result.data));
     setNotice(t('orgContractsTinLookupSuccess'));
+  }
+
+  async function lookupCounterpartyByBik(bik?: string) {
+    const normalized = normalizeBikInput(bik ?? cpDraft.bankBik ?? '');
+    if (!isValidBik(normalized)) {
+      setCpBicLookupError(t('orgContractsBikInvalidFormat'));
+      return;
+    }
+
+    setCpBicLookupLoading(true);
+    setCpBicLookupError('');
+    setError('');
+
+    const result = await fetchBicLookup(normalized);
+
+    setCpBicLookupLoading(false);
+
+    if (!result.ok) {
+      if (result.error === 'invalid') {
+        setCpBicLookupError(t('orgContractsBikInvalidFormat'));
+      } else if (result.error === 'not_found') {
+        setCpBicLookupError(t('orgContractsBikNotFound'));
+      } else {
+        setCpBicLookupError(t('orgContractsBikLookupError'));
+      }
+      return;
+    }
+
+    setCpDraft((current) => applyBicToCounterparty(current, result.data));
+    setNotice(t('orgContractsBikLookupSuccess'));
   }
 
   async function saveContract() {
@@ -315,6 +353,7 @@ export default function OrganizationContractsPanel({
                   setCpSelectedId(null);
                   setCpEditing(true);
                   setCpLookupError('');
+                  setCpBicLookupError('');
                   setNotice('');
                 }}
               >
@@ -330,6 +369,7 @@ export default function OrganizationContractsPanel({
                   setCpDraft(item);
                   setCpEditing(false);
                   setCpLookupError('');
+                  setCpBicLookupError('');
                 }}
                 className={`block w-full rounded-lg border px-3 py-2 text-left text-xs ${
                   cpSelectedId === item.id
@@ -391,7 +431,44 @@ export default function OrganizationContractsPanel({
                   <input value={cpDraft.phone ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, phone: e.target.value })} placeholder={t('orgContractsPhone')} className="input-field" />
                 </div>
                 <input value={cpDraft.address ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, address: e.target.value })} placeholder={t('orgContractsAddress')} className="input-field" />
-                <input value={cpDraft.bankName ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, bankName: e.target.value })} placeholder={t('orgContractsBankName')} className="input-field" />
+                <div className="sm:col-span-2">
+                  <label className="field-label">{t('orgContractsBankBik')}</label>
+                  <div className="flex gap-2">
+                    <input
+                      value={cpDraft.bankBik ?? ''}
+                      readOnly={!cpEditing}
+                      onChange={(e) => {
+                        setCpBicLookupError('');
+                        setCpDraft({ ...cpDraft, bankBik: normalizeBikInput(e.target.value) });
+                      }}
+                      onBlur={() => {
+                        if (cpEditing && isValidBik(cpDraft.bankBik ?? '')) {
+                          void lookupCounterpartyByBik(cpDraft.bankBik);
+                        }
+                      }}
+                      placeholder={t('orgContractsBankBikPlaceholder')}
+                      className="input-field font-mono"
+                      inputMode="numeric"
+                      maxLength={9}
+                    />
+                    {cpEditing && (
+                      <button
+                        type="button"
+                        className="btn-primary shrink-0 disabled:opacity-50"
+                        disabled={cpBicLookupLoading || !isValidBik(cpDraft.bankBik ?? '')}
+                        onClick={() => void lookupCounterpartyByBik()}
+                      >
+                        {cpBicLookupLoading ? '...' : t('orgLookup')}
+                      </button>
+                    )}
+                  </div>
+                  {cpBicLookupError && (
+                    <p className="mt-1 text-xs text-[var(--danger)]">{cpBicLookupError}</p>
+                  )}
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">{t('orgContractsBikLookupHint')}</p>
+                </div>
+                <input value={cpDraft.bankName ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, bankName: e.target.value })} placeholder={t('orgContractsBankName')} className="input-field sm:col-span-2" />
+                <input value={cpDraft.correspondentAccount ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, correspondentAccount: e.target.value.replace(/\D/g, '').slice(0, 20) })} placeholder={t('orgContractsCorrespondentAccount')} className="input-field font-mono" inputMode="numeric" maxLength={20} />
                 <input value={cpDraft.bankAccount ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, bankAccount: e.target.value.replace(/\D/g, '').slice(0, 20) })} placeholder={t('orgContractsBankAccount')} className="input-field font-mono" inputMode="numeric" maxLength={20} />
                 {canEdit && (
                   <div className="flex flex-wrap gap-2">
