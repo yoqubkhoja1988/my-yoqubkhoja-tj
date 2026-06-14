@@ -70,6 +70,36 @@ function readJsonFile<T>(filename: string, fallback: T): T {
   }
 }
 
+async function syncMissingUsersFromFiles(): Promise<void> {
+  const users = readJsonFile<StoredUser[]>('users.json', []);
+  for (const user of users) {
+    await sql`
+      INSERT INTO users (id, username, password_hash, status, permissions, created_at, updated_at)
+      VALUES (
+        ${user.id},
+        ${user.username},
+        ${user.passwordHash},
+        ${user.status},
+        ${JSON.stringify(user.permissions)}::jsonb,
+        ${user.createdAt},
+        ${user.updatedAt ?? null}
+      )
+      ON CONFLICT (id) DO NOTHING
+    `;
+  }
+}
+
+async function syncMissingOrganizationsFromFiles(): Promise<void> {
+  const organizations = readJsonFile<Organization[]>('organizations.json', []);
+  for (const org of organizations) {
+    await sql`
+      INSERT INTO organizations (id, payload, created_at)
+      VALUES (${org.id}, ${JSON.stringify(org)}::jsonb, ${org.createdAt})
+      ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload
+    `;
+  }
+}
+
 async function seedFromFilesIfEmpty(): Promise<void> {
   const { rows: userCount } = await sql<{ count: string }>`SELECT COUNT(*)::text AS count FROM users`;
   if (Number(userCount[0]?.count ?? 0) === 0) {
@@ -103,6 +133,9 @@ async function seedFromFilesIfEmpty(): Promise<void> {
       `;
     }
   }
+
+  await syncMissingUsersFromFiles();
+  await syncMissingOrganizationsFromFiles();
 
   const { rows: sectionCount } =
     await sql<{ count: string }>`SELECT COUNT(*)::text AS count FROM organization_sections`;

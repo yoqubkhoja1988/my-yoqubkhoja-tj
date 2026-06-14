@@ -2,7 +2,7 @@
   {
     "id": "ba774e79-5b80-4f6f-9f93-4139f2c4a1e9",
     "username": "asilamoh",
-    "passwordHash": "15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225",
+    "passwordHash": "e4f579b0590224b022abd0be6f8d277de0d568042650a15f45e82c27db0ffc79",
     "status": "approved",
     "permissions": {
       "canAccessProjects": true,
@@ -33,6 +33,6 @@
       ]
     },
     "createdAt": "2026-06-10T17:06:00.773Z",
-    "updatedAt": "2026-06-11T14:00:00.000Z"
+    "updatedAt": "2026-06-14T13:12:24.456Z"
   }
 ]
