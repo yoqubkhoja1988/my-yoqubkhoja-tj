@@ -96,7 +96,7 @@ export default function OrganizationServiceContractDocument({
       <section className="mt-5 space-y-2">
         <h2 className="font-bold uppercase">2. Нарх ва тартиби пардохт</h2>
         <p>
-          2.1. Маблағи умумии хизматрасониҳо: <strong>{amounts.subtotal}</strong> сомонӣ (TJS), бе ААИ.
+          2.1. Маблағи умумии хизматрасониҳо: <strong>{amounts.subtotal}</strong> сомонӣ, бе ААИ.
         </p>
         {contract.vatApplicable ? (
           <p>
@@ -149,7 +149,7 @@ export default function OrganizationServiceContractDocument({
           6.1. Асоси ҳуқуқӣ: <UserContentText text={contract.legalBasis} as="span" />.
         </p>
         <p className="text-justify">
-          6.2. Шартнома дар ду нусхаи ҳамсон ва қувваи як хел тартиб дода шуда, як нусха барои ҳар як
+          6.2. Шартнома дар ду нусхаи ҳамсон ва қуввати яксон тартиб дода шуда, як нусха барои ҳар як
           Тараф дода мешавад.
         </p>
         <p className="mt-3 text-justify text-[11pt] italic text-slate-600">{CONTRACT_LEGAL_FOOTNOTE}</p>
@@ -167,13 +167,13 @@ export default function OrganizationServiceContractDocument({
         <div>
           <p className="font-semibold">{directorLabel}и Иҷрокунанда</p>
           <p className="mt-8 border-t border-slate-400 pt-1">
-            {provider.director || '________________'} / имзо
+            {provider.director || '________________'} / имзои қонунӣ
           </p>
         </div>
         <div>
           <p className="font-semibold">Роҳбари Фармоишгар</p>
           <p className="mt-8 border-t border-slate-400 pt-1">
-            {customer.director || '________________'} / имзо
+            {customer.director || '________________'} / имзои қонунӣ
           </p>
         </div>
       </div>

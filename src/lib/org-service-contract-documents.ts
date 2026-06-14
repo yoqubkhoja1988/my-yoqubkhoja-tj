@@ -80,13 +80,13 @@ export function partyRequisiteLines(party: PartyRequisites): string[] {
   return [
     formatRequisiteLine('Номи пурра', party.name),
     formatRequisiteLine('Шакли ҳуқуқӣ', party.legalForm),
-    formatRequisiteLine('РМА (ИНН)', party.tin),
+    formatRequisiteLine('РМА', party.tin),
     formatRequisiteLine('Суроға', party.address),
     formatRequisiteLine('Роҳбар', party.director),
     formatRequisiteLine('Телефон', party.phone),
     formatRequisiteLine('Бонк', party.bankName),
     formatRequisiteLine('БИК', party.bankBik),
-    formatRequisiteLine('Корсчет', party.correspondentAccount),
+    formatRequisiteLine('Ҳисоби муқобила', party.correspondentAccount),
     formatRequisiteLine('Ҳисоби бонкӣ', party.bankAccount),
   ].filter((line): line is string => Boolean(line));
 }

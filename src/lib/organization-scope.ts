@@ -48,6 +48,7 @@ export function requireOrganizationId(organizationId?: string): string {
 /** Навиштаҷоти имзо — МДТМ: «Директор»; Маркази бехатарии озуқаворӣ: «Сардор». */
 export const KINDERGARTEN_DIRECTOR_SIGNATURE_LABEL = 'Директор';
 export const FOOD_SAFETY_DIRECTOR_SIGNATURE_LABEL = 'Сардор';
+export const PRIVATE_ORGANIZATION_DIRECTOR_SIGNATURE_LABEL = 'Роҳбар';
 
 export function getDirectorSignatureLabel(organizationId?: string): string {
   if (isKindergartenOrganization(organizationId)) {
@@ -56,7 +57,10 @@ export function getDirectorSignatureLabel(organizationId?: string): string {
   if (isFoodSafetyCenterOrganization(organizationId)) {
     return FOOD_SAFETY_DIRECTOR_SIGNATURE_LABEL;
   }
-  return 'Директор';
+  if (isYoqubkhojaInnovationCenter(organizationId)) {
+    return PRIVATE_ORGANIZATION_DIRECTOR_SIGNATURE_LABEL;
+  }
+  return PRIVATE_ORGANIZATION_DIRECTOR_SIGNATURE_LABEL;
 }
 
 /** Меъёрҳои кӯдаkiston (Қарори №113) — танҳо барои МДТМ кӯдаkiston */
