@@ -1,5 +1,6 @@
 'use client';
 
+import OrganizationOfficialLogo from '@/components/OrganizationOfficialLogo';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import UserContentText from '@/components/UserContentText';
 import { useTranslations } from 'next-intl';
@@ -21,6 +22,7 @@ export default function OrganizationReportDocumentHeader({
   if (variant === 'document') {
     return (
       <header className={`mb-6 text-center text-xs leading-relaxed text-slate-700 ${className}`}>
+        <OrganizationOfficialLogo variant="document" />
         <p>{t('payrollLedgerRepublic')}</p>
         {superiorAuthorities.map((line) => (
           <p key={line}>
@@ -39,6 +41,7 @@ export default function OrganizationReportDocumentHeader({
 
   return (
     <header className={`border-b border-[var(--border)] pb-4 text-center ${className}`}>
+      <OrganizationOfficialLogo variant="document" size={72} className="mb-3" />
       <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
         {t('vacancyNoticeRepublic')}
       </p>

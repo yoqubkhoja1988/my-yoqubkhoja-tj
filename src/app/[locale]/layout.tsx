@@ -28,7 +28,13 @@ export async function generateMetadata({
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://yoqubkhoja.tj'),
     title: messages.siteName ?? 'Yoqubkhoja Hub',
     description: messages.siteDescription ?? messages.siteName,
-    icons: { icon: '/favicon.svg' },
+    icons: {
+      icon: [
+        { url: '/favicon.png', type: 'image/png', sizes: '512x512' },
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+      ],
+      apple: '/images/organization-eagle-logo.png',
+    },
   };
 }
 

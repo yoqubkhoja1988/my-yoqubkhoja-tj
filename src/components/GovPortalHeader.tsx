@@ -12,6 +12,7 @@ import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
 import LangSwitcher from './LangSwitcher';
+import OrganizationOfficialLogo from './OrganizationOfficialLogo';
 
 const USER_ROOM_NAV_STORAGE_KEY = 'user-room-nav-open';
 
@@ -100,9 +101,7 @@ export default function GovPortalHeader() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-3 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <Link href="/" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90">
-              <div className="gov-emblem" aria-hidden>
-                🦅
-              </div>
+              <OrganizationOfficialLogo variant="header" />
               <div className="min-w-0">
                 <p className="gov-site-title">{t('siteName')}</p>
                 <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">

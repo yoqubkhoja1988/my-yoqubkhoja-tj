@@ -312,6 +312,54 @@ textarea::placeholder {
   font-size: 12pt;
 }
 
+/* ——— Логотипи расмии ташкилот (уқоб) ——— */
+.org-logo-image {
+  border: 2px solid #c9a227;
+  box-shadow: 0 2px 8px rgba(15, 40, 71, 0.12);
+  background: #fff;
+}
+
+.org-logo-animated {
+  animation: org-logo-float 4s ease-in-out infinite;
+}
+
+.org-logo-animated .org-logo-image {
+  animation: org-logo-wing 3.5s ease-in-out infinite;
+}
+
+@keyframes org-logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes org-logo-wing {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  25% {
+    transform: scale(1.03) rotate(-2deg);
+  }
+
+  75% {
+    transform: scale(1.03) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .org-logo-animated,
+  .org-logo-animated .org-logo-image {
+    animation: none;
+  }
+}
+
 /* ——— Print: танҳо ҳуҷҷати `.print-active` ——— */
 @media print {
   body *:not(.print-active):not(.print-active *) {

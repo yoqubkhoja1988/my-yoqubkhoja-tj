@@ -1,5 +1,6 @@
 'use client';
 
+import OrganizationOfficialLogo from '@/components/OrganizationOfficialLogo';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
@@ -14,12 +15,7 @@ export default function Logo({
 
   const content = (
     <div className={`flex items-center gap-2 ${centered ? 'flex-col text-center' : ''}`}>
-      <div className="relative shrink-0">
-        <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-br from-[var(--accent)] to-emerald-500 opacity-40 blur-sm" />
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)] via-indigo-500 to-emerald-500 text-sm font-bold text-white shadow-md shadow-blue-500/25">
-          Y
-        </div>
-      </div>
+      <OrganizationOfficialLogo variant="header" />
       <div className={compact ? 'min-w-0' : ''}>
         <h1 className={`font-bold tracking-tight ${compact ? 'truncate text-sm' : 'text-base'}`}>
           {t('siteName')}

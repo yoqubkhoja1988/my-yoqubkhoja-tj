@@ -192,4 +192,16 @@ export const EXPORT_DOCUMENT_CSS = `
 .export-render.org-legal-document * {
   font-family: inherit !important;
 }
+
+.export-render .org-logo-document {
+  display: flex !important;
+  justify-content: center !important;
+  margin-bottom: 16px !important;
+}
+
+.export-render .org-logo-image {
+  border: 2px solid #c9a227 !important;
+  border-radius: 9999px !important;
+  object-fit: cover !important;
+}
 `;

@@ -4,6 +4,7 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import LangSwitcher from './LangSwitcher';
+import OrganizationOfficialLogo from './OrganizationOfficialLogo';
 
 type NavItem = {
   href: string;
@@ -31,9 +32,7 @@ export default function PublicPortalHeader() {
       <div className="gov-header-top">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-3 py-3 md:px-6">
           <Link href="/" className="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-90">
-            <div className="gov-emblem" aria-hidden>
-              🦅
-            </div>
+            <OrganizationOfficialLogo variant="header" />
             <div className="min-w-0">
               <p className="gov-site-title">{t('publicSiteOrgName')}</p>
               <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
