@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { FOOD_SAFETY_CENTER_ID, KINDERGARTEN_SCHOOL_ID } from '@/lib/activity-directions';
+import { scheduleContentAutoPublish } from '@/lib/content-auto-publish';
 import {
   YOQUBKHOJA_INNOVATION_CENTER_ID,
   YOQUBKHOJA_INNOVATION_CENTER_NAME,
@@ -73,6 +74,26 @@ function writeOrganizationsFileSync(organizations: Organization[]) {
   writeFileSync(FILE, `${JSON.stringify(organizations, null, 2)}\n`, 'utf-8');
 }
 
+function mirrorOrganizationToFile(organization: Organization) {
+  try {
+    const fileOrgs = readOrganizationsFileSync();
+    const index = fileOrgs.findIndex((item) => item.id === organization.id);
+    if (index >= 0) fileOrgs[index] = organization;
+    else fileOrgs.push(organization);
+    writeOrganizationsFileSync(fileOrgs);
+  } catch (error) {
+    console.warn('Local organizations.json mirror skipped:', error);
+  }
+}
+
+function removeOrganizationFromFile(id: string) {
+  try {
+    writeOrganizationsFileSync(readOrganizationsFileSync().filter((item) => item.id !== id));
+  } catch (error) {
+    console.warn('Local organizations.json mirror skipped:', error);
+  }
+}
+
 function rowToOrganization(row: { id: string; payload: Organization | string }): Organization {
   const payload =
     typeof row.payload === 'string' ? (JSON.parse(row.payload) as Organization) : row.payload;
@@ -107,6 +128,7 @@ export async function upsertOrganization(organization: Organization): Promise<Or
     if (index >= 0) organizations[index] = organization;
     else organizations.push(organization);
     writeOrganizationsFileSync(organizations);
+    scheduleContentAutoPublish(`organization:${organization.id}`);
     return organization;
   }
 
@@ -117,11 +139,8 @@ export async function upsertOrganization(organization: Organization): Promise<Or
     ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload
   `;
 
-  const fileOrgs = readOrganizationsFileSync();
-  const index = fileOrgs.findIndex((item) => item.id === organization.id);
-  if (index >= 0) fileOrgs[index] = organization;
-  else fileOrgs.push(organization);
-  writeOrganizationsFileSync(fileOrgs);
+  mirrorOrganizationToFile(organization);
+  scheduleContentAutoPublish(`organization:${organization.id}`);
 
   return organization;
 }
@@ -132,6 +151,7 @@ export async function deleteOrganizationById(id: string): Promise<boolean> {
     const filtered = organizations.filter((item) => item.id !== id);
     if (filtered.length === organizations.length) return false;
     writeOrganizationsFileSync(filtered);
+    scheduleContentAutoPublish(`organization-deleted:${id}`);
     return true;
   }
 
@@ -139,8 +159,8 @@ export async function deleteOrganizationById(id: string): Promise<boolean> {
   const result = await sql`DELETE FROM organizations WHERE id = ${id}`;
   const deleted = (result.rowCount ?? 0) > 0;
   if (deleted) {
-    const fileOrgs = readOrganizationsFileSync().filter((item) => item.id !== id);
-    writeOrganizationsFileSync(fileOrgs);
+    removeOrganizationFromFile(id);
+    scheduleContentAutoPublish(`organization-deleted:${id}`);
   }
   return deleted;
 }

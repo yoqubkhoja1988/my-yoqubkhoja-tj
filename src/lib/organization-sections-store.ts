@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
+import { scheduleContentAutoPublish } from '@/lib/content-auto-publish';
 import { ensureDatabaseReady, isDatabaseEnabled, sql } from '@/lib/db';
 import { OrganizationSectionContent, OrganizationSectionsMap } from '@/types/organization-section';
 
@@ -108,6 +109,7 @@ export async function writeOrganizationSection(
     }
     all[organizationId][slug] = content;
     persistOrganizationSectionsSync(all);
+    scheduleContentAutoPublish(`section:${organizationId}/${slug}`);
     return content;
   }
 
@@ -124,5 +126,6 @@ export async function writeOrganizationSection(
     DO UPDATE SET content = EXCLUDED.content, updated_at = NOW()
   `;
 
+  scheduleContentAutoPublish(`section:${organizationId}/${slug}`);
   return content;
 }

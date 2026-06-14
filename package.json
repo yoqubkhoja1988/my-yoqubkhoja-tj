@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:pull-env": "node scripts/pull-vercel-env.mjs"
+    "db:pull-env": "node scripts/pull-vercel-env.mjs",
+    "db:export": "node scripts/export-db-to-data.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
