@@ -229,6 +229,9 @@ async function initDatabase(): Promise<void> {
     )
   `;
 
+  await sql`ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS user_typing_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS admin_typing_at TIMESTAMPTZ`;
+
   await sql`
     CREATE TABLE IF NOT EXISTS system_settings (
       key TEXT PRIMARY KEY,

@@ -45,6 +45,8 @@ function rowToConversation(row: {
   updated_at: Date | string;
   last_message_at: Date | string;
   telegram_notified_at: Date | string | null;
+  user_typing_at?: Date | string | null;
+  admin_typing_at?: Date | string | null;
 }): ChatConversation {
   return {
     id: row.id,
@@ -59,6 +61,8 @@ function rowToConversation(row: {
     telegramNotifiedAt: row.telegram_notified_at
       ? new Date(row.telegram_notified_at).toISOString()
       : undefined,
+    userTypingAt: row.user_typing_at ? new Date(row.user_typing_at).toISOString() : undefined,
+    adminTypingAt: row.admin_typing_at ? new Date(row.admin_typing_at).toISOString() : undefined,
   };
 }
 
@@ -95,6 +99,8 @@ async function readConversations(): Promise<ChatConversation[]> {
     updated_at: Date | string;
     last_message_at: Date | string;
     telegram_notified_at: Date | string | null;
+    user_typing_at: Date | string | null;
+    admin_typing_at: Date | string | null;
   }>`SELECT * FROM chat_conversations ORDER BY last_message_at DESC`;
 
   return rows.map(rowToConversation);
@@ -153,7 +159,9 @@ async function saveConversation(conversation: ChatConversation): Promise<void> {
       created_at,
       updated_at,
       last_message_at,
-      telegram_notified_at
+      telegram_notified_at,
+      user_typing_at,
+      admin_typing_at
     )
     VALUES (
       ${conversation.id},
@@ -165,14 +173,18 @@ async function saveConversation(conversation: ChatConversation): Promise<void> {
       ${conversation.createdAt},
       ${conversation.updatedAt},
       ${conversation.lastMessageAt},
-      ${conversation.telegramNotifiedAt ?? null}
+      ${conversation.telegramNotifiedAt ?? null},
+      ${conversation.userTypingAt ?? null},
+      ${conversation.adminTypingAt ?? null}
     )
     ON CONFLICT (id) DO UPDATE SET
       display_name = EXCLUDED.display_name,
       status = EXCLUDED.status,
       updated_at = EXCLUDED.updated_at,
       last_message_at = EXCLUDED.last_message_at,
-      telegram_notified_at = EXCLUDED.telegram_notified_at
+      telegram_notified_at = EXCLUDED.telegram_notified_at,
+      user_typing_at = EXCLUDED.user_typing_at,
+      admin_typing_at = EXCLUDED.admin_typing_at
   `;
 }
 
@@ -288,6 +300,11 @@ export async function addMessage(input: {
 
   conversation.updatedAt = now;
   conversation.lastMessageAt = now;
+  if (input.sender === 'user') {
+    conversation.userTypingAt = undefined;
+  } else if (input.sender === 'admin') {
+    conversation.adminTypingAt = undefined;
+  }
   await saveConversation(conversation);
 
   return message;
@@ -341,4 +358,23 @@ export async function getMessagesAfter(
   if (Number.isNaN(afterTime)) return messages;
 
   return messages.filter((message) => new Date(message.createdAt).getTime() >= afterTime);
+}
+
+export async function setTypingIndicator(
+  conversationId: string,
+  role: 'user' | 'admin',
+  typing: boolean
+): Promise<ChatConversation | null> {
+  const conversation = await findConversationById(conversationId);
+  if (!conversation) return null;
+
+  const now = new Date().toISOString();
+  if (role === 'user') {
+    conversation.userTypingAt = typing ? now : undefined;
+  } else {
+    conversation.adminTypingAt = typing ? now : undefined;
+  }
+  conversation.updatedAt = now;
+  await saveConversation(conversation);
+  return conversation;
 }

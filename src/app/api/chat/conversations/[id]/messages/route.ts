@@ -7,6 +7,7 @@ import {
   verifyConversationAccess,
 } from '@/lib/chat-service';
 import { findConversationById, getMessagesAfter } from '@/lib/chat-store';
+import { getTypingStatus } from '@/lib/chat-typing';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     conversationId: id,
     status: conversation.status,
     messages,
+    typing: getTypingStatus(conversation),
   });
 }
 

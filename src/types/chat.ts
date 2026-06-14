@@ -13,6 +13,8 @@ export type ChatConversation = {
   updatedAt: string;
   lastMessageAt: string;
   telegramNotifiedAt?: string;
+  userTypingAt?: string;
+  adminTypingAt?: string;
 };
 
 export type ChatMessage = {

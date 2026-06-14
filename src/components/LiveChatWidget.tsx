@@ -6,6 +6,8 @@ import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { QUICK_TOPICS } from '@/lib/chat-bot';
+import ChatTypingIndicator from '@/components/ChatTypingIndicator';
+import { ChatTypingStatus, useChatTyping } from '@/hooks/useChatTyping';
 
 const STORAGE_GUEST = 'chat_guest_token';
 const STORAGE_CONVERSATION = 'chat_conversation_id';
@@ -77,6 +79,7 @@ export default function LiveChatWidget() {
   const [chatStatus, setChatStatus] = useState<ChatConversationStatus>('bot');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
+  const [peerTyping, setPeerTyping] = useState<ChatTypingStatus>({ user: false, admin: false });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevUserIdRef = useRef<string | undefined>(undefined);
   const messagesRef = useRef<ChatMessage[]>([]);
@@ -98,7 +101,35 @@ export default function LiveChatWidget() {
 
   useEffect(() => {
     if (open) scrollToBottom();
-  }, [messages, open, scrollToBottom]);
+  }, [messages, open, peerTyping.admin, scrollToBottom]);
+
+  const sendTyping = useCallback(
+    async (typing: boolean) => {
+      if (!conversationId || !accessToken) return;
+      try {
+        await fetch(`/api/chat/conversations/${conversationId}/typing`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            typing,
+            accessToken,
+            guestToken,
+          }),
+        });
+      } catch {
+        // ignore typing heartbeat failures
+      }
+    },
+    [accessToken, conversationId, guestToken]
+  );
+
+  useChatTyping({
+    enabled: open && chatStatus !== 'closed',
+    conversationId,
+    draft,
+    sendTyping,
+  });
 
   const initConversation = useCallback(async () => {
     if (sessionStatus === 'loading') return;
@@ -163,9 +194,13 @@ export default function LiveChatWidget() {
       const data = (await response.json()) as {
         status: ChatConversationStatus;
         messages: ChatMessage[];
+        typing?: ChatTypingStatus;
       };
 
       setChatStatus(data.status);
+      if (data.typing) {
+        setPeerTyping(data.typing);
+      }
 
       if (forceFullSync) {
         setMessages(data.messages);
@@ -235,6 +270,7 @@ export default function LiveChatWidget() {
             const data = (await response.json()) as {
               status: ChatConversationStatus;
               messages: ChatMessage[];
+              typing?: ChatTypingStatus;
             };
 
             if (data.status === 'closed') {
@@ -245,6 +281,9 @@ export default function LiveChatWidget() {
             }
 
             setChatStatus(data.status);
+            if (data.typing) {
+              setPeerTyping(data.typing);
+            }
             if (data.messages.length > 0) {
               setMessages((prev) => {
                 const ids = new Set(prev.map((message) => message.id));
@@ -276,6 +315,7 @@ export default function LiveChatWidget() {
             const data = (await response.json()) as {
               status: ChatConversationStatus;
               messages: ChatMessage[];
+              typing?: ChatTypingStatus;
             };
 
             if (data.status !== 'closed') {
@@ -284,6 +324,9 @@ export default function LiveChatWidget() {
               setGuestToken(storedGuest);
               setChatStatus(data.status);
               setMessages(data.messages);
+              if (data.typing) {
+                setPeerTyping(data.typing);
+              }
               return;
             }
           }
@@ -353,6 +396,7 @@ export default function LiveChatWidget() {
 
     setSending(true);
     setError('');
+    void sendTyping(false);
 
     try {
       const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
@@ -483,6 +527,9 @@ export default function LiveChatWidget() {
                   <p className="whitespace-pre-wrap break-words">{message.body}</p>
                 </div>
               ))
+            )}
+            {peerTyping.admin && (
+              <ChatTypingIndicator label={t('liveChatTypingAdmin')} />
             )}
             <div ref={messagesEndRef} />
           </div>

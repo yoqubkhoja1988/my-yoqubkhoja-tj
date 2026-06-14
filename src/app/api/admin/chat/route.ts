@@ -1,9 +1,11 @@
 import { requireAdmin } from '@/lib/api-guard';
 import { closeConversation, sendAdminMessage } from '@/lib/chat-service';
+import { getTypingStatus } from '@/lib/chat-typing';
 import {
   findConversationById,
   getMessagesAfter,
   listAdminConversations,
+  setTypingIndicator,
 } from '@/lib/chat-store';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
       conversationId,
       status: conversation.status,
       messages,
+      typing: getTypingStatus(conversation),
     });
   }
 
@@ -35,6 +38,7 @@ export async function GET(request: NextRequest) {
       messageCount: messages.length,
       lastMessage: messages[messages.length - 1] ?? null,
       messages,
+      typing: getTypingStatus(conversation),
     })),
   });
 }
@@ -46,12 +50,24 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
     conversationId?: string;
     message?: string;
-    action?: 'reply' | 'close';
+    action?: 'reply' | 'close' | 'typing';
+    typing?: boolean;
   };
 
   const conversationId = body.conversationId?.trim();
   if (!conversationId) {
     return NextResponse.json({ error: 'MISSING_CONVERSATION' }, { status: 400 });
+  }
+
+  if (body.action === 'typing') {
+    const updated = await setTypingIndicator(conversationId, 'admin', body.typing === true);
+    if (!updated) {
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+    }
+    return NextResponse.json({
+      ok: true,
+      typing: getTypingStatus(updated),
+    });
   }
 
   if (body.action === 'close') {

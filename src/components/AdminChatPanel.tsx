@@ -3,6 +3,8 @@
 import { ChatConversationStatus, ChatMessage } from '@/types/chat';
 import { useTranslations } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import ChatTypingIndicator from '@/components/ChatTypingIndicator';
+import { ChatTypingStatus, useChatTyping } from '@/hooks/useChatTyping';
 
 type AdminChatListItem = {
   id: string;
@@ -12,6 +14,7 @@ type AdminChatListItem = {
   messageCount: number;
   lastMessage: ChatMessage | null;
   messages: ChatMessage[];
+  typing?: ChatTypingStatus;
 };
 
 const STATUS_CLASS: Record<ChatConversationStatus, string> = {
@@ -37,6 +40,7 @@ export default function AdminChatPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [reply, setReply] = useState('');
+  const [peerTyping, setPeerTyping] = useState<ChatTypingStatus>({ user: false, admin: false });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [telegramStatus, setTelegramStatus] = useState<TelegramSetupStatus | null>(null);
@@ -49,11 +53,43 @@ export default function AdminChatPanel() {
   messagesRef.current = messages;
   selectedIdRef.current = selectedId;
 
+  const sendTyping = useCallback(
+    async (typing: boolean) => {
+      const conversationId = selectedIdRef.current;
+      if (!conversationId) return;
+      try {
+        await fetch('/api/admin/chat', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            conversationId,
+            action: 'typing',
+            typing,
+          }),
+        });
+      } catch {
+        // ignore typing heartbeat failures
+      }
+    },
+    []
+  );
+
+  useChatTyping({
+    enabled: Boolean(selectedId),
+    conversationId: selectedId,
+    draft: reply,
+    sendTyping,
+  });
+
   const syncSelectedMessages = useCallback((items: AdminChatListItem[], conversationId: string | null) => {
     if (!conversationId) return;
     const selected = items.find((item) => item.id === conversationId);
     if (selected?.messages) {
       setMessages(selected.messages);
+    }
+    if (selected?.typing) {
+      setPeerTyping(selected.typing);
     }
   }, []);
 
@@ -81,6 +117,9 @@ export default function AdminChatPanel() {
           setSelectedId(waitingHuman.id);
           selectedIdRef.current = waitingHuman.id;
           setMessages(waitingHuman.messages);
+          if (waitingHuman.typing) {
+            setPeerTyping(waitingHuman.typing);
+          }
         }
       }
     } catch {
@@ -102,6 +141,7 @@ export default function AdminChatPanel() {
 
       const data = (await response.json()) as {
         messages: ChatMessage[];
+        typing?: ChatTypingStatus;
       };
 
       if (after) {
@@ -115,6 +155,9 @@ export default function AdminChatPanel() {
         });
       } else {
         setMessages(data.messages);
+      }
+      if (data.typing) {
+        setPeerTyping(data.typing);
       }
       setError('');
     } catch {
@@ -157,13 +200,18 @@ export default function AdminChatPanel() {
     return () => window.clearInterval(intervalId);
   }, [loadList, loadThread]);
 
-  async function selectConversation(id: string, presetMessages?: ChatMessage[]) {
+  async function selectConversation(id: string, presetMessages?: ChatMessage[], presetTyping?: ChatTypingStatus) {
     setSelectedId(id);
     selectedIdRef.current = id;
     setReply('');
     setError('');
     if (presetMessages) {
       setMessages(presetMessages);
+    }
+    if (presetTyping) {
+      setPeerTyping(presetTyping);
+    } else {
+      setPeerTyping({ user: false, admin: false });
     }
     await loadThread(id);
   }
@@ -174,6 +222,7 @@ export default function AdminChatPanel() {
 
     setSaving(true);
     setError('');
+    void sendTyping(false);
 
     try {
       const response = await fetch('/api/admin/chat', {
@@ -390,7 +439,7 @@ export default function AdminChatPanel() {
                 <li key={item.id}>
                   <button
                     type="button"
-                    onClick={() => void selectConversation(item.id, item.messages)}
+                    onClick={() => void selectConversation(item.id, item.messages, item.typing)}
                     className={`w-full px-4 py-3 text-left transition hover:bg-white/5 ${
                       selectedId === item.id ? 'bg-[var(--accent)]/10' : ''
                     }`}
@@ -449,6 +498,9 @@ export default function AdminChatPanel() {
                     <p className="whitespace-pre-wrap break-words">{message.body}</p>
                   </div>
                 ))}
+                {peerTyping.user && (
+                  <ChatTypingIndicator label={t('adminChatTypingUser')} />
+                )}
               </div>
 
               <form onSubmit={sendReply} className="border-t border-[var(--border)] p-3">
