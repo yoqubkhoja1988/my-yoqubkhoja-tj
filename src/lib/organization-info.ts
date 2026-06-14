@@ -2,6 +2,7 @@ import {
   FOOD_SAFETY_CENTER_ID,
   KINDERGARTEN_SCHOOL_ID,
 } from '@/lib/activity-directions';
+import { YOQUBKHOJA_INNOVATION_CENTER_ID } from '@/lib/yoqubkhoja-innovation-center';
 import {
   OrganizationReportHeader,
   OrganizationReportLocale,
@@ -24,6 +25,7 @@ const DEFAULT_SUPERIOR_BY_ORG: Record<string, string[]> = {
     'Вазорати таълим ва илми Ҷумҳурии Тоҷикистон',
     'Назорати давлатии таълими вилояти Суғд',
   ],
+  [YOQUBKHOJA_INNOVATION_CENTER_ID]: [],
 };
 
 const DEFAULT_ORG_NAMES_BY_ORG: Record<string, OrganizationReportNames> = {
@@ -38,6 +40,12 @@ const DEFAULT_ORG_NAMES_BY_ORG: Record<string, OrganizationReportNames> = {
     ru: 'Государственное дошкольное образовательное учреждение «Школа-детский сад № 1» района имени Джаббор Расулова',
     en: 'State Preschool Educational Institution «School-Kindergarten No. 1» of Jabbor Rasulov District',
     uz: 'Jabbor Rasulov tumani 1-son maktab-bog‘cha davlat maktabgacha ta’lim muassasasi',
+  },
+  [YOQUBKHOJA_INNOVATION_CENTER_ID]: {
+    tj: 'МАРКАЗИ БАРНОМАСОЗӢ ВА ТЕХНОЛОГИЯҲОИ ИННОВАТСИОНИИ YOQUBKHOJA',
+    ru: 'Центр программирования и инновационных технологий Yoqubkhoja',
+    en: 'Yoqubkhoja Center for Software Development and Innovative Technologies',
+    uz: 'Yoqubkhoja dasturiy ta’minot va innovatsion texnologiyalar markazi',
   },
 };
 
