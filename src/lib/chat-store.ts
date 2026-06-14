@@ -47,6 +47,10 @@ function rowToConversation(row: {
   telegram_notified_at: Date | string | null;
   user_typing_at?: Date | string | null;
   admin_typing_at?: Date | string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+  source_page?: string | null;
+  visitor_ip?: string | null;
 }): ChatConversation {
   return {
     id: row.id,
@@ -63,6 +67,10 @@ function rowToConversation(row: {
       : undefined,
     userTypingAt: row.user_typing_at ? new Date(row.user_typing_at).toISOString() : undefined,
     adminTypingAt: row.admin_typing_at ? new Date(row.admin_typing_at).toISOString() : undefined,
+    guestEmail: row.guest_email ?? null,
+    guestPhone: row.guest_phone ?? null,
+    sourcePage: row.source_page ?? null,
+    visitorIp: row.visitor_ip ?? null,
   };
 }
 
@@ -101,6 +109,10 @@ async function readConversations(): Promise<ChatConversation[]> {
     telegram_notified_at: Date | string | null;
     user_typing_at: Date | string | null;
     admin_typing_at: Date | string | null;
+    guest_email: string | null;
+    guest_phone: string | null;
+    source_page: string | null;
+    visitor_ip: string | null;
   }>`SELECT * FROM chat_conversations ORDER BY last_message_at DESC`;
 
   return rows.map(rowToConversation);
@@ -161,7 +173,11 @@ async function saveConversation(conversation: ChatConversation): Promise<void> {
       last_message_at,
       telegram_notified_at,
       user_typing_at,
-      admin_typing_at
+      admin_typing_at,
+      guest_email,
+      guest_phone,
+      source_page,
+      visitor_ip
     )
     VALUES (
       ${conversation.id},
@@ -175,7 +191,11 @@ async function saveConversation(conversation: ChatConversation): Promise<void> {
       ${conversation.lastMessageAt},
       ${conversation.telegramNotifiedAt ?? null},
       ${conversation.userTypingAt ?? null},
-      ${conversation.adminTypingAt ?? null}
+      ${conversation.adminTypingAt ?? null},
+      ${conversation.guestEmail ?? null},
+      ${conversation.guestPhone ?? null},
+      ${conversation.sourcePage ?? null},
+      ${conversation.visitorIp ?? null}
     )
     ON CONFLICT (id) DO UPDATE SET
       display_name = EXCLUDED.display_name,
@@ -184,7 +204,11 @@ async function saveConversation(conversation: ChatConversation): Promise<void> {
       last_message_at = EXCLUDED.last_message_at,
       telegram_notified_at = EXCLUDED.telegram_notified_at,
       user_typing_at = EXCLUDED.user_typing_at,
-      admin_typing_at = EXCLUDED.admin_typing_at
+      admin_typing_at = EXCLUDED.admin_typing_at,
+      guest_email = EXCLUDED.guest_email,
+      guest_phone = EXCLUDED.guest_phone,
+      source_page = EXCLUDED.source_page,
+      visitor_ip = EXCLUDED.visitor_ip
   `;
 }
 
@@ -259,6 +283,10 @@ export async function createConversation(input: {
   userId?: string | null;
   guestToken?: string | null;
   displayName: string;
+  guestEmail?: string | null;
+  guestPhone?: string | null;
+  sourcePage?: string | null;
+  visitorIp?: string | null;
 }): Promise<ChatConversationWithMessages> {
   const now = new Date().toISOString();
   const conversation: ChatConversation = {
@@ -271,6 +299,10 @@ export async function createConversation(input: {
     createdAt: now,
     updatedAt: now,
     lastMessageAt: now,
+    guestEmail: input.guestEmail ?? null,
+    guestPhone: input.guestPhone ?? null,
+    sourcePage: input.sourcePage ?? null,
+    visitorIp: input.visitorIp ?? null,
   };
 
   await saveConversation(conversation);

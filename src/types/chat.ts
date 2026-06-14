@@ -15,6 +15,10 @@ export type ChatConversation = {
   telegramNotifiedAt?: string;
   userTypingAt?: string;
   adminTypingAt?: string;
+  guestEmail?: string | null;
+  guestPhone?: string | null;
+  sourcePage?: string | null;
+  visitorIp?: string | null;
 };
 
 export type ChatMessage = {

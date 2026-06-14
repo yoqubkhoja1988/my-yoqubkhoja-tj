@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       conversationId,
       status: conversation.status,
+      conversation,
       messages,
       typing: getTypingStatus(conversation),
     });

@@ -1,4 +1,5 @@
 import { ChatConversation, ChatMessage } from '@/types/chat';
+import { formatVisitorMetaLines } from '@/lib/chat-visitor';
 import {
   isTelegramConfiguredAsync,
   resolveTelegramRuntimeConfig,
@@ -59,6 +60,7 @@ export async function notifyAdminEscalation(
     '🔔 ДАРХОСТИ НАВ АЗ ЧАТ',
     marker,
     `👤 Корбар: ${conversation.displayName}`,
+    ...formatVisitorMetaLines(conversation),
     `📋 Ҳолат: ${conversation.status === 'human' ? 'Маъмур лозим' : conversation.status}`,
     '',
     '💬 Пайғомҳои охирин:',
@@ -84,6 +86,7 @@ export async function notifyAdminNewUserMessage(
     '💬 ПАЙҒОМИ НАВ ДАР ЧАТ',
     marker,
     `👤 ${conversation.displayName}`,
+    ...formatVisitorMetaLines(conversation),
     '',
     message.body,
     '',

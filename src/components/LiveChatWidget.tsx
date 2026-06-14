@@ -7,11 +7,13 @@ import { useTranslations } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { QUICK_TOPICS } from '@/lib/chat-bot';
 import ChatTypingIndicator from '@/components/ChatTypingIndicator';
+import ChatGuestIntroForm, { GuestProfile } from '@/components/ChatGuestIntroForm';
 import { ChatTypingStatus, useChatTyping } from '@/hooks/useChatTyping';
 
 const STORAGE_GUEST = 'chat_guest_token';
 const STORAGE_CONVERSATION = 'chat_conversation_id';
 const STORAGE_ACCESS = 'chat_access_token';
+const STORAGE_GUEST_PROFILE = 'chat_guest_profile';
 
 const POLL_MS = 4000;
 const CHAT_FETCH_TIMEOUT_MS = 20000;
@@ -37,6 +39,33 @@ function getOrCreateGuestToken(): string {
   const token = crypto.randomUUID();
   localStorage.setItem(STORAGE_GUEST, token);
   return token;
+}
+
+function getSourcePage(): string {
+  if (typeof window === 'undefined') return '/';
+  return window.location.pathname + window.location.search;
+}
+
+function loadGuestProfile(): GuestProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_GUEST_PROFILE);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GuestProfile;
+    if (!parsed.name?.trim()) return null;
+    return {
+      name: parsed.name.trim(),
+      email: parsed.email?.trim() ?? '',
+      phone: parsed.phone?.trim() ?? '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveGuestProfile(profile: GuestProfile): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_GUEST_PROFILE, JSON.stringify(profile));
 }
 
 function senderLabel(sender: ChatMessage['sender'], t: (key: string) => string): string {
@@ -80,6 +109,8 @@ export default function LiveChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [peerTyping, setPeerTyping] = useState<ChatTypingStatus>({ user: false, admin: false });
+  const [view, setView] = useState<'intro' | 'chat'>('chat');
+  const [guestProfile, setGuestProfile] = useState<GuestProfile | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevUserIdRef = useRef<string | undefined>(undefined);
   const messagesRef = useRef<ChatMessage[]>([]);
@@ -93,6 +124,7 @@ export default function LiveChatWidget() {
     setChatStatus('bot');
     setMessages([]);
     setError('');
+    setPeerTyping({ user: false, admin: false });
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -131,7 +163,7 @@ export default function LiveChatWidget() {
     sendTyping,
   });
 
-  const initConversation = useCallback(async () => {
+  const initConversation = useCallback(async (profile?: GuestProfile) => {
     if (sessionStatus === 'loading') return;
 
     setError('');
@@ -146,6 +178,10 @@ export default function LiveChatWidget() {
       body: JSON.stringify({
         guestToken: guest,
         displayName: session?.user?.name,
+        guestName: profile?.name,
+        guestEmail: profile?.email || undefined,
+        guestPhone: profile?.phone || undefined,
+        sourcePage: getSourcePage(),
       }),
     });
 
@@ -169,6 +205,7 @@ export default function LiveChatWidget() {
     localStorage.setItem(STORAGE_ACCESS, data.accessToken);
     setChatStatus(data.status);
     setMessages(data.messages);
+    setView('chat');
   }, [session?.user?.id, session?.user?.name, sessionStatus]);
 
   const pollMessages = useCallback(async (forceFullSync = false) => {
@@ -276,10 +313,21 @@ export default function LiveChatWidget() {
             if (data.status === 'closed') {
               clearChatStorage();
               resetConversationState();
-              await initConversation();
+              if (session?.user?.id) {
+                await initConversation();
+              } else {
+                const savedProfile = loadGuestProfile();
+                if (savedProfile) {
+                  await initConversation(savedProfile);
+                } else {
+                  setGuestProfile(null);
+                  setView('intro');
+                }
+              }
               return;
             }
 
+            setView('chat');
             setChatStatus(data.status);
             if (data.typing) {
               setPeerTyping(data.typing);
@@ -327,6 +375,7 @@ export default function LiveChatWidget() {
               if (data.typing) {
                 setPeerTyping(data.typing);
               }
+              setView('chat');
               return;
             }
           }
@@ -338,7 +387,19 @@ export default function LiveChatWidget() {
         resetConversationState();
       }
 
-      await initConversation();
+      if (session?.user?.id) {
+        await initConversation();
+        return;
+      }
+
+      const savedProfile = loadGuestProfile();
+      if (savedProfile) {
+        await initConversation(savedProfile);
+        return;
+      }
+
+      setGuestProfile(null);
+      setView('intro');
     } catch {
       setError(t('liveChatInitError'));
     } finally {
@@ -351,9 +412,25 @@ export default function LiveChatWidget() {
     guestToken,
     initConversation,
     resetConversationState,
+    session?.user?.id,
     sessionStatus,
     t,
   ]);
+
+  async function handleGuestIntroSubmit(profile: GuestProfile) {
+    setLoading(true);
+    setError('');
+    saveGuestProfile(profile);
+    setGuestProfile(profile);
+    try {
+      await initConversation(profile);
+    } catch {
+      setError(t('liveChatInitError'));
+      setView('intro');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const startNewConversation = useCallback(async () => {
     clearChatStorage();
@@ -362,13 +439,23 @@ export default function LiveChatWidget() {
     setLoading(true);
     setError('');
     try {
-      await initConversation();
+      if (session?.user?.id) {
+        await initConversation();
+        return;
+      }
+      const savedProfile = loadGuestProfile();
+      if (savedProfile) {
+        await initConversation(savedProfile);
+        return;
+      }
+      setGuestProfile(null);
+      setView('intro');
     } catch {
       setError(t('liveChatInitError'));
     } finally {
       setLoading(false);
     }
-  }, [initConversation, resetConversationState, t]);
+  }, [initConversation, resetConversationState, session?.user?.id, t]);
 
   useEffect(() => {
     if (!open) {
@@ -377,6 +464,9 @@ export default function LiveChatWidget() {
     }
     if (sessionStatus === 'loading' || preparedForOpenRef.current) return;
     preparedForOpenRef.current = true;
+    if (session?.user?.id) {
+      setView('chat');
+    }
     void prepareConversation();
   }, [open, sessionStatus, session?.user?.id, prepareConversation]);
 
@@ -514,7 +604,26 @@ export default function LiveChatWidget() {
           </header>
 
           <div className="flex-1 space-y-2 overflow-y-auto p-3">
-            {loading ? (
+            {view === 'intro' ? (
+              <ChatGuestIntroForm
+                initialProfile={guestProfile ?? undefined}
+                loading={loading}
+                error={error || undefined}
+                onSubmit={(profile) => void handleGuestIntroSubmit(profile)}
+                labels={{
+                  title: t('liveChatIntroTitle'),
+                  subtitle: t('liveChatIntroSubtitle'),
+                  name: t('liveChatIntroName'),
+                  namePlaceholder: t('liveChatIntroNamePlaceholder'),
+                  email: t('liveChatIntroEmail'),
+                  emailPlaceholder: t('liveChatIntroEmailPlaceholder'),
+                  phone: t('liveChatIntroPhone'),
+                  phonePlaceholder: t('liveChatIntroPhonePlaceholder'),
+                  submit: t('liveChatIntroSubmit'),
+                  nameRequired: t('liveChatIntroNameRequired'),
+                }}
+              />
+            ) : loading ? (
               <p className="py-8 text-center text-sm text-[var(--text-muted)]">{t('liveChatLoading')}</p>
             ) : (
               messages.map((message) => (
@@ -534,10 +643,11 @@ export default function LiveChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {error && (
+          {error && view !== 'intro' && (
             <p className="border-t border-[var(--border)] px-3 py-2 text-xs text-red-300">{error}</p>
           )}
 
+          {view !== 'intro' && (
           <footer className="border-t border-[var(--border)] p-3">
             {chatStatus === 'bot' && !loading && (
               <div className="mb-2 flex flex-wrap gap-1.5">
@@ -608,6 +718,7 @@ export default function LiveChatWidget() {
               </button>
             )}
           </footer>
+          )}
         </div>
       )}
     </>

@@ -4,6 +4,8 @@ import { ChatConversationStatus, ChatMessage } from '@/types/chat';
 import { useTranslations } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import ChatTypingIndicator from '@/components/ChatTypingIndicator';
+import ChatVisitorBadge from '@/components/ChatVisitorBadge';
+import ChatVisitorDetails from '@/components/ChatVisitorDetails';
 import { ChatTypingStatus, useChatTyping } from '@/hooks/useChatTyping';
 
 type AdminChatListItem = {
@@ -15,6 +17,11 @@ type AdminChatListItem = {
   lastMessage: ChatMessage | null;
   messages: ChatMessage[];
   typing?: ChatTypingStatus;
+  userId: string | null;
+  guestEmail?: string | null;
+  guestPhone?: string | null;
+  sourcePage?: string | null;
+  visitorIp?: string | null;
 };
 
 const STATUS_CLASS: Record<ChatConversationStatus, string> = {
@@ -333,6 +340,9 @@ export default function AdminChatPanel() {
   }
 
   const humanCount = conversations.filter((item) => item.status === 'human').length;
+  const selectedConversation = selectedId
+    ? conversations.find((item) => item.id === selectedId) ?? null
+    : null;
 
   return (
     <section className="space-y-4">
@@ -445,8 +455,11 @@ export default function AdminChatPanel() {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold">{item.displayName}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_CLASS[item.status]}`}>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate font-semibold">{item.displayName}</span>
+                        <ChatVisitorBadge conversation={item} compact />
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_CLASS[item.status]}`}>
                         {statusLabel(item.status)}
                       </span>
                     </div>
@@ -467,10 +480,9 @@ export default function AdminChatPanel() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-                <p className="text-sm font-bold">
-                  {conversations.find((item) => item.id === selectedId)?.displayName}
-                </p>
+              {selectedConversation && <ChatVisitorDetails conversation={selectedConversation} />}
+
+              <div className="flex items-center justify-end border-b border-[var(--border)] px-4 py-2">
                 <button
                   type="button"
                   disabled={saving}
