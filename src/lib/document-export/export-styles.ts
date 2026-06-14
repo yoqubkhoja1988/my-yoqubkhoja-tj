@@ -1,4 +1,10 @@
 /** Услубҳои экспорт — ҳамон дизайни чоп, бо ранги hex (барои PDF/Word/Excel) */
+import {
+  LEGAL_DOCUMENT_FONT_FAMILY,
+  LEGAL_DOCUMENT_FONT_SIZE,
+  LEGAL_DOCUMENT_LINE_HEIGHT,
+} from '@/lib/legal-document-typography';
+
 export const EXPORT_DOCUMENT_CSS = `
 .export-render,
 .export-render * {
@@ -173,5 +179,17 @@ export const EXPORT_DOCUMENT_CSS = `
 
 .export-render .md\\:grid-cols-2 {
   grid-template-columns: 1fr 1fr !important;
+}
+
+.export-render .org-legal-document,
+.export-render.org-legal-document {
+  font-family: ${LEGAL_DOCUMENT_FONT_FAMILY} !important;
+  font-size: ${LEGAL_DOCUMENT_FONT_SIZE} !important;
+  line-height: ${LEGAL_DOCUMENT_LINE_HEIGHT} !important;
+}
+
+.export-render .org-legal-document *,
+.export-render.org-legal-document * {
+  font-family: inherit !important;
 }
 `;

@@ -291,6 +291,27 @@ textarea::placeholder {
   @apply min-w-[44rem] md:min-w-0 md:w-full;
 }
 
+/* ——— Шартнома ва ҳисобнома-фактура (Platino Linotype) ——— */
+.org-legal-document {
+  font-family: 'Linotype Platino Pro', 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #0f172a;
+}
+
+.org-legal-document :where(header, h1, h2, h3, h4, p, span, strong, td, th, li, div) {
+  font-family: inherit;
+}
+
+.org-legal-document h1 {
+  font-size: 14pt;
+  letter-spacing: 0.02em;
+}
+
+.org-legal-document h2 {
+  font-size: 12pt;
+}
+
 /* ——— Print: танҳо ҳуҷҷати `.print-active` ——— */
 @media print {
   body *:not(.print-active):not(.print-active *) {
@@ -362,6 +383,13 @@ textarea::placeholder {
 
   #org-contract-print.print-active table,
   #org-invoice-print.print-active table,
+  #org-contract-registry-export.print-active table,
+  #org-invoice-registry-export.print-active table,
+  .org-legal-document.print-active,
+  .org-legal-document.print-active * {
+    font-family: 'Linotype Platino Pro', 'Palatino Linotype', 'Book Antiqua', Palatino, serif !important;
+  }
+
   .org-legal-document.print-active table {
     font-size: 10px;
   }

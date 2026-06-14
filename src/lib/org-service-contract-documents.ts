@@ -78,7 +78,7 @@ export function formatRequisiteLine(label: string, value?: string): string | nul
 
 export function partyRequisiteLines(party: PartyRequisites): string[] {
   return [
-    formatRequisiteLine('Ному пурра', party.name),
+    formatRequisiteLine('Номи пурра', party.name),
     formatRequisiteLine('Шакли ҳуқуқӣ', party.legalForm),
     formatRequisiteLine('РМА (ИНН)', party.tin),
     formatRequisiteLine('Суроға', party.address),

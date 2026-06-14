@@ -55,7 +55,7 @@ export default function OrganizationServiceInvoiceDocument({
   const withVat = invoiceHasVat(invoice);
 
   return (
-    <article className="org-legal-document rounded-xl border border-[var(--border)] bg-white p-5 text-sm leading-relaxed text-slate-900 md:p-8">
+    <article className="org-legal-document rounded-xl border border-[var(--border)] bg-white p-5 md:p-8">
       <OrganizationReportDocumentHeader variant="document" className="mb-4" />
 
       <h1 className="text-center text-base font-bold uppercase">

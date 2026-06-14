@@ -1,4 +1,6 @@
-function convertGridsToTables(root: HTMLElement) {
+import { resolveDocumentExportFontFamily } from '@/lib/legal-document-typography';
+
+function convertGridsToTables(root: HTMLElement, fontFamily: string) {
   root.querySelectorAll('.grid').forEach((grid) => {
     if (!(grid instanceof HTMLElement)) return;
 
@@ -20,7 +22,7 @@ function convertGridsToTables(root: HTMLElement) {
       td.style.width = `${Math.floor(100 / cols)}%`;
       td.style.verticalAlign = 'top';
       td.style.padding = '8px 12px';
-      td.style.fontFamily = "'Times New Roman', Times, serif";
+      td.style.fontFamily = fontFamily;
       td.style.fontSize = '12pt';
       td.style.color = '#0f172a';
       td.innerHTML = (child as HTMLElement).innerHTML;
@@ -64,7 +66,7 @@ function forceLightTheme(target: HTMLElement) {
   }
 }
 
-function inlineExportStyles(source: HTMLElement, target: HTMLElement) {
+function inlineExportStyles(source: HTMLElement, target: HTMLElement, fontFamily: string) {
   const cs = window.getComputedStyle(source);
   const props = [
     'font-family',
@@ -88,7 +90,7 @@ function inlineExportStyles(source: HTMLElement, target: HTMLElement) {
     'width',
   ];
 
-  target.style.fontFamily = "'Times New Roman', Times, serif";
+  target.style.fontFamily = fontFamily;
 
   for (const prop of props) {
     const value = cs.getPropertyValue(prop);
@@ -112,7 +114,8 @@ function inlineExportStyles(source: HTMLElement, target: HTMLElement) {
 }
 
 export function prepareWordHtml(source: HTMLElement, clone: HTMLElement): string {
-  convertGridsToTables(clone);
+  const fontFamily = resolveDocumentExportFontFamily(source);
+  convertGridsToTables(clone, fontFamily);
 
   const sourceNodes = [source, ...source.querySelectorAll('*')];
   const cloneNodes = [clone, ...clone.querySelectorAll('*')];
@@ -121,20 +124,24 @@ export function prepareWordHtml(source: HTMLElement, clone: HTMLElement): string
     const src = sourceNodes[i];
     const tgt = cloneNodes[i];
     if (src instanceof HTMLElement && tgt instanceof HTMLElement) {
-      inlineExportStyles(src, tgt);
+      inlineExportStyles(src, tgt, fontFamily);
     }
   }
 
   clone.style.background = '#ffffff';
   clone.style.color = '#0f172a';
-  clone.style.fontFamily = "'Times New Roman', Times, serif";
+  clone.style.fontFamily = fontFamily;
   clone.style.fontSize = '12pt';
   clone.style.padding = '16px 20px';
 
   return clone.innerHTML;
 }
 
-export function buildWordDocumentHtml(bodyHtml: string, orientation: 'portrait' | 'landscape'): string {
+export function buildWordDocumentHtml(
+  bodyHtml: string,
+  orientation: 'portrait' | 'landscape',
+  fontFamily = "'Times New Roman', Times, serif"
+): string {
   return `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
@@ -161,7 +168,7 @@ export function buildWordDocumentHtml(bodyHtml: string, orientation: 'portrait' 
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Times New Roman', Times, serif;
+    font-family: ${fontFamily};
     font-size: 12pt;
     color: #0f172a;
     background: #ffffff;

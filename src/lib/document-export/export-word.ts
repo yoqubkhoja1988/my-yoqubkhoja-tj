@@ -1,3 +1,4 @@
+import { resolveDocumentExportFontFamily } from '@/lib/legal-document-typography';
 import { downloadBlob, sanitizeFilename } from './download-blob';
 import { buildWordDocumentHtml, prepareWordHtml } from './prepare-word-html';
 import { mountExportClone, waitForExportLayout } from './prepare-export-clone';
@@ -14,8 +15,9 @@ export async function exportDocumentToWord(documentId: string, filename: string)
 
   try {
     await waitForExportLayout();
+    const fontFamily = resolveDocumentExportFontFamily(element);
     const bodyHtml = prepareWordHtml(element, clone);
-    const html = buildWordDocumentHtml(bodyHtml, orientation);
+    const html = buildWordDocumentHtml(bodyHtml, orientation, fontFamily);
     const blob = new Blob(['\ufeff', html], {
       type: 'application/vnd.ms-word;charset=utf-8',
     });
