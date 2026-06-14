@@ -441,6 +441,7 @@
   "orgContractsSaved": "Данные сохранены.",
   "orgContractsSaveError": "Ошибка при сохранении.",
   "orgContractsCounterpartyNameRequired": "Укажите название контрагента.",
+  "orgContractsTinLookupSuccess": "Данные заполнены по РМА (andoz.tj).",
   "orgContractsConfirmDeleteCounterparty": "Удалить контрагента?",
   "orgContractsConfirmDeleteContract": "Удалить договор?",
   "orgContractsConfirmDeleteInvoice": "Удалить счёт-фактуру?",

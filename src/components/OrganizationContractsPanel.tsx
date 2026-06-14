@@ -25,6 +25,12 @@ import {
   validateInvoice,
 } from '@/lib/org-service-contracts';
 import { updateOrganizationSection } from '@/lib/organization-sections';
+import {
+  applyAndozToCounterparty,
+  fetchAndozLookup,
+  isValidRma,
+  normalizeRmaInput,
+} from '@/lib/counterparty-from-andoz';
 import { printDocument } from '@/lib/print-document';
 import { Organization } from '@/types/organization';
 import {
@@ -34,7 +40,7 @@ import {
   OrganizationServiceInvoice,
   ServiceInvoiceLineItem,
 } from '@/types/organization-section';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 type Tab = 'counterparties' | 'contracts' | 'invoices';
@@ -53,7 +59,6 @@ export default function OrganizationContractsPanel({
   onUpdate,
 }: Props) {
   const t = useTranslations();
-  const locale = useLocale();
   const { canEdit } = useOrganizationAccess();
 
   const [tab, setTab] = useState<Tab>('contracts');
@@ -72,6 +77,8 @@ export default function OrganizationContractsPanel({
   const [cpDraft, setCpDraft] = useState<ContractCounterparty>(createContractCounterparty());
   const [cpSelectedId, setCpSelectedId] = useState<string | null>(null);
   const [cpEditing, setCpEditing] = useState(false);
+  const [cpLookupLoading, setCpLookupLoading] = useState(false);
+  const [cpLookupError, setCpLookupError] = useState('');
 
   const [contractDraft, setContractDraft] = useState<OrganizationServiceContract>(
     createServiceContract(contracts.map((item) => item.contractNumber))
@@ -145,6 +152,36 @@ export default function OrganizationContractsPanel({
     await persist(
       patchContent({ contractCounterparties: removeCounterparty(counterparties, id) })
     );
+  }
+
+  async function lookupCounterpartyByTin(tin?: string) {
+    const rma = normalizeRmaInput(tin ?? cpDraft.tin ?? '');
+    if (!isValidRma(rma)) {
+      setCpLookupError(t('orgLookupInvalidFormat'));
+      return;
+    }
+
+    setCpLookupLoading(true);
+    setCpLookupError('');
+    setError('');
+
+    const result = await fetchAndozLookup(rma);
+
+    setCpLookupLoading(false);
+
+    if (!result.ok) {
+      if (result.error === 'invalid') {
+        setCpLookupError(t('orgLookupInvalidFormat'));
+      } else if (result.error === 'not_found') {
+        setCpLookupError(t('orgLookupNotFound'));
+      } else {
+        setCpLookupError(t('orgLookupError'));
+      }
+      return;
+    }
+
+    setCpDraft((current) => applyAndozToCounterparty(current, result.data));
+    setNotice(t('orgContractsTinLookupSuccess'));
   }
 
   async function saveContract() {
@@ -277,6 +314,8 @@ export default function OrganizationContractsPanel({
                   setCpDraft(createContractCounterparty());
                   setCpSelectedId(null);
                   setCpEditing(true);
+                  setCpLookupError('');
+                  setNotice('');
                 }}
               >
                 {t('orgContractsAddCounterparty')}
@@ -290,6 +329,7 @@ export default function OrganizationContractsPanel({
                   setCpSelectedId(item.id);
                   setCpDraft(item);
                   setCpEditing(false);
+                  setCpLookupError('');
                 }}
                 className={`block w-full rounded-lg border px-3 py-2 text-left text-xs ${
                   cpSelectedId === item.id
@@ -313,7 +353,40 @@ export default function OrganizationContractsPanel({
                 />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <input value={cpDraft.legalForm ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, legalForm: e.target.value })} placeholder={t('orgContractsLegalForm')} className="input-field" />
-                  <input value={cpDraft.tin ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, tin: e.target.value })} placeholder={t('orgContractsTin')} className="input-field" />
+                  <div className="sm:col-span-2">
+                    <label className="field-label">{t('orgContractsTin')}</label>
+                    <div className="flex gap-2">
+                      <input
+                        value={cpDraft.tin ?? ''}
+                        readOnly={!cpEditing}
+                        onChange={(e) => {
+                          setCpLookupError('');
+                          setCpDraft({ ...cpDraft, tin: normalizeRmaInput(e.target.value) });
+                        }}
+                        onBlur={() => {
+                          if (cpEditing && isValidRma(cpDraft.tin ?? '')) {
+                            void lookupCounterpartyByTin(cpDraft.tin);
+                          }
+                        }}
+                        placeholder={t('organizationRmaPlaceholder')}
+                        className="input-field font-mono"
+                        inputMode="numeric"
+                      />
+                      {cpEditing && (
+                        <button
+                          type="button"
+                          className="btn-primary shrink-0 disabled:opacity-50"
+                          disabled={cpLookupLoading || !isValidRma(cpDraft.tin ?? '')}
+                          onClick={() => void lookupCounterpartyByTin()}
+                        >
+                          {cpLookupLoading ? '...' : t('orgLookup')}
+                        </button>
+                      )}
+                    </div>
+                    {cpLookupError && (
+                      <p className="mt-1 text-xs text-[var(--danger)]">{cpLookupError}</p>
+                    )}
+                  </div>
                   <input value={cpDraft.director ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, director: e.target.value })} placeholder={t('orgContractsDirector')} className="input-field" />
                   <input value={cpDraft.phone ?? ''} readOnly={!cpEditing} onChange={(e) => setCpDraft({ ...cpDraft, phone: e.target.value })} placeholder={t('orgContractsPhone')} className="input-field" />
                 </div>

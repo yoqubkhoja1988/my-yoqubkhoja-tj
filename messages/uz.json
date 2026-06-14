@@ -442,6 +442,7 @@
   "orgContractsSaved": "Ma'lumot saqlandi.",
   "orgContractsSaveError": "Saqlashda xato.",
   "orgContractsCounterpartyNameRequired": "Tomon nomi majburiy.",
+  "orgContractsTinLookupSuccess": "Ma'lumot RMA (andoz.tj) bo'yicha to'ldirildi.",
   "orgContractsConfirmDeleteCounterparty": "Tomonni o'chirish?",
   "orgContractsConfirmDeleteContract": "Shartnomani o'chirish?",
   "orgContractsConfirmDeleteInvoice": "Hisob-fakturani o'chirish?",

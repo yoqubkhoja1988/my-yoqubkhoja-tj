@@ -442,6 +442,7 @@
   "orgContractsSaved": "Data saved.",
   "orgContractsSaveError": "Error while saving.",
   "orgContractsCounterpartyNameRequired": "Counterparty name is required.",
+  "orgContractsTinLookupSuccess": "Fields filled from TIN lookup (andoz.tj).",
   "orgContractsConfirmDeleteCounterparty": "Delete this counterparty?",
   "orgContractsConfirmDeleteContract": "Delete this contract?",
   "orgContractsConfirmDeleteInvoice": "Delete this invoice?",

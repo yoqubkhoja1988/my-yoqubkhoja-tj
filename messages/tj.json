@@ -439,6 +439,7 @@
   "orgContractsSaved": "Маълумот захира шуд.",
   "orgContractsSaveError": "Хатогӣ ҳангоми захиракунӣ.",
   "orgContractsCounterpartyNameRequired": "Номи тарафи шартнома зарур аст.",
+  "orgContractsTinLookupSuccess": "Маълумот аз РМА (andoz.tj) пур карда шуд.",
   "orgContractsConfirmDeleteCounterparty": "Тарафи шартномаро нест кунем?",
   "orgContractsConfirmDeleteContract": "Шартномаро нест кунем?",
   "orgContractsConfirmDeleteInvoice": "Ҳисобнома-фактуроро нест кунем?",
