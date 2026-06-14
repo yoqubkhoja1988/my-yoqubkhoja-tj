@@ -72,9 +72,9 @@ export default function OrganizationServiceContractDocument({
       </p>
 
       <p className="mt-6 text-justify">
-        <strong>{provider.name}</strong> (минбаъд «Иҷрокунанда»), дар шахси{' '}
+        <strong>{provider.name}</strong> (минбаъд «Иҷрокунанда»), дар шахсияти{' '}
         {provider.director || '________________'}, аз як тараф, ва{' '}
-        <strong>{customer.name || contract.counterpartyName}</strong> (минбаъд «Фармоишгар»), дар шахси{' '}
+        <strong>{customer.name || contract.counterpartyName}</strong> (минбаъд «Фармоишгар»), дар шахсияти{' '}
         {customer.director || '________________'}, аз тарафи дигар, ки дар ин шартнома «Тарафҳо» номида
         мешаванд, мувофиқи қонунгузории амалкунандаи Ҷумҳурии Тоҷикистон шартномаи зеринро ба имзо
         расониданд:
