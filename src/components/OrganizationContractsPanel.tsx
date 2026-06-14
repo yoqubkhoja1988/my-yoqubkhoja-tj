@@ -1,8 +1,10 @@
 'use client';
 
 import DocumentExportMenu from '@/components/DocumentExportMenu';
-import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
+import OrganizationServiceContractDocument from '@/components/OrganizationServiceContractDocument';
+import OrganizationServiceInvoiceDocument from '@/components/OrganizationServiceInvoiceDocument';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
+import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import {
   calcInvoiceTotals,
   calcLineItemAmount,
@@ -66,6 +68,8 @@ export default function OrganizationContractsPanel({
 }: Props) {
   const t = useTranslations();
   const { canEdit } = useOrganizationAccess();
+  const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
+  const displayOrganizationName = organization?.name || reportOrganizationName;
 
   const [tab, setTab] = useState<Tab>('contracts');
   const [saving, setSaving] = useState(false);
@@ -533,8 +537,7 @@ export default function OrganizationContractsPanel({
             ))}
           </div>
           <div className="gov-content-panel space-y-3">
-            <div id="org-contract-print">
-              <OrganizationReportDocumentHeader />
+            <div className="print:hidden space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
                 <input value={contractDraft.contractNumber} readOnly={!contractEditing} onChange={(e) => setContractDraft({ ...contractDraft, contractNumber: e.target.value })} className="input-field" placeholder={t('orgContractsContractNumber')} />
                 <input type="date" value={contractDraft.preparedAt} readOnly={!contractEditing} onChange={(e) => setContractDraft({ ...contractDraft, preparedAt: e.target.value })} className="input-field" />
@@ -562,6 +565,15 @@ export default function OrganizationContractsPanel({
                 <textarea value={contractDraft.paymentTerms} readOnly={!contractEditing} onChange={(e) => setContractDraft({ ...contractDraft, paymentTerms: e.target.value })} className="input-field sm:col-span-2" rows={2} placeholder={t('orgContractsPaymentTerms')} />
                 <textarea value={contractDraft.legalBasis} readOnly={!contractEditing} onChange={(e) => setContractDraft({ ...contractDraft, legalBasis: e.target.value })} className="input-field sm:col-span-2" rows={2} placeholder={t('orgContractsLegalBasis')} />
               </div>
+            </div>
+            <div id="org-contract-print">
+              <OrganizationServiceContractDocument
+                organizationId={organizationId}
+                organizationName={displayOrganizationName}
+                organization={organization}
+                contract={contractDraft}
+                counterparty={counterpartyMap.get(contractDraft.counterpartyId)}
+              />
             </div>
             <div className="flex flex-wrap gap-2">
               <DocumentExportMenu documentId="org-contract-print" filename={`contract-${contractDraft.contractNumber}`} />
@@ -606,8 +618,7 @@ export default function OrganizationContractsPanel({
             ))}
           </div>
           <div className="gov-content-panel space-y-3">
-            <div id="org-invoice-print">
-              <OrganizationReportDocumentHeader />
+            <div className="print:hidden space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
                 <input value={invoiceDraft.invoiceNumber} readOnly={!invoiceEditing} onChange={(e) => setInvoiceDraft({ ...invoiceDraft, invoiceNumber: e.target.value })} className="input-field" />
                 <input type="date" value={invoiceDraft.preparedAt} readOnly={!invoiceEditing} onChange={(e) => setInvoiceDraft({ ...invoiceDraft, preparedAt: e.target.value })} className="input-field" />
@@ -615,7 +626,7 @@ export default function OrganizationContractsPanel({
                 <input value={invoiceDraft.contractNumber} readOnly className="input-field" />
               </div>
               {invoiceDraft.lineItems.map((line, index) => (
-                <div key={index} className="mt-3 grid gap-2 rounded-lg border border-[var(--border)] p-3 sm:grid-cols-5">
+                <div key={index} className="grid gap-2 rounded-lg border border-[var(--border)] p-3 sm:grid-cols-5">
                   <input value={line.description} readOnly={!invoiceEditing} onChange={(e) => patchInvoiceLine(index, { description: e.target.value })} className="input-field sm:col-span-2" placeholder={t('orgContractsLineDescription')} />
                   <input value={line.quantity} readOnly={!invoiceEditing} onChange={(e) => patchInvoiceLine(index, { quantity: e.target.value })} className="input-field" />
                   <input value={line.unitPrice} readOnly={!invoiceEditing} onChange={(e) => patchInvoiceLine(index, { unitPrice: e.target.value })} className="input-field" />
@@ -623,19 +634,23 @@ export default function OrganizationContractsPanel({
                 </div>
               ))}
               {invoiceEditing && (
-                <button type="button" className="btn-secondary mt-2 text-xs" onClick={() => {
+                <button type="button" className="btn-secondary text-xs" onClick={() => {
                   const lineItems = [...invoiceDraft.lineItems, createInvoiceLineItem()];
                   const totals = calcInvoiceTotals(lineItems, invoiceDraft.vatRate, invoiceDraft.vatRate > 0);
                   setInvoiceDraft({ ...invoiceDraft, lineItems, ...totals });
                 }}>{t('orgContractsAddLine')}</button>
               )}
-              <div className="mt-3 grid gap-2 sm:grid-cols-3 text-sm">
-                <p>{t('orgContractsSubtotal')}: <strong>{invoiceDraft.subtotal}</strong></p>
-                <p>{t('orgContractsVat', { rate: invoiceDraft.vatRate })}: <strong>{invoiceDraft.vatAmount}</strong></p>
-                <p>{t('orgContractsTotal')}: <strong>{invoiceDraft.total}</strong></p>
-              </div>
-              <textarea value={invoiceDraft.paymentPurpose} readOnly={!invoiceEditing} onChange={(e) => setInvoiceDraft({ ...invoiceDraft, paymentPurpose: e.target.value })} className="input-field mt-3" rows={2} />
-              <textarea value={invoiceDraft.legalBasis} readOnly={!invoiceEditing} onChange={(e) => setInvoiceDraft({ ...invoiceDraft, legalBasis: e.target.value })} className="input-field mt-2" rows={2} />
+              <textarea value={invoiceDraft.paymentPurpose} readOnly={!invoiceEditing} onChange={(e) => setInvoiceDraft({ ...invoiceDraft, paymentPurpose: e.target.value })} className="input-field" rows={2} />
+              <textarea value={invoiceDraft.legalBasis} readOnly={!invoiceEditing} onChange={(e) => setInvoiceDraft({ ...invoiceDraft, legalBasis: e.target.value })} className="input-field" rows={2} />
+            </div>
+            <div id="org-invoice-print">
+              <OrganizationServiceInvoiceDocument
+                organizationId={organizationId}
+                organizationName={displayOrganizationName}
+                organization={organization}
+                invoice={invoiceDraft}
+                counterparty={counterpartyMap.get(invoiceDraft.counterpartyId)}
+              />
             </div>
             <div className="flex flex-wrap gap-2">
               <DocumentExportMenu documentId="org-invoice-print" filename={`invoice-${invoiceDraft.invoiceNumber}`} />

@@ -23,6 +23,9 @@ export const SERVICE_INVOICE_LEGAL_BASIS = [
   'Шартномаи хизматрасмонии тарафин',
 ] as const;
 
+export const DEFAULT_PAYMENT_TERMS =
+  'Пардохт дар муҳлати 10 (даҳ) рӯзи корӣ пас аз қабули хизматрасониҳо бо интиқоли банкӣ ба ҳисоби бонкии Иҷрокунанда, мувофиқи Қонуни ҶТ «Дар бораи бухгалтерии ҳисобот ва ҳисоботи молиявӣ» ва ҳуҷҷатҳои тасдиқкунанда.';
+
 function newId(prefix: string): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -65,7 +68,7 @@ export function createServiceContract(
     currency: 'TJS',
     vatApplicable: true,
     vatRate: DEFAULT_VAT_RATE,
-    paymentTerms: '',
+    paymentTerms: DEFAULT_PAYMENT_TERMS,
     legalBasis: SERVICE_CONTRACT_LEGAL_BASIS.join('; '),
     status: 'draft',
   };

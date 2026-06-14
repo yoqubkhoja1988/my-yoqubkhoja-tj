@@ -360,6 +360,12 @@ textarea::placeholder {
     font-size: 9px;
   }
 
+  #org-contract-print.print-active table,
+  #org-invoice-print.print-active table,
+  .org-legal-document.print-active table {
+    font-size: 10px;
+  }
+
   #finance-bank-payment-document.print-active table {
     font-size: 10px;
   }
