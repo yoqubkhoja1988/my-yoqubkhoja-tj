@@ -8,6 +8,7 @@ import {
   resolveBankPaymentMonth,
 } from '@/lib/finance-bank-payment-export';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
+import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { printDocument } from '@/lib/print-document';
@@ -43,6 +44,14 @@ export default function FinanceBankPaymentPanel({
   }, [preferredMonth, onPreferredMonthApplied]);
 
   const directorSignatureLabel = getDirectorSignatureLabel(organization?.id);
+  const accountantSignatureLabel = useMemo(
+    () =>
+      getAccountantSignatureLabel(staffContent, {
+        chiefAccountantName: organization?.chiefAccountant,
+        fallback: t('payrollLedgerAccountant'),
+      }),
+    [staffContent, organization?.chiefAccountant, t]
+  );
 
   const documentData = useMemo(() => {
     if (!staffContent) return null;
@@ -63,6 +72,7 @@ export default function FinanceBankPaymentPanel({
         directorName: organization?.director ?? '',
         accountantName: organization?.chiefAccountant ?? '',
         organizationId: organization?.id,
+        staffContent,
       })
     );
   }
@@ -210,9 +220,8 @@ export default function FinanceBankPaymentPanel({
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold">{t('payrollLedgerAccountant')}</p>
-                  <p className="print-supplement text-[10px] text-slate-500">{t('bankPaymentAccountantRole')}</p>
-                  <p className="mt-4 border-t border-slate-400 pt-1">
+                  <p className="font-semibold">{accountantSignatureLabel}</p>
+                  <p className="mt-6 border-t border-slate-400 pt-1">
                     {organization?.chiefAccountant || '________________'}
                   </p>
                 </div>

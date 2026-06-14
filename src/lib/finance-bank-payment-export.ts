@@ -1,5 +1,6 @@
 import type ExcelJS from 'exceljs';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
+import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import {
   calcEntryTotals,
   formatLedgerAmount,
@@ -79,7 +80,13 @@ export function getBankPaymentExportLabels(names: {
   directorName: string;
   accountantName: string;
   organizationId?: string;
+  staffContent?: OrganizationSectionContent | null;
 }): BankPaymentExportLabels {
+  const accountantRole = getAccountantSignatureLabel(names.staffContent, {
+    chiefAccountantName: names.accountantName,
+    fallback: 'Сармуҳосиб',
+  });
+
   return {
     sheetPrint: 'Варақа',
     sheetImport: 'Импорт',
@@ -94,8 +101,8 @@ export function getBankPaymentExportLabels(names: {
     total: 'Ҳамагӣ',
     totalInWords: 'Бо ҳарф',
     director: getDirectorSignatureLabel(names.organizationId),
-    accountant: 'Сармуҳосиб',
-    accountantRole: 'Мудири бахш — Сармуҳосиб',
+    accountant: accountantRole,
+    accountantRole,
     directorName: names.directorName,
     accountantName: names.accountantName,
   };

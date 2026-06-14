@@ -24,6 +24,7 @@ import {
 } from '@/lib/finance-sick-leave-pay';
 import { printDocument } from '@/lib/print-document';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
+import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import { updateOrganizationSectionResult } from '@/lib/organization-sections';
 import {
   extractStaffingOptions,
@@ -70,6 +71,14 @@ export default function FinanceSickLeavePanel({
   const locale = useLocale();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
+  const accountantSignatureLabel = useMemo(
+    () =>
+      getAccountantSignatureLabel(staffContent, {
+        chiefAccountantName: organization?.chiefAccountant,
+        fallback: t('payrollLedgerAccountant'),
+      }),
+    [staffContent, organization?.chiefAccountant, t]
+  );
   const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
     () => activeEmployees(staffContent?.employees),
@@ -770,7 +779,7 @@ export default function FinanceSickLeavePanel({
               </p>
             </div>
             <div>
-              <p className="font-semibold">{t('payrollLedgerAccountant')}</p>
+              <p className="font-semibold">{accountantSignatureLabel}</p>
               <p className="mt-6 border-t border-slate-400 pt-1">
                 {organization?.chiefAccountant || '________________'}
               </p>

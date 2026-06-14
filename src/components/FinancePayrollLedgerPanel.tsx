@@ -1,6 +1,7 @@
 'use client';
 
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
+import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import {
   calcEntryTotals,
   formatLedgerAmount,
@@ -84,6 +85,14 @@ export default function FinancePayrollLedgerPanel({
   const t = useTranslations();
   const locale = useLocale();
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
+  const accountantSignatureLabel = useMemo(
+    () =>
+      getAccountantSignatureLabel(staffContent, {
+        chiefAccountantName: organization?.chiefAccountant,
+        fallback: t('payrollLedgerAccountant'),
+      }),
+    [staffContent, organization?.chiefAccountant, t]
+  );
   const { canEdit } = useOrganizationAccess();
   const employees = useMemo(
     () => activeEmployees(staffContent?.employees),
@@ -587,7 +596,7 @@ export default function FinancePayrollLedgerPanel({
               </p>
             </div>
             <div>
-              <p className="font-semibold">{t('payrollLedgerAccountant')}</p>
+              <p className="font-semibold">{accountantSignatureLabel}</p>
               <p className="mt-6 border-t border-slate-400 pt-1">
                 {organization?.chiefAccountant || '________________'}
               </p>
