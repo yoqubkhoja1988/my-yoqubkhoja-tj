@@ -338,5 +338,7 @@ export async function getMessagesAfter(
   if (!after) return messages;
 
   const afterTime = new Date(after).getTime();
-  return messages.filter((message) => new Date(message.createdAt).getTime() > afterTime);
+  if (Number.isNaN(afterTime)) return messages;
+
+  return messages.filter((message) => new Date(message.createdAt).getTime() >= afterTime);
 }

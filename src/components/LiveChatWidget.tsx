@@ -140,11 +140,11 @@ export default function LiveChatWidget() {
     setMessages(data.messages);
   }, [session?.user?.id, session?.user?.name, sessionStatus]);
 
-  const pollMessages = useCallback(async () => {
+  const pollMessages = useCallback(async (forceFullSync = false) => {
     if (!conversationId || !accessToken) return;
 
-    const lastMessage = messages[messages.length - 1];
-    const after = lastMessage?.createdAt;
+    const lastMessage = messagesRef.current[messagesRef.current.length - 1];
+    const after = forceFullSync ? undefined : lastMessage?.createdAt;
 
     try {
       const response = await fetch(
@@ -166,6 +166,12 @@ export default function LiveChatWidget() {
       };
 
       setChatStatus(data.status);
+
+      if (forceFullSync) {
+        setMessages(data.messages);
+        return;
+      }
+
       if (data.messages.length > 0) {
         setMessages((prev) => {
           const ids = new Set(prev.map((message) => message.id));
@@ -179,13 +185,15 @@ export default function LiveChatWidget() {
     } catch {
       // silent poll failure
     }
-  }, [accessToken, conversationId, guestToken, messages]);
+  }, [accessToken, conversationId, guestToken]);
 
   useEffect(() => {
     if (!open || !conversationId) return;
 
+    let pollCount = 0;
     const intervalId = window.setInterval(() => {
-      void pollMessages();
+      pollCount += 1;
+      void pollMessages(pollCount % 8 === 0);
     }, POLL_MS);
 
     return () => window.clearInterval(intervalId);

@@ -2,7 +2,7 @@
 
 import { ChatConversationStatus, ChatMessage } from '@/types/chat';
 import { useTranslations } from 'next-intl';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 type AdminChatListItem = {
   id: string;
@@ -42,6 +42,8 @@ export default function AdminChatPanel() {
   const [botToken, setBotToken] = useState('');
   const [adminChatId, setAdminChatId] = useState('');
   const [telegramBusy, setTelegramBusy] = useState(false);
+  const messagesRef = useRef<ChatMessage[]>([]);
+  messagesRef.current = messages;
 
   const loadTelegramStatus = useCallback(async () => {
     try {
@@ -72,14 +74,32 @@ export default function AdminChatPanel() {
     }
   }, [selectedId, t]);
 
-  const loadThread = useCallback(async (conversationId: string) => {
+  const loadThread = useCallback(async (conversationId: string, after?: string) => {
     try {
-      const response = await fetch(`/api/chat/conversations/${conversationId}/messages`, {
+      const query = new URLSearchParams({ conversationId });
+      if (after) query.set('after', after);
+
+      const response = await fetch(`/api/admin/chat?${query.toString()}`, {
         credentials: 'same-origin',
       });
       if (!response.ok) throw new Error('thread');
-      const data = (await response.json()) as { messages: ChatMessage[] };
-      setMessages(data.messages);
+
+      const data = (await response.json()) as {
+        messages: ChatMessage[];
+      };
+
+      if (after) {
+        setMessages((prev) => {
+          const ids = new Set(prev.map((message) => message.id));
+          const next = [...prev];
+          for (const message of data.messages) {
+            if (!ids.has(message.id)) next.push(message);
+          }
+          return next;
+        });
+      } else {
+        setMessages(data.messages);
+      }
     } catch {
       setError(t('adminChatLoadError'));
     }
@@ -93,8 +113,11 @@ export default function AdminChatPanel() {
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       void loadList(true);
-      if (selectedId) void loadThread(selectedId);
-    }, 10_000);
+      if (selectedId) {
+        const lastMessage = messagesRef.current[messagesRef.current.length - 1];
+        void loadThread(selectedId, lastMessage?.createdAt);
+      }
+    }, 5000);
     return () => window.clearInterval(intervalId);
   }, [loadList, loadThread, selectedId]);
 

@@ -1,11 +1,32 @@
 import { requireAdmin } from '@/lib/api-guard';
 import { closeConversation, sendAdminMessage } from '@/lib/chat-service';
-import { listAdminConversations } from '@/lib/chat-store';
+import {
+  findConversationById,
+  getMessagesAfter,
+  listAdminConversations,
+} from '@/lib/chat-store';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await requireAdmin();
   if (session instanceof NextResponse) return session;
+
+  const conversationId = request.nextUrl.searchParams.get('conversationId')?.trim();
+  if (conversationId) {
+    const conversation = await findConversationById(conversationId);
+    if (!conversation) {
+      return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
+    }
+
+    const after = request.nextUrl.searchParams.get('after') ?? undefined;
+    const messages = await getMessagesAfter(conversationId, after);
+
+    return NextResponse.json({
+      conversationId,
+      status: conversation.status,
+      messages,
+    });
+  }
 
   const conversations = await listAdminConversations();
   return NextResponse.json({
