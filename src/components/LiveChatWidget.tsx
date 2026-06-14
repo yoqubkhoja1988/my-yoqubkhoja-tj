@@ -86,12 +86,19 @@ function messageClass(sender: ChatMessage['sender']): string {
     case 'user':
       return 'ml-auto bg-[var(--accent)] text-white';
     case 'admin':
-      return 'bg-emerald-500/20 text-emerald-100';
+      return 'border border-emerald-600/30 bg-emerald-500/15 text-[var(--text)]';
     case 'bot':
-      return 'bg-indigo-500/20 text-indigo-100';
+      return 'border border-indigo-600/30 bg-indigo-500/15 text-[var(--text)]';
     default:
       return 'bg-[var(--bg-input)] text-[var(--text-muted)] text-center text-xs italic';
   }
+}
+
+function messageBubbleClass(sender: ChatMessage['sender']): string {
+  const base = messageClass(sender);
+  if (sender === 'admin') return `${base} live-chat-bubble--admin`;
+  if (sender === 'bot') return `${base} live-chat-bubble--bot`;
+  return base;
 }
 
 export default function LiveChatWidget() {
@@ -627,9 +634,9 @@ export default function LiveChatWidget() {
               <p className="py-8 text-center text-sm text-[var(--text-muted)]">{t('liveChatLoading')}</p>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${messageClass(message.sender)} ${message.sender === 'user' ? 'ml-auto' : ''}`}>
+                <div key={message.id} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${messageBubbleClass(message.sender)} ${message.sender === 'user' ? 'ml-auto' : ''}`}>
                   {message.sender !== 'system' && (
-                    <p className="mb-0.5 text-[10px] font-bold opacity-70">
+                    <p className="mb-0.5 text-[10px] font-bold text-[var(--text-muted)]">
                       {senderLabel(message.sender, t)}
                     </p>
                   )}

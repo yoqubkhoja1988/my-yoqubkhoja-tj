@@ -733,6 +733,18 @@ html.theme-gov .nav-pill-active {
   background: linear-gradient(135deg, var(--accent), #1a7a4c);
 }
 
+html.theme-gov .live-chat-bubble--admin {
+  border-color: rgba(26, 122, 76, 0.35);
+  background: #e8f5ee;
+  color: #0d3d24;
+}
+
+html.theme-gov .live-chat-bubble--bot {
+  border-color: rgba(26, 95, 158, 0.35);
+  background: #e8f0fa;
+  color: #0f2847;
+}
+
 .gov-header-top {
   background: var(--gov-header);
   border-bottom: 1px solid var(--border);
