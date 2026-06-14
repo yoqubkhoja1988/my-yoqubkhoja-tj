@@ -74,7 +74,7 @@ export default function OrganizationServiceContractDocument({
       <p className="mt-6 text-justify text-xs leading-6">
         <strong>{provider.name}</strong> (минбаъд «Иҷрокунанда»), дар шахси{' '}
         {provider.director || '________________'}, аз як тараф, ва{' '}
-        <strong>{customer.name || contract.counterpartyName}</strong> (минбаъд «Заказчик»), дар шахси{' '}
+        <strong>{customer.name || contract.counterpartyName}</strong> (минбаъд «Фармоишгар»), дар шахси{' '}
         {customer.director || '________________'}, аз тарафи дигар, ки дар ин Шартнома «Тарафҳо» номида
         мешаванд, мувофиқи қонунгузории амалкунандаи Ҷумҳурии Тоҷикистон Шартномаи зеринро ба имзо
         расониданд:
@@ -83,7 +83,7 @@ export default function OrganizationServiceContractDocument({
       <section className="mt-5 space-y-2 text-xs">
         <h2 className="font-bold uppercase">1. Мавзӯъи шартнома</h2>
         <p className="text-justify leading-6">
-          1.1. Иҷрокунанда уҳдадор мешавад, ки хизматрасониҳои зеринро анҷом диҳад, ва Заказчик уҳдадор
+          1.1. Иҷрокунанда уҳдадор мешавад, ки хизматрасониҳои зеринро анҷом диҳад, ва Фармоишгар уҳдадор
           мешавад, ки барои хизматрасониҳои қабулшуда пардохт намояд:{' '}
           <UserContentText text={contract.subject} as="span" />.
         </p>
@@ -126,7 +126,7 @@ export default function OrganizationServiceContractDocument({
           4.1. Иҷрокунанда хизматрасониҳоро бо сифати баланд ва дар мӯҳлати муқарраршуда анҷом медиҳад.
         </p>
         <p className="text-justify leading-6">
-          4.2. Заказчик хизматрасониҳои қабулшударо тасдиқ намуда, пардохтро мувофиқи шартҳои ин
+          4.2. Фармоишгар хизматрасониҳои қабулшударо тасдиқ намуда, пардохтро мувофиқи шартҳои ин
           Шартнома амалӣ менамояд.
         </p>
         <p className="text-justify leading-6">
@@ -158,7 +158,7 @@ export default function OrganizationServiceContractDocument({
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         <PartyBlock title="Иҷрокунанда" lines={partyRequisiteLines(provider)} />
         <PartyBlock
-          title="Заказчик"
+          title="Фармоишгар"
           lines={partyRequisiteLines({ ...customer, name: customer.name || contract.counterpartyName })}
         />
       </section>
@@ -171,7 +171,7 @@ export default function OrganizationServiceContractDocument({
           </p>
         </div>
         <div>
-          <p className="font-semibold">Роҳбари Заказчик</p>
+          <p className="font-semibold">Роҳбари Фармоишгар</p>
           <p className="mt-8 border-t border-slate-400 pt-1">
             {customer.director || '________________'} / имзо
           </p>
