@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/api-guard';
-import { closeConversation, sendAdminMessage } from '@/lib/chat-service';
+import { closeConversation, editAdminMessage, sendAdminMessage } from '@/lib/chat-service';
 import { getTypingStatus } from '@/lib/chat-typing';
 import {
   findConversationById,
@@ -51,13 +51,39 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
     conversationId?: string;
     message?: string;
-    action?: 'reply' | 'close' | 'typing';
+    messageId?: string;
+    action?: 'reply' | 'close' | 'typing' | 'edit';
     typing?: boolean;
   };
 
   const conversationId = body.conversationId?.trim();
   if (!conversationId) {
     return NextResponse.json({ error: 'MISSING_CONVERSATION' }, { status: 400 });
+  }
+
+  if (body.action === 'edit') {
+    const messageId = body.messageId?.trim();
+    const message = body.message?.trim() ?? '';
+    if (!messageId || !message) {
+      return NextResponse.json({ error: 'INVALID_BODY' }, { status: 400 });
+    }
+
+    try {
+      const messages = await editAdminMessage({
+        conversationId,
+        messageId,
+        body: message,
+      });
+      return NextResponse.json({ ok: true, messages });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'EDIT_WINDOW_EXPIRED') {
+        return NextResponse.json({ error: 'EDIT_WINDOW_EXPIRED' }, { status: 409 });
+      }
+      if (error instanceof Error && error.message === 'CONVERSATION_CLOSED') {
+        return NextResponse.json({ error: 'CLOSED' }, { status: 409 });
+      }
+      return NextResponse.json({ error: 'FAILED' }, { status: 500 });
+    }
   }
 
   if (body.action === 'typing') {

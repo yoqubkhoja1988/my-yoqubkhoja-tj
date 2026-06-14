@@ -235,6 +235,7 @@ async function initDatabase(): Promise<void> {
   await sql`ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS guest_phone TEXT`;
   await sql`ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS source_page TEXT`;
   await sql`ALTER TABLE chat_conversations ADD COLUMN IF NOT EXISTS visitor_ip TEXT`;
+  await sql`ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS edited_at TIMESTAMPTZ`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS system_settings (

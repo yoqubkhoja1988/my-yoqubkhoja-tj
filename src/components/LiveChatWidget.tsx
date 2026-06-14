@@ -8,6 +8,8 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { QUICK_TOPICS } from '@/lib/chat-bot';
 import ChatTypingIndicator from '@/components/ChatTypingIndicator';
 import ChatGuestIntroForm, { GuestProfile } from '@/components/ChatGuestIntroForm';
+import ChatEditableMessage from '@/components/ChatEditableMessage';
+import { mergeChatMessages } from '@/lib/chat-edit';
 import { ChatTypingStatus, useChatTyping } from '@/hooks/useChatTyping';
 
 const STORAGE_GUEST = 'chat_guest_token';
@@ -118,6 +120,10 @@ export default function LiveChatWidget() {
   const [peerTyping, setPeerTyping] = useState<ChatTypingStatus>({ user: false, admin: false });
   const [view, setView] = useState<'intro' | 'chat'>('chat');
   const [guestProfile, setGuestProfile] = useState<GuestProfile | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editTick, setEditTick] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevUserIdRef = useRef<string | undefined>(undefined);
   const messagesRef = useRef<ChatMessage[]>([]);
@@ -132,6 +138,8 @@ export default function LiveChatWidget() {
     setMessages([]);
     setError('');
     setPeerTyping({ user: false, admin: false });
+    setEditingMessageId(null);
+    setEditDraft('');
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -162,6 +170,12 @@ export default function LiveChatWidget() {
     },
     [accessToken, conversationId, guestToken]
   );
+
+  useEffect(() => {
+    if (!open || view !== 'chat') return;
+    const intervalId = window.setInterval(() => setEditTick((value) => value + 1), 1000);
+    return () => window.clearInterval(intervalId);
+  }, [open, view]);
 
   useChatTyping({
     enabled: open && chatStatus !== 'closed',
@@ -252,14 +266,7 @@ export default function LiveChatWidget() {
       }
 
       if (data.messages.length > 0) {
-        setMessages((prev) => {
-          const ids = new Set(prev.map((message) => message.id));
-          const next = [...prev];
-          for (const message of data.messages) {
-            if (!ids.has(message.id)) next.push(message);
-          }
-          return next;
-        });
+        setMessages((prev) => mergeChatMessages(prev, data.messages));
       }
     } catch {
       // silent poll failure
@@ -340,14 +347,7 @@ export default function LiveChatWidget() {
               setPeerTyping(data.typing);
             }
             if (data.messages.length > 0) {
-              setMessages((prev) => {
-                const ids = new Set(prev.map((message) => message.id));
-                const next = [...prev];
-                for (const message of data.messages) {
-                  if (!ids.has(message.id)) next.push(message);
-                }
-                return next;
-              });
+              setMessages((prev) => mergeChatMessages(prev, data.messages));
             }
           }
         } catch {
@@ -523,6 +523,52 @@ export default function LiveChatWidget() {
     }
   }
 
+  async function saveMessageEdit(messageId: string) {
+    if (!conversationId || !accessToken || !editDraft.trim() || editSaving) return;
+
+    setEditSaving(true);
+    setError('');
+
+    try {
+      const response = await fetch(
+        `/api/chat/conversations/${conversationId}/messages/${messageId}`,
+        {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: editDraft.trim(),
+            accessToken,
+            guestToken,
+          }),
+        }
+      );
+
+      if (response.status === 409) {
+        setError(t('liveChatEditExpired'));
+        setEditingMessageId(null);
+        setEditDraft('');
+        return;
+      }
+
+      if (!response.ok) throw new Error('edit');
+
+      const data = (await response.json()) as {
+        status: ChatConversationStatus;
+        messages: ChatMessage[];
+      };
+
+      setChatStatus(data.status);
+      setMessages(data.messages);
+      setEditingMessageId(null);
+      setEditDraft('');
+    } catch {
+      setError(t('liveChatEditError'));
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
   async function sendMessage(e: FormEvent) {
     e.preventDefault();
     const text = draft.trim();
@@ -633,16 +679,50 @@ export default function LiveChatWidget() {
             ) : loading ? (
               <p className="py-8 text-center text-sm text-[var(--text-muted)]">{t('liveChatLoading')}</p>
             ) : (
-              messages.map((message) => (
-                <div key={message.id} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${messageBubbleClass(message.sender)} ${message.sender === 'user' ? 'ml-auto' : ''}`}>
-                  {message.sender !== 'system' && (
-                    <p className="mb-0.5 text-[10px] font-bold text-[var(--text-muted)]">
-                      {senderLabel(message.sender, t)}
-                    </p>
-                  )}
-                  <p className="whitespace-pre-wrap break-words">{message.body}</p>
-                </div>
-              ))
+              messages.map((message) =>
+                message.sender === 'user' ? (
+                  <ChatEditableMessage
+                    key={message.id}
+                    message={message}
+                    bubbleClassName={`${messageBubbleClass(message.sender)} ml-auto`}
+                    alignEnd
+                    senderLabel={senderLabel(message.sender, t)}
+                    canEdit={chatStatus !== 'closed'}
+                    editTick={editTick}
+                    editing={editingMessageId === message.id}
+                    editDraft={editingMessageId === message.id ? editDraft : message.body}
+                    saving={editSaving}
+                    onStartEdit={() => {
+                      setEditingMessageId(message.id);
+                      setEditDraft(message.body);
+                    }}
+                    onCancelEdit={() => {
+                      setEditingMessageId(null);
+                      setEditDraft('');
+                    }}
+                    onDraftChange={setEditDraft}
+                    onSaveEdit={() => void saveMessageEdit(message.id)}
+                    labels={{
+                      edit: t('liveChatEdit'),
+                      save: t('liveChatEditSave'),
+                      cancel: t('liveChatEditCancel'),
+                      edited: t('liveChatEdited'),
+                    }}
+                  />
+                ) : (
+                  <div key={message.id} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${messageBubbleClass(message.sender)}`}>
+                    {message.sender !== 'system' && (
+                      <p className="mb-0.5 text-[10px] font-bold text-[var(--text-muted)]">
+                        {senderLabel(message.sender, t)}
+                      </p>
+                    )}
+                    <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                    {message.editedAt && message.sender !== 'system' && (
+                      <p className="mt-1 text-[10px] italic text-[var(--text-muted)]">{t('liveChatEdited')}</p>
+                    )}
+                  </div>
+                )
+              )
             )}
             {peerTyping.admin && (
               <ChatTypingIndicator label={t('liveChatTypingAdmin')} />

@@ -27,6 +27,7 @@ export type ChatMessage = {
   sender: ChatMessageSender;
   body: string;
   createdAt: string;
+  editedAt?: string;
 };
 
 export type ChatConversationWithMessages = ChatConversation & {

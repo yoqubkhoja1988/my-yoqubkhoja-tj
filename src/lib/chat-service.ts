@@ -2,6 +2,7 @@ import { Session } from 'next-auth';
 import {
   addMessage,
   canAccessConversation,
+  editMessage,
   findConversationById,
   getConversationWithMessages,
   getMessagesAfter,
@@ -178,6 +179,34 @@ export async function sendAdminMessage(input: {
     body: input.body,
   });
 
+  return getMessagesAfter(input.conversationId);
+}
+
+export async function editUserMessage(input: {
+  conversationId: string;
+  messageId: string;
+  body: string;
+}): Promise<ChatMessage[]> {
+  await editMessage({
+    conversationId: input.conversationId,
+    messageId: input.messageId,
+    body: input.body,
+    allowedSender: 'user',
+  });
+  return getMessagesAfter(input.conversationId);
+}
+
+export async function editAdminMessage(input: {
+  conversationId: string;
+  messageId: string;
+  body: string;
+}): Promise<ChatMessage[]> {
+  await editMessage({
+    conversationId: input.conversationId,
+    messageId: input.messageId,
+    body: input.body,
+    allowedSender: 'admin',
+  });
   return getMessagesAfter(input.conversationId);
 }
 

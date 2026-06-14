@@ -4,6 +4,8 @@ import { ChatConversationStatus, ChatMessage } from '@/types/chat';
 import { useTranslations } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import ChatTypingIndicator from '@/components/ChatTypingIndicator';
+import ChatEditableMessage from '@/components/ChatEditableMessage';
+import { mergeChatMessages } from '@/lib/chat-edit';
 import ChatVisitorBadge from '@/components/ChatVisitorBadge';
 import ChatVisitorDetails from '@/components/ChatVisitorDetails';
 import { ChatTypingStatus, useChatTyping } from '@/hooks/useChatTyping';
@@ -54,6 +56,10 @@ export default function AdminChatPanel() {
   const [botToken, setBotToken] = useState('');
   const [adminChatId, setAdminChatId] = useState('');
   const [telegramBusy, setTelegramBusy] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editTick, setEditTick] = useState(0);
   const messagesRef = useRef<ChatMessage[]>([]);
   const selectedIdRef = useRef<string | null>(null);
   const pollTickRef = useRef(0);
@@ -152,14 +158,7 @@ export default function AdminChatPanel() {
       };
 
       if (after) {
-        setMessages((prev) => {
-          const ids = new Set(prev.map((message) => message.id));
-          const next = [...prev];
-          for (const message of data.messages) {
-            if (!ids.has(message.id)) next.push(message);
-          }
-          return next;
-        });
+        setMessages((prev) => mergeChatMessages(prev, data.messages));
       } else {
         setMessages(data.messages);
       }
@@ -187,6 +186,11 @@ export default function AdminChatPanel() {
     void loadList();
     void loadTelegramStatus();
   }, [loadList, loadTelegramStatus]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setEditTick((value) => value + 1), 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -221,6 +225,46 @@ export default function AdminChatPanel() {
       setPeerTyping({ user: false, admin: false });
     }
     await loadThread(id);
+  }
+
+  async function saveMessageEdit(messageId: string) {
+    if (!selectedId || !editDraft.trim() || editSaving) return;
+
+    setEditSaving(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/admin/chat', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: selectedId,
+          messageId,
+          message: editDraft.trim(),
+          action: 'edit',
+        }),
+      });
+
+      if (response.status === 409) {
+        setError(t('adminChatEditExpired'));
+        setEditingMessageId(null);
+        setEditDraft('');
+        return;
+      }
+
+      if (!response.ok) throw new Error('edit');
+
+      const data = (await response.json()) as { messages: ChatMessage[] };
+      setMessages(data.messages);
+      setEditingMessageId(null);
+      setEditDraft('');
+      await loadList(true);
+    } catch {
+      setError(t('adminChatEditError'));
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   async function sendReply(e: FormEvent) {
@@ -494,22 +538,53 @@ export default function AdminChatPanel() {
               </div>
 
               <div className="flex-1 space-y-2 overflow-y-auto p-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
-                      message.sender === 'admin'
-                        ? 'ml-auto bg-emerald-500/20 text-emerald-100'
-                        : message.sender === 'user'
+                {messages.map((message) =>
+                  message.sender === 'admin' ? (
+                    <ChatEditableMessage
+                      key={message.id}
+                      message={message}
+                      bubbleClassName="ml-auto border border-emerald-600/30 bg-emerald-500/15 text-[var(--text)]"
+                      alignEnd
+                      canEdit
+                      editTick={editTick}
+                      editing={editingMessageId === message.id}
+                      editDraft={editingMessageId === message.id ? editDraft : message.body}
+                      saving={editSaving}
+                      onStartEdit={() => {
+                        setEditingMessageId(message.id);
+                        setEditDraft(message.body);
+                      }}
+                      onCancelEdit={() => {
+                        setEditingMessageId(null);
+                        setEditDraft('');
+                      }}
+                      onDraftChange={setEditDraft}
+                      onSaveEdit={() => void saveMessageEdit(message.id)}
+                      labels={{
+                        edit: t('adminChatEdit'),
+                        save: t('adminChatEditSave'),
+                        cancel: t('adminChatEditCancel'),
+                        edited: t('adminChatEdited'),
+                      }}
+                    />
+                  ) : (
+                    <div
+                      key={message.id}
+                      className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
+                        message.sender === 'user'
                           ? 'bg-[var(--accent)]/20'
                           : message.sender === 'bot'
-                            ? 'bg-indigo-500/20 text-indigo-100'
+                            ? 'border border-indigo-600/30 bg-indigo-500/15 text-[var(--text)]'
                             : 'bg-[var(--bg-input)] text-xs italic text-[var(--text-muted)]'
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap break-words">{message.body}</p>
-                  </div>
-                ))}
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                      {message.editedAt && message.sender === 'user' && (
+                        <p className="mt-1 text-[10px] italic text-[var(--text-muted)]">{t('adminChatEdited')}</p>
+                      )}
+                    </div>
+                  )
+                )}
                 {peerTyping.user && (
                   <ChatTypingIndicator label={t('adminChatTypingUser')} />
                 )}

@@ -9,6 +9,7 @@ import {
   ChatMessage,
   ChatMessageSender,
 } from '@/types/chat';
+import { canEditChatMessage } from '@/lib/chat-edit';
 
 const CONVERSATIONS_FILE = join(process.cwd(), 'data', 'chat-conversations.json');
 const MESSAGES_FILE = join(process.cwd(), 'data', 'chat-messages.json');
@@ -80,6 +81,7 @@ function rowToMessage(row: {
   sender: string;
   body: string;
   created_at: Date | string;
+  edited_at?: Date | string | null;
 }): ChatMessage {
   return {
     id: row.id,
@@ -87,6 +89,7 @@ function rowToMessage(row: {
     sender: row.sender as ChatMessageSender,
     body: row.body,
     createdAt: new Date(row.created_at).toISOString(),
+    editedAt: row.edited_at ? new Date(row.edited_at).toISOString() : undefined,
   };
 }
 
@@ -132,6 +135,7 @@ async function readMessages(conversationId?: string): Promise<ChatMessage[]> {
       sender: string;
       body: string;
       created_at: Date | string;
+      edited_at: Date | string | null;
     }>`SELECT * FROM chat_messages WHERE conversation_id = ${conversationId} ORDER BY created_at ASC`;
     return rows.map(rowToMessage);
   }
@@ -142,6 +146,7 @@ async function readMessages(conversationId?: string): Promise<ChatMessage[]> {
     sender: string;
     body: string;
     created_at: Date | string;
+    edited_at: Date | string | null;
   }>`SELECT * FROM chat_messages ORDER BY created_at ASC`;
   return rows.map(rowToMessage);
 }
@@ -215,22 +220,48 @@ async function saveConversation(conversation: ChatConversation): Promise<void> {
 async function saveMessage(message: ChatMessage): Promise<void> {
   if (!isDatabaseEnabled()) {
     const messages = readJsonFile<ChatMessage[]>(MESSAGES_FILE, []);
-    messages.push(message);
+    const index = messages.findIndex((item) => item.id === message.id);
+    if (index === -1) {
+      messages.push(message);
+    } else {
+      messages[index] = message;
+    }
     persistJsonFile(MESSAGES_FILE, messages);
     return;
   }
 
   await ensureDatabaseReady();
   await sql`
-    INSERT INTO chat_messages (id, conversation_id, sender, body, created_at)
+    INSERT INTO chat_messages (id, conversation_id, sender, body, created_at, edited_at)
     VALUES (
       ${message.id},
       ${message.conversationId},
       ${message.sender},
       ${message.body},
-      ${message.createdAt}
+      ${message.createdAt},
+      ${message.editedAt ?? null}
     )
     ON CONFLICT (id) DO NOTHING
+  `;
+}
+
+async function updateMessageBody(message: ChatMessage): Promise<void> {
+  if (!isDatabaseEnabled()) {
+    const messages = readJsonFile<ChatMessage[]>(MESSAGES_FILE, []);
+    const index = messages.findIndex((item) => item.id === message.id);
+    if (index === -1) {
+      throw new Error('MESSAGE_NOT_FOUND');
+    }
+    messages[index] = message;
+    persistJsonFile(MESSAGES_FILE, messages);
+    return;
+  }
+
+  await ensureDatabaseReady();
+  await sql`
+    UPDATE chat_messages
+    SET body = ${message.body}, edited_at = ${message.editedAt ?? null}
+    WHERE id = ${message.id}
   `;
 }
 
@@ -412,7 +443,12 @@ export async function getMessagesAfter(
   const afterTime = new Date(after).getTime();
   if (Number.isNaN(afterTime)) return messages;
 
-  return messages.filter((message) => new Date(message.createdAt).getTime() >= afterTime);
+  return messages.filter((message) => {
+    const createdAt = new Date(message.createdAt).getTime();
+    if (createdAt >= afterTime) return true;
+    if (!message.editedAt) return false;
+    return new Date(message.editedAt).getTime() >= afterTime;
+  });
 }
 
 export async function setTypingIndicator(
@@ -432,4 +468,50 @@ export async function setTypingIndicator(
   conversation.updatedAt = now;
   await saveConversation(conversation);
   return conversation;
+}
+
+export async function editMessage(input: {
+  conversationId: string;
+  messageId: string;
+  body: string;
+  allowedSender: Extract<ChatMessageSender, 'user' | 'admin'>;
+}): Promise<ChatMessage> {
+  const conversation = await findConversationById(input.conversationId);
+  if (!conversation) {
+    throw new Error('CONVERSATION_NOT_FOUND');
+  }
+  if (conversation.status === 'closed') {
+    throw new Error('CONVERSATION_CLOSED');
+  }
+
+  const messages = await readMessages(input.conversationId);
+  const message = messages.find((item) => item.id === input.messageId);
+  if (!message) {
+    throw new Error('MESSAGE_NOT_FOUND');
+  }
+  if (message.sender !== input.allowedSender) {
+    throw new Error('FORBIDDEN_SENDER');
+  }
+  if (!canEditChatMessage(message)) {
+    throw new Error('EDIT_WINDOW_EXPIRED');
+  }
+
+  const trimmed = input.body.trim();
+  if (!trimmed) {
+    throw new Error('EMPTY_MESSAGE');
+  }
+
+  const now = new Date().toISOString();
+  const updated: ChatMessage = {
+    ...message,
+    body: trimmed,
+    editedAt: now,
+  };
+
+  await updateMessageBody(updated);
+
+  conversation.updatedAt = now;
+  await saveConversation(conversation);
+
+  return updated;
 }
