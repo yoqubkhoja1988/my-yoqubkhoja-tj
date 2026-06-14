@@ -379,6 +379,29 @@ export async function listAdminConversations(): Promise<ChatConversationWithMess
   );
 }
 
+export type ChatRegistryItem = ChatConversation & {
+  messageCount: number;
+  lastMessage: ChatMessage | null;
+};
+
+export async function listChatRegistry(): Promise<ChatRegistryItem[]> {
+  const conversations = await readConversations();
+  const result: ChatRegistryItem[] = [];
+
+  for (const conversation of conversations) {
+    const messages = await readMessages(conversation.id);
+    result.push({
+      ...conversation,
+      messageCount: messages.length,
+      lastMessage: messages[messages.length - 1] ?? null,
+    });
+  }
+
+  return result.sort(
+    (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+  );
+}
+
 export async function getMessagesAfter(
   conversationId: string,
   after?: string

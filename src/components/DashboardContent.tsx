@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { addProject, getProjects, initializeProjects, removeProject, updateProject } from '@/lib/projects';
 import { Project, ProjectCategory, ProjectStatus } from '@/types/project';
 import AdminChatPanel from './AdminChatPanel';
+import AdminChatRegistryPanel from './AdminChatRegistryPanel';
 import AdminDataPanel from './AdminDataPanel';
 import AdminOrganizationsRegistryPanel from './AdminOrganizationsRegistryPanel';
 import AdminUsersPanel from './AdminUsersPanel';
@@ -246,7 +247,10 @@ export default function DashboardContent({
             ) : adminSubTab === 'organizations' ? (
               <AdminOrganizationsRegistryPanel />
             ) : adminSubTab === 'chat' ? (
-              <AdminChatPanel />
+              <div className="space-y-8">
+                <AdminChatPanel />
+                <AdminChatRegistryPanel />
+              </div>
             ) : (
               <AdminDataPanel />
             )}
