@@ -66,7 +66,7 @@ import {
   ORG_INFO_DEFAULT_SUMMARY,
   ORG_INFO_SECTION_SLUG,
 } from '@/lib/organization-info';
-import { isCharterLegalSection } from '@/lib/user-access';
+import { isCharterLegalSection, LIST_OF_ENTERPRISES_SECTION_SLUG } from '@/lib/user-access';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
   return JSON.parse(JSON.stringify(content)) as OrganizationSectionContent;
@@ -886,9 +886,40 @@ export default function EditableSectionContent({
         </>
       )}
 
+      {section === LIST_OF_ENTERPRISES_SECTION_SLUG && (
+        <>
+          {editing && draft ? (
+            <textarea
+              value={draft.summary}
+              onChange={(e) => setDraft({ ...draft, summary: e.target.value })}
+              rows={3}
+              className="input-field text-sm"
+            />
+          ) : null}
+          <LegalDocumentsPanel
+            summary={editing ? undefined : view.summary}
+            items={(editing && draft ? draft.items : view.items) ?? []}
+            sectionType="general"
+            editing={editing && !!draft}
+            onItemsChange={editing && draft ? updateDraftItems : undefined}
+            allowItemFields
+            hideOfficialNote
+            addItemLabel={t('listOfEnterprisesAddItem')}
+            defaultItemFields={[
+              { label: 'Суроға', value: '' },
+              { label: 'Роҳбар', value: '' },
+              { label: 'Телефон', value: '' },
+              { label: 'Назорат', value: '' },
+              { label: 'Ҳолат', value: '' },
+            ]}
+          />
+        </>
+      )}
+
       {view.items &&
         view.items.length > 0 &&
         !isCharterLegalSection(section) &&
+        section !== LIST_OF_ENTERPRISES_SECTION_SLUG &&
         ((section !== 'finance' && section !== 'staff') ||
           (section === 'finance' && activeFinanceSection === 'finance-contacts') ||
           (section === 'staff' && activeStaffSection === 'staff-stats')) && (

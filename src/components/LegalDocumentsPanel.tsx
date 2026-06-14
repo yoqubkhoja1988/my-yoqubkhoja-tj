@@ -2,7 +2,7 @@
 
 import UserContentText from '@/components/UserContentText';
 import { getOfficialLegalSource } from '@/lib/official-legal-catalog';
-import { SectionItem } from '@/types/organization-section';
+import { SectionItem, SectionField } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
@@ -18,6 +18,10 @@ type Props = {
   documents?: SectionItem[];
   editing?: boolean;
   onItemsChange?: (items: SectionItem[]) => void;
+  allowItemFields?: boolean;
+  defaultItemFields?: SectionField[];
+  hideOfficialNote?: boolean;
+  addItemLabel?: string;
 };
 
 function typeBadgeClass(type?: SectionItem['documentType']): string {
@@ -109,13 +113,36 @@ function EditableDocumentCard({
   index,
   onChange,
   onRemove,
+  allowItemFields = false,
 }: {
   item: SectionItem;
   index: number;
   onChange: (index: number, item: SectionItem) => void;
   onRemove: (index: number) => void;
+  allowItemFields?: boolean;
 }) {
   const t = useTranslations();
+
+  function updateField(fieldIndex: number, patch: Partial<SectionField>) {
+    const fields = [...(item.fields ?? [])];
+    fields[fieldIndex] = { ...fields[fieldIndex], ...patch };
+    onChange(index, { ...item, fields });
+  }
+
+  function addField() {
+    onChange(index, {
+      ...item,
+      fields: [...(item.fields ?? []), { label: '', value: '' }],
+    });
+  }
+
+  function removeField(fieldIndex: number) {
+    onChange(index, {
+      ...item,
+      fields: (item.fields ?? []).filter((_, currentIndex) => currentIndex !== fieldIndex),
+    });
+  }
+
   return (
     <article className="rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/40 p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -175,6 +202,42 @@ function EditableDocumentCard({
             placeholder={t('legalDocUrlPlaceholder')}
           />
         </div>
+
+        {allowItemFields && (
+          <div className="space-y-2 border-t border-[var(--border)] pt-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-bold text-[var(--text-muted)]">{t('sectionItemFields')}</p>
+              <button type="button" onClick={addField} className="btn-secondary px-2 py-1 text-[10px]">
+                + {t('sectionItemAddField')}
+              </button>
+            </div>
+            {(item.fields ?? []).map((field, fieldIndex) => (
+              <div key={`field-${fieldIndex}`} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                <input
+                  type="text"
+                  value={field.label}
+                  onChange={(e) => updateField(fieldIndex, { label: e.target.value })}
+                  className="input-field text-sm"
+                  placeholder={t('sectionItemFieldLabel')}
+                />
+                <input
+                  type="text"
+                  value={field.value}
+                  onChange={(e) => updateField(fieldIndex, { value: e.target.value })}
+                  className="input-field text-sm"
+                  placeholder={t('sectionItemFieldValue')}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeField(fieldIndex)}
+                  className="btn-danger px-2 py-1 text-[10px]"
+                >
+                  {t('sectionItemRemoveField')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </article>
   );
@@ -190,6 +253,10 @@ export default function LegalDocumentsPanel({
   documents = [],
   editing = false,
   onItemsChange,
+  allowItemFields = false,
+  defaultItemFields,
+  hideOfficialNote = false,
+  addItemLabel,
 }: Props) {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState<LegalTab>(
@@ -246,7 +313,20 @@ export default function LegalDocumentsPanel({
           : sectionType === 'documents'
             ? 'document'
             : undefined;
-    onItemsChange([...(items ?? []), { title: '', ...(documentType ? { documentType } : {}) }]);
+    onItemsChange([
+      ...(items ?? []),
+      {
+        title: '',
+        ...(documentType ? { documentType } : {}),
+        ...(allowItemFields
+          ? {
+              fields: (defaultItemFields ?? [{ label: '', value: '' }]).map((field) => ({
+                ...field,
+              })),
+            }
+          : {}),
+      },
+    ]);
   }
 
   return (
@@ -288,7 +368,7 @@ export default function LegalDocumentsPanel({
 
       {editing && onItemsChange && (
         <button type="button" onClick={addItem} className="btn-secondary text-xs">
-          + {t('legalDocAddItem')}
+          + {addItemLabel ?? t('legalDocAddItem')}
         </button>
       )}
 
@@ -308,6 +388,7 @@ export default function LegalDocumentsPanel({
               index={index}
               onChange={patchItem}
               onRemove={removeItem}
+              allowItemFields={allowItemFields}
             />
           ))}
         </div>
@@ -319,7 +400,9 @@ export default function LegalDocumentsPanel({
         </div>
       )}
 
-      {!editing && <p className="text-[10px] text-[var(--text-muted)]">{t('legalDocOfficialNote')}</p>}
+      {!editing && !hideOfficialNote && (
+        <p className="text-[10px] text-[var(--text-muted)]">{t('legalDocOfficialNote')}</p>
+      )}
     </div>
   );
 }

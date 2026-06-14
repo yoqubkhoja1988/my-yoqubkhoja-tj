@@ -10,6 +10,8 @@ import {
 } from '@/lib/financial-reports-menu';
 import { ORG_INFO_SECTION_SLUG } from '@/lib/organization-info';
 
+export const LIST_OF_ENTERPRISES_SECTION_SLUG = 'list-of-enterprises';
+
 const AUTO_VISIBLE_LEGAL_SECTIONS = new Set<string>([
   LEGAL_SECTION_SLUGS.laws,
   LEGAL_SECTION_SLUGS.decisions,
@@ -59,12 +61,14 @@ export function isCharterLegalSection(sectionSlug: string): boolean {
 export const ORG_USER_EDITABLE_SECTIONS = [
   ...CHARTER_LEGAL_SECTION_SLUGS,
   ORG_INFO_SECTION_SLUG,
+  LIST_OF_ENTERPRISES_SECTION_SLUG,
   ...FINANCIAL_REPORT_SECTION_SLUGS,
 ] as const;
 
 export function isOrgUserEditableSection(sectionSlug: string): boolean {
   if (isCharterLegalSection(sectionSlug)) return true;
   if (sectionSlug === ORG_INFO_SECTION_SLUG) return true;
+  if (sectionSlug === LIST_OF_ENTERPRISES_SECTION_SLUG) return true;
   return isFinancialReportSection(sectionSlug);
 }
 
