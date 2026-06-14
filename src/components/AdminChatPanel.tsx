@@ -11,6 +11,7 @@ type AdminChatListItem = {
   lastMessageAt: string;
   messageCount: number;
   lastMessage: ChatMessage | null;
+  messages: ChatMessage[];
 };
 
 const STATUS_CLASS: Record<ChatConversationStatus, string> = {
@@ -43,16 +44,16 @@ export default function AdminChatPanel() {
   const [adminChatId, setAdminChatId] = useState('');
   const [telegramBusy, setTelegramBusy] = useState(false);
   const messagesRef = useRef<ChatMessage[]>([]);
+  const selectedIdRef = useRef<string | null>(null);
+  const pollTickRef = useRef(0);
   messagesRef.current = messages;
+  selectedIdRef.current = selectedId;
 
-  const loadTelegramStatus = useCallback(async () => {
-    try {
-      const response = await fetch('/api/admin/telegram', { credentials: 'same-origin' });
-      if (response.ok) {
-        setTelegramStatus((await response.json()) as TelegramSetupStatus);
-      }
-    } catch {
-      // ignore
+  const syncSelectedMessages = useCallback((items: AdminChatListItem[], conversationId: string | null) => {
+    if (!conversationId) return;
+    const selected = items.find((item) => item.id === conversationId);
+    if (selected?.messages) {
+      setMessages(selected.messages);
     }
   }, []);
 
@@ -63,16 +64,31 @@ export default function AdminChatPanel() {
       if (!response.ok) throw new Error('load');
       const data = (await response.json()) as { conversations: AdminChatListItem[] };
       setConversations(data.conversations);
-      if (selectedId && !data.conversations.some((item) => item.id === selectedId)) {
+      setError('');
+
+      const activeSelectedId = selectedIdRef.current;
+      if (activeSelectedId && !data.conversations.some((item) => item.id === activeSelectedId)) {
         setSelectedId(null);
         setMessages([]);
+        selectedIdRef.current = null;
+      } else {
+        syncSelectedMessages(data.conversations, activeSelectedId);
+      }
+
+      if (!activeSelectedId) {
+        const waitingHuman = data.conversations.find((item) => item.status === 'human');
+        if (waitingHuman) {
+          setSelectedId(waitingHuman.id);
+          selectedIdRef.current = waitingHuman.id;
+          setMessages(waitingHuman.messages);
+        }
       }
     } catch {
       if (!silent) setError(t('adminChatLoadError'));
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [selectedId, t]);
+  }, [syncSelectedMessages, t]);
 
   const loadThread = useCallback(async (conversationId: string, after?: string) => {
     try {
@@ -100,10 +116,22 @@ export default function AdminChatPanel() {
       } else {
         setMessages(data.messages);
       }
+      setError('');
     } catch {
       setError(t('adminChatLoadError'));
     }
   }, [t]);
+
+  const loadTelegramStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/telegram', { credentials: 'same-origin' });
+      if (response.ok) {
+        setTelegramStatus((await response.json()) as TelegramSetupStatus);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     void loadList();
@@ -112,18 +140,31 @@ export default function AdminChatPanel() {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
+      pollTickRef.current += 1;
       void loadList(true);
-      if (selectedId) {
-        const lastMessage = messagesRef.current[messagesRef.current.length - 1];
-        void loadThread(selectedId, lastMessage?.createdAt);
-      }
-    }, 5000);
-    return () => window.clearInterval(intervalId);
-  }, [loadList, loadThread, selectedId]);
 
-  async function selectConversation(id: string) {
+      const activeSelectedId = selectedIdRef.current;
+      if (!activeSelectedId) return;
+
+      if (pollTickRef.current % 3 === 0) {
+        void loadThread(activeSelectedId);
+        return;
+      }
+
+      const lastMessage = messagesRef.current[messagesRef.current.length - 1];
+      void loadThread(activeSelectedId, lastMessage?.createdAt);
+    }, 4000);
+    return () => window.clearInterval(intervalId);
+  }, [loadList, loadThread]);
+
+  async function selectConversation(id: string, presetMessages?: ChatMessage[]) {
     setSelectedId(id);
+    selectedIdRef.current = id;
     setReply('');
+    setError('');
+    if (presetMessages) {
+      setMessages(presetMessages);
+    }
     await loadThread(id);
   }
 
@@ -349,7 +390,7 @@ export default function AdminChatPanel() {
                 <li key={item.id}>
                   <button
                     type="button"
-                    onClick={() => void selectConversation(item.id)}
+                    onClick={() => void selectConversation(item.id, item.messages)}
                     className={`w-full px-4 py-3 text-left transition hover:bg-white/5 ${
                       selectedId === item.id ? 'bg-[var(--accent)]/10' : ''
                     }`}

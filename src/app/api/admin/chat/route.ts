@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       ...conversation,
       messageCount: messages.length,
       lastMessage: messages[messages.length - 1] ?? null,
+      messages,
     })),
   });
 }
