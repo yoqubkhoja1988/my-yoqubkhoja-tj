@@ -3,6 +3,7 @@ import {
   ContractCounterparty,
   OrganizationServiceContract,
   OrganizationServiceInvoice,
+  ServiceContractStatus,
   ServiceInvoiceLineItem,
 } from '@/types/organization-section';
 
@@ -158,6 +159,44 @@ export function sortContracts(contracts: OrganizationServiceContract[] | undefin
 
 export function sortInvoices(invoices: OrganizationServiceInvoice[] | undefined) {
   return [...(invoices ?? [])].sort((a, b) => b.preparedAt.localeCompare(a.preparedAt));
+}
+
+export type ServiceContractRegistryFilters = {
+  search: string;
+  status: ServiceContractStatus | 'all';
+  dateFrom: string;
+  dateTo: string;
+};
+
+export const EMPTY_CONTRACT_REGISTRY_FILTERS: ServiceContractRegistryFilters = {
+  search: '',
+  status: 'all',
+  dateFrom: '',
+  dateTo: '',
+};
+
+export function filterServiceContracts(
+  contracts: OrganizationServiceContract[] | undefined,
+  filters: ServiceContractRegistryFilters
+): OrganizationServiceContract[] {
+  const q = filters.search.trim().toLowerCase();
+  return sortContracts(contracts).filter((contract) => {
+    if (filters.status !== 'all' && contract.status !== filters.status) return false;
+    if (filters.dateFrom && contract.preparedAt < filters.dateFrom) return false;
+    if (filters.dateTo && contract.preparedAt > filters.dateTo) return false;
+    if (!q) return true;
+    return (
+      contract.contractNumber.toLowerCase().includes(q) ||
+      contract.counterpartyName.toLowerCase().includes(q) ||
+      contract.subject.toLowerCase().includes(q) ||
+      contract.servicesDescription.toLowerCase().includes(q)
+    );
+  });
+}
+
+export function contractValidityLabel(contract: OrganizationServiceContract): string {
+  if (contract.validTo) return `${contract.validFrom} — ${contract.validTo}`;
+  return contract.validFrom;
 }
 
 export function upsertCounterparty(

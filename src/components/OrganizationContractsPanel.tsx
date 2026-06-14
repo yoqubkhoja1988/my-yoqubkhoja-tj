@@ -2,6 +2,7 @@
 
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import OrganizationServiceContractDocument from '@/components/OrganizationServiceContractDocument';
+import OrganizationServiceContractRegistry from '@/components/OrganizationServiceContractRegistry';
 import OrganizationServiceInvoiceDocument from '@/components/OrganizationServiceInvoiceDocument';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
@@ -51,7 +52,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
-type Tab = 'counterparties' | 'contracts' | 'invoices';
+type Tab = 'registry' | 'counterparties' | 'contracts' | 'invoices';
 
 type Props = {
   organizationId: string;
@@ -71,7 +72,7 @@ export default function OrganizationContractsPanel({
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
   const displayOrganizationName = organization?.name || reportOrganizationName;
 
-  const [tab, setTab] = useState<Tab>('contracts');
+  const [tab, setTab] = useState<Tab>('registry');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -306,6 +307,20 @@ export default function OrganizationContractsPanel({
     setInvoiceDraft({ ...invoiceDraft, lineItems, ...totals });
   }
 
+  function openContract(contract: OrganizationServiceContract) {
+    setContractSelectedId(contract.id);
+    setContractDraft(contract);
+    setContractEditing(false);
+    setTab('contracts');
+  }
+
+  function startNewContract() {
+    setContractDraft(createServiceContract(contracts.map((item) => item.contractNumber)));
+    setContractSelectedId(null);
+    setContractEditing(true);
+    setTab('contracts');
+  }
+
   const tabButton = (value: Tab, label: string) => (
     <button
       type="button"
@@ -328,6 +343,7 @@ export default function OrganizationContractsPanel({
       </div>
 
       <div className="flex flex-wrap gap-2">
+        {tabButton('registry', t('orgContractsTabRegistry'))}
         {tabButton('counterparties', t('orgContractsTabCounterparties'))}
         {tabButton('contracts', t('orgContractsTabContracts'))}
         {tabButton('invoices', t('orgContractsTabInvoices'))}
@@ -343,6 +359,15 @@ export default function OrganizationContractsPanel({
         >
           {error || notice}
         </div>
+      )}
+
+      {tab === 'registry' && (
+        <OrganizationServiceContractRegistry
+          contracts={contracts}
+          canEdit={canEdit}
+          onOpen={openContract}
+          onAdd={startNewContract}
+        />
       )}
 
       {tab === 'counterparties' && (
@@ -507,11 +532,7 @@ export default function OrganizationContractsPanel({
               <button
                 type="button"
                 className="btn-primary w-full text-xs"
-                onClick={() => {
-                  setContractDraft(createServiceContract(contracts.map((item) => item.contractNumber)));
-                  setContractSelectedId(null);
-                  setContractEditing(true);
-                }}
+                onClick={startNewContract}
               >
                 {t('orgContractsAddContract')}
               </button>
@@ -520,11 +541,7 @@ export default function OrganizationContractsPanel({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => {
-                  setContractSelectedId(item.id);
-                  setContractDraft(item);
-                  setContractEditing(false);
-                }}
+                onClick={() => openContract(item)}
                 className={`block w-full rounded-lg border px-3 py-2 text-left text-xs ${
                   contractSelectedId === item.id
                     ? 'border-[var(--accent)] bg-[var(--accent)]/10'
