@@ -22,6 +22,11 @@ export const PUBLIC_GOV_SITES: PublicGovSite[] = [
     logoSrc: '/images/gov-sites/government.jpg',
   },
   {
+    href: 'https://moliya.tj',
+    labelKey: 'publicGovSiteFinance',
+    logoSrc: '/images/gov-sites/finance.jpg',
+  },
+  {
     href: 'https://www.mfa.tj',
     labelKey: 'publicGovSiteMfa',
     logoSrc: '/images/gov-sites/mfa.jpg',
@@ -42,7 +47,7 @@ export const PUBLIC_GOV_SITES: PublicGovSite[] = [
     logoSrc: '/images/gov-sites/egov.jpg',
   },
   {
-    href: 'https://www.education.tj',
+    href: 'https://maorif.tj',
     labelKey: 'publicGovSiteEducation',
     logoSrc: '/images/gov-sites/education.jpg',
   },
