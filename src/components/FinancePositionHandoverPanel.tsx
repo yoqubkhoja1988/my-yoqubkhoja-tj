@@ -219,7 +219,8 @@ export default function FinancePositionHandoverPanel({
           staffContent,
           monthsToSyncHandover(nextHandover, previousHandover),
           financeContent.laborLeaves,
-          organizationId
+          organizationId,
+          financeContent.funeralAllowances
         )
       : financeContent.payrollLedgers;
 
@@ -286,7 +287,8 @@ export default function FinancePositionHandoverPanel({
             staffContent,
             [handoverMonthKey(deleted.effectiveDate)],
             financeContent.laborLeaves,
-            organizationId
+            organizationId,
+            financeContent.funeralAllowances
           )
         : financeContent.payrollLedgers;
     const payload: OrganizationSectionContent = {

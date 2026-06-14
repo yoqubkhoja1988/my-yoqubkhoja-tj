@@ -6,6 +6,7 @@ import {
   leaveOverlapsMonth,
 } from '@/lib/finance-labor-leave-pay';
 import {
+  FuneralAllowance,
   LaborLeave,
   LaborLeaveType,
   OrganizationSectionContent,
@@ -105,7 +106,8 @@ export function syncLedgersAfterLaborLeaveChange(
   laborLeaves: LaborLeave[] | undefined,
   staffContent: OrganizationSectionContent,
   months: string[],
-  organizationId?: string
+  organizationId?: string,
+  funeralAllowances?: FuneralAllowance[]
 ): PayrollLedger[] {
   let ledgers = payrollLedgers ?? [];
 
@@ -136,7 +138,8 @@ export function syncLedgersAfterLaborLeaveChange(
       undefined,
       laborLeaves,
       ledgers,
-      organizationId
+      organizationId,
+      funeralAllowances
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,

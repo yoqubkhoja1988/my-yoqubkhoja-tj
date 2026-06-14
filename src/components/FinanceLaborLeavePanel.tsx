@@ -210,7 +210,8 @@ export default function FinanceLaborLeavePanel({
           nextLeaves,
           staffContent,
           monthsToSyncLeave(nextLeave, previousLeave),
-          organizationId
+          organizationId,
+          financeContent.funeralAllowances
         )
       : financeContent.payrollLedgers;
 
@@ -282,7 +283,8 @@ export default function FinanceLaborLeavePanel({
             nextLeaves,
             staffContent,
             leaveMonthsAffected(deleted),
-            organizationId
+            organizationId,
+            financeContent.funeralAllowances
           )
         : financeContent.payrollLedgers;
     const payload: OrganizationSectionContent = {

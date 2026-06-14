@@ -114,6 +114,8 @@ export interface PayrollLedgerEntry {
   baseSalary: string;
   allowances: string;
   laborLeavePay?: string;
+  /** Кумакпулӣ барои дафн (пардохти корфармо) */
+  funeralAllowancePay?: string;
   fhea: string;
   kik: string;
   hhdt: string;
@@ -207,6 +209,50 @@ export interface LaborLeave {
   sickIsTuberculosis?: boolean;
 }
 
+/** КМҶ моддаи 220: фавти корманди суғурташуда ё аъзои оилаи вобаста */
+export type FuneralAllowanceCaseType = 'insured_death' | 'dependent_death';
+
+/** Манбаи пардохт: Агентии суғурта ё буҷети корфармо */
+export type FuneralAllowancePaymentSource = 'social_insurance' | 'employer_budget';
+
+export type FuneralDeceasedRelation =
+  | 'employee'
+  | 'spouse'
+  | 'child'
+  | 'parent'
+  | 'sibling'
+  | 'other_dependent';
+
+export interface FuneralAllowance {
+  id: string;
+  preparedAt: string;
+  orderNumber: string;
+  caseType: FuneralAllowanceCaseType;
+  paymentSource: FuneralAllowancePaymentSource;
+  deceasedFullName: string;
+  deceasedRelation: FuneralDeceasedRelation;
+  deathDate: string;
+  deathCertificateNumber?: string;
+  /** Корманди фавтида (агар мавриди insured_death) */
+  deceasedEmployeeId?: string;
+  /** Корманди гиранда (барои пардохт аз буҷети корфармо) */
+  payeeEmployeeId?: string;
+  /** Номи гиранда, агар корманд набошад */
+  payeeFullName?: string;
+  department: string;
+  position: string;
+  paymentDate: string;
+  /** Нишондиҳандаи ҳисоб барои соли пардохт */
+  calculationIndicator?: number;
+  /** Меъёри умру (пешфарз 20 — КМҶ моддаи 220) */
+  multiplier?: number;
+  amount: string;
+  /** Рақами шаҳодатномаи оилаи камбағал */
+  lowIncomeCertificateNumber?: string;
+  legalBasis?: string;
+  reason?: string;
+}
+
 /** Маълумот барои сарлавҳаи расмии ҳисоботҳои ташкилот */
 export type OrganizationReportLocale = 'tj' | 'ru' | 'en' | 'uz';
 
@@ -231,6 +277,7 @@ export interface OrganizationSectionContent {
   payrollLedgers?: PayrollLedger[];
   positionHandovers?: PositionHandover[];
   laborLeaves?: LaborLeave[];
+  funeralAllowances?: FuneralAllowance[];
   reportHeader?: OrganizationReportHeader;
 }
 
