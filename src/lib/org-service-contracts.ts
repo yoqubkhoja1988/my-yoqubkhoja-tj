@@ -5,6 +5,7 @@ import {
   OrganizationServiceInvoice,
   ServiceContractStatus,
   ServiceInvoiceLineItem,
+  ServiceInvoiceStatus,
 } from '@/types/organization-section';
 
 export const ORGANIZATION_CONTRACTS_SECTION_SLUG = 'organization-contracts';
@@ -197,6 +198,40 @@ export function filterServiceContracts(
 export function contractValidityLabel(contract: OrganizationServiceContract): string {
   if (contract.validTo) return `${contract.validFrom} — ${contract.validTo}`;
   return contract.validFrom;
+}
+
+export type ServiceInvoiceRegistryFilters = {
+  search: string;
+  status: ServiceInvoiceStatus | 'all';
+  dateFrom: string;
+  dateTo: string;
+};
+
+export const EMPTY_INVOICE_REGISTRY_FILTERS: ServiceInvoiceRegistryFilters = {
+  search: '',
+  status: 'all',
+  dateFrom: '',
+  dateTo: '',
+};
+
+export function filterServiceInvoices(
+  invoices: OrganizationServiceInvoice[] | undefined,
+  filters: ServiceInvoiceRegistryFilters
+): OrganizationServiceInvoice[] {
+  const q = filters.search.trim().toLowerCase();
+  return sortInvoices(invoices).filter((invoice) => {
+    if (filters.status !== 'all' && invoice.status !== filters.status) return false;
+    if (filters.dateFrom && invoice.preparedAt < filters.dateFrom) return false;
+    if (filters.dateTo && invoice.preparedAt > filters.dateTo) return false;
+    if (!q) return true;
+    return (
+      invoice.invoiceNumber.toLowerCase().includes(q) ||
+      invoice.contractNumber.toLowerCase().includes(q) ||
+      invoice.counterpartyName.toLowerCase().includes(q) ||
+      invoice.paymentPurpose.toLowerCase().includes(q) ||
+      (invoice.counterpartyTin ?? '').toLowerCase().includes(q)
+    );
+  });
 }
 
 export function upsertCounterparty(

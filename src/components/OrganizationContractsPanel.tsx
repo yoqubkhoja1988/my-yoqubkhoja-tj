@@ -4,6 +4,7 @@ import DocumentExportMenu from '@/components/DocumentExportMenu';
 import OrganizationServiceContractDocument from '@/components/OrganizationServiceContractDocument';
 import OrganizationServiceContractRegistry from '@/components/OrganizationServiceContractRegistry';
 import OrganizationServiceInvoiceDocument from '@/components/OrganizationServiceInvoiceDocument';
+import OrganizationServiceInvoiceRegistry from '@/components/OrganizationServiceInvoiceRegistry';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import {
@@ -52,7 +53,7 @@ import {
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
-type Tab = 'registry' | 'counterparties' | 'contracts' | 'invoices';
+type Tab = 'registry' | 'counterparties' | 'contracts' | 'invoice-registry' | 'invoices';
 
 type Props = {
   organizationId: string;
@@ -321,6 +322,13 @@ export default function OrganizationContractsPanel({
     setTab('contracts');
   }
 
+  function openInvoice(invoice: OrganizationServiceInvoice) {
+    setInvoiceSelectedId(invoice.id);
+    setInvoiceDraft(invoice);
+    setInvoiceEditing(false);
+    setTab('invoices');
+  }
+
   const tabButton = (value: Tab, label: string) => (
     <button
       type="button"
@@ -346,6 +354,7 @@ export default function OrganizationContractsPanel({
         {tabButton('registry', t('orgContractsTabRegistry'))}
         {tabButton('counterparties', t('orgContractsTabCounterparties'))}
         {tabButton('contracts', t('orgContractsTabContracts'))}
+        {tabButton('invoice-registry', t('orgContractsTabInvoiceRegistry'))}
         {tabButton('invoices', t('orgContractsTabInvoices'))}
       </div>
 
@@ -613,6 +622,17 @@ export default function OrganizationContractsPanel({
         </div>
       )}
 
+      {tab === 'invoice-registry' && (
+        <OrganizationServiceInvoiceRegistry
+          organizationId={organizationId}
+          organizationName={displayOrganizationName}
+          organization={organization}
+          invoices={invoices}
+          counterpartyMap={counterpartyMap}
+          onOpen={openInvoice}
+        />
+      )}
+
       {tab === 'invoices' && invoiceDraft && (
         <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
           <div className="space-y-2">
@@ -620,11 +640,7 @@ export default function OrganizationContractsPanel({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => {
-                  setInvoiceSelectedId(item.id);
-                  setInvoiceDraft(item);
-                  setInvoiceEditing(false);
-                }}
+                onClick={() => openInvoice(item)}
                 className={`block w-full rounded-lg border px-3 py-2 text-left text-xs ${
                   invoiceSelectedId === item.id ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--border)]'
                 }`}
