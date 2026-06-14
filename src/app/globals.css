@@ -314,9 +314,7 @@ textarea::placeholder {
 
 /* ——— Логотипи расмии ташкилот (уқоб) ——— */
 .org-logo-image {
-  border: 2px solid #c9a227;
-  box-shadow: 0 2px 8px rgba(15, 40, 71, 0.12);
-  background: #fff;
+  background: transparent;
 }
 
 .org-logo-animated {

@@ -10,12 +10,18 @@ type Props = {
   size?: number;
 };
 
+function logoDimensions(variant: 'document' | 'header', size?: number) {
+  const height = size ?? (variant === 'header' ? 40 : 96);
+  const width = Math.round(height * 1.35);
+  return { width, height };
+}
+
 export default function OrganizationOfficialLogo({
   variant = 'document',
   className = '',
   size,
 }: Props) {
-  const dimension = size ?? (variant === 'header' ? 44 : 88);
+  const { width, height } = logoDimensions(variant, size);
 
   if (variant === 'header') {
     return (
@@ -23,9 +29,9 @@ export default function OrganizationOfficialLogo({
         <Image
           src={ORGANIZATION_LOGO_SRC}
           alt=""
-          width={dimension}
-          height={dimension}
-          className="org-logo-image rounded-full object-cover"
+          width={width}
+          height={height}
+          className="org-logo-image h-auto w-auto object-contain"
           priority
         />
       </div>
@@ -37,9 +43,9 @@ export default function OrganizationOfficialLogo({
       <Image
         src={ORGANIZATION_LOGO_SRC}
         alt=""
-        width={dimension}
-        height={dimension}
-        className="org-logo-image rounded-full object-cover"
+        width={width}
+        height={height}
+        className="org-logo-image h-auto w-auto object-contain"
       />
     </div>
   );

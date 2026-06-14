@@ -200,8 +200,7 @@ export const EXPORT_DOCUMENT_CSS = `
 }
 
 .export-render .org-logo-image {
-  border: 2px solid #c9a227 !important;
-  border-radius: 9999px !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
+  background: transparent !important;
 }
 `;
