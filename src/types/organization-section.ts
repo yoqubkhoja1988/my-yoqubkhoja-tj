@@ -305,6 +305,14 @@ export interface OrganizationSectionContent {
   serviceContracts?: OrganizationServiceContract[];
   serviceInvoices?: OrganizationServiceInvoice[];
   reportHeader?: OrganizationReportHeader;
+  /** Танзимоти талаботи музди меҳнат ба раёсати молияи маҳал */
+  localPayrollRequirementSettings?: LocalPayrollRequirementMonthSettings[];
+}
+
+export interface LocalPayrollRequirementMonthSettings {
+  month: string;
+  budgetArticle2121Amount?: string;
+  decree469ByGroup?: Partial<Record<'admin_teachers' | 'technical', string>>;
 }
 
 export type OrganizationSectionsMap = Record<string, OrganizationSectionContent>;

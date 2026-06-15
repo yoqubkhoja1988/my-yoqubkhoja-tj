@@ -29,6 +29,7 @@ import FinanceBudgetPanel from './FinanceBudgetPanel';
 import FinanceOverviewStats from './FinanceOverviewStats';
 import FinancePayrollLedgerPanel from './FinancePayrollLedgerPanel';
 import FinanceBankPaymentPanel from './FinanceBankPaymentPanel';
+import FinanceLocalPayrollRequirementPanel from './FinanceLocalPayrollRequirementPanel';
 import FinancePayrollPanel from './FinancePayrollPanel';
 import FinanceLaborLeavePanel from './FinanceLaborLeavePanel';
 import FinanceMaternityLeavePanel from './FinanceMaternityLeavePanel';
@@ -831,6 +832,18 @@ export default function EditableSectionContent({
           preferredMonth={payrollLedgerMonth}
           onPreferredMonthApplied={() => setPayrollLedgerMonth(null)}
           onStaffRefreshed={setLiveStaffContent}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' && activeFinanceSection === 'finance-local-payroll-requirement' && (
+        <FinanceLocalPayrollRequirementPanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          staffContent={liveStaffContent}
+          preferredMonth={payrollLedgerMonth}
+          onPreferredMonthApplied={() => setPayrollLedgerMonth(null)}
           onUpdate={setData}
         />
       )}

@@ -4,6 +4,7 @@ export const FINANCE_SECTION_IDS = [
   'finance-payroll',
   'finance-position-handover',
   'finance-payroll-ledger',
+  'finance-local-payroll-requirement',
   'finance-bank-payment',
   'finance-labor-leave',
   'finance-maternity-leave',

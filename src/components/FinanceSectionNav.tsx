@@ -9,6 +9,7 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-payroll', labelKey: 'financeNavPayroll' },
   { id: 'finance-position-handover', labelKey: 'financeNavPositionHandover' },
   { id: 'finance-payroll-ledger', labelKey: 'financeNavPayrollLedger' },
+  { id: 'finance-local-payroll-requirement', labelKey: 'financeNavLocalPayrollRequirement' },
   { id: 'finance-bank-payment', labelKey: 'financeNavBankPayment' },
   { id: 'finance-labor-leave', labelKey: 'financeNavLaborLeave' },
   { id: 'finance-maternity-leave', labelKey: 'financeNavMaternityLeave' },
