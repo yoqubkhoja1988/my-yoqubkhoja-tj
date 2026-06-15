@@ -156,6 +156,10 @@ function formatMonthLabelTj(monthKey: string): string {
 export function formatLocalPayrollRequirementMonthLabel(monthKey: string): string {
   return formatMonthLabelTj(monthKey);
 }
+
+export function buildLocalPayrollRequirementDocumentTitle(monthLabel: string): string {
+  return `Оиди ҳисоби намудани музди маош, музди маоши додамешуда, ҷойи кори холи дар моҳи ${monthLabel}`;
+}
 const BANK_FEE_RATE = 0.005;
 const FHEA_EMPLOYER_RATE = 0.25;
 const SANATORIUM_RATE = 0.015;

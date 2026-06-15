@@ -1,5 +1,6 @@
 import type ExcelJS from 'exceljs';
 import {
+  buildLocalPayrollRequirementDocumentTitle,
   LocalPayrollRequirementDocument,
   LocalPayrollRequirementGroupMetrics,
 } from '@/lib/finance-local-payroll-requirement';
@@ -7,49 +8,34 @@ import { downloadBlob } from '@/lib/document-export/download-blob';
 
 const TEMPLATE_URL = '/templates/kg-local-payroll-requirement-template.xlsx';
 
+const METRIC_COLUMNS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17] as const;
+const PAYMENT_COLUMNS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] as const;
+
+function clearCell(cell: ExcelJS.Cell) {
+  cell.value = null;
+}
+
 function setNumber(cell: ExcelJS.Cell, value: number) {
   cell.value = value;
   cell.numFmt = '#,##0.00';
 }
 
 function clearAndSetNumber(cell: ExcelJS.Cell, value: number) {
-  if ('formula' in cell) {
-    delete (cell as { formula?: string }).formula;
-  }
+  clearCell(cell);
   setNumber(cell, value);
 }
 
-function writeMetricsRow(
+function clearMetricColumns(sheet: ExcelJS.Worksheet, row: number) {
+  for (const column of METRIC_COLUMNS) {
+    clearCell(sheet.getCell(row, column));
+  }
+}
+
+function writeMetricsValues(
   sheet: ExcelJS.Worksheet,
   row: number,
-  metrics: LocalPayrollRequirementGroupMetrics,
-  options?: { onlyAmount?: boolean; onlyBankColumns?: boolean }
+  metrics: LocalPayrollRequirementGroupMetrics
 ) {
-  if (options?.onlyBankColumns) {
-    clearAndSetNumber(sheet.getCell(row, 9), metrics.actualAmount);
-    clearAndSetNumber(sheet.getCell(row, 17), metrics.fhea25);
-    return;
-  }
-
-  if (options?.onlyAmount) {
-    clearAndSetNumber(sheet.getCell(row, 3), metrics.approvedUnits);
-    clearAndSetNumber(sheet.getCell(row, 4), metrics.approvedFund);
-    clearAndSetNumber(sheet.getCell(row, 5), metrics.decree469);
-    clearAndSetNumber(sheet.getCell(row, 6), metrics.vacantUnits);
-    clearAndSetNumber(sheet.getCell(row, 7), metrics.vacantAmount);
-    clearAndSetNumber(sheet.getCell(row, 8), metrics.actualUnits);
-    clearAndSetNumber(sheet.getCell(row, 9), metrics.actualAmount);
-    clearAndSetNumber(sheet.getCell(row, 10), metrics.incomeTax);
-    clearAndSetNumber(sheet.getCell(row, 11), metrics.fhea1);
-    clearAndSetNumber(sheet.getCell(row, 12), metrics.unionFee);
-    clearAndSetNumber(sheet.getCell(row, 13), metrics.hhdt);
-    clearAndSetNumber(sheet.getCell(row, 14), metrics.otherDeductions);
-    clearAndSetNumber(sheet.getCell(row, 15), metrics.totalDeductions);
-    clearAndSetNumber(sheet.getCell(row, 16), metrics.netPay);
-    clearAndSetNumber(sheet.getCell(row, 17), metrics.fhea25);
-    return;
-  }
-
   clearAndSetNumber(sheet.getCell(row, 3), metrics.approvedUnits);
   clearAndSetNumber(sheet.getCell(row, 4), metrics.approvedFund);
   clearAndSetNumber(sheet.getCell(row, 5), metrics.decree469);
@@ -67,11 +53,60 @@ function writeMetricsRow(
   clearAndSetNumber(sheet.getCell(row, 17), metrics.fhea25);
 }
 
+function writeEmployeeRow(
+  sheet: ExcelJS.Worksheet,
+  row: number,
+  metrics: LocalPayrollRequirementGroupMetrics
+) {
+  sheet.getCell(row, 1).value = 1;
+  sheet.getCell(row, 2).value = 'Ҳамагӣ кормандон';
+  writeMetricsValues(sheet, row, metrics);
+}
+
+function writeBankFeeRow(
+  sheet: ExcelJS.Worksheet,
+  row: number,
+  bankFee: Pick<LocalPayrollRequirementGroupMetrics, 'actualAmount' | 'fhea25'>
+) {
+  sheet.getCell(row, 1).value = 2;
+  sheet.getCell(row, 2).value = 'Хизмати бонк-0,5%';
+  clearMetricColumns(sheet, row);
+  clearAndSetNumber(sheet.getCell(row, 9), bankFee.actualAmount);
+  clearAndSetNumber(sheet.getCell(row, 17), bankFee.fhea25);
+}
+
+function writeSubtotalRow(
+  sheet: ExcelJS.Worksheet,
+  row: number,
+  metrics: LocalPayrollRequirementGroupMetrics
+) {
+  sheet.getCell(row, 1).value = 'ЧАМЪ:';
+  sheet.getCell(row, 2).value = 'ЧАМЪ:';
+  writeMetricsValues(sheet, row, metrics);
+}
+
+function writeGrandTotalRow(
+  sheet: ExcelJS.Worksheet,
+  row: number,
+  metrics: LocalPayrollRequirementGroupMetrics
+) {
+  clearCell(sheet.getCell(row, 1));
+  sheet.getCell(row, 2).value = 'Х А М А Г И';
+  writeMetricsValues(sheet, row, metrics);
+}
+
+function clearPaymentRow(sheet: ExcelJS.Worksheet, row: number) {
+  for (const column of PAYMENT_COLUMNS) {
+    clearCell(sheet.getCell(row, column));
+  }
+}
+
 function writePaymentRow(
   sheet: ExcelJS.Worksheet,
   row: number,
   payment: LocalPayrollRequirementDocument['paymentRows'][number]
 ) {
+  clearPaymentRow(sheet, row);
   sheet.getCell(row, 3).value = payment.article;
   clearAndSetNumber(sheet.getCell(row, 4), payment.salaryPay);
   clearAndSetNumber(sheet.getCell(row, 5), payment.incomeTax);
@@ -114,42 +149,38 @@ export async function buildLocalPayrollRequirementWorkbook(
     throw new Error('Payroll requirement template sheet not found');
   }
 
-  const title = `Оиди ҳисоби намудани музди маош, музди маоши додамешуда, ҷои кори холи дар мохи ${document.monthLabel}`;
-  sheet.getCell('A2').value = title;
+  sheet.getCell('A2').value = buildLocalPayrollRequirementDocumentTitle(document.monthLabel);
   sheet.getCell('A3').value = document.organizationName;
 
-  const [groupA, groupB] = document.groups;
-
-  if (groupA) {
-    writeGroupHeader(sheet, 8, groupA.title);
-    writeMetricsRow(sheet, 9, groupA.employees);
-    writeMetricsRow(sheet, 10, {
-      ...groupA.employees,
-      actualAmount: groupA.bankFee.actualAmount,
-      fhea25: groupA.bankFee.fhea25,
-    }, { onlyBankColumns: true });
-    writeMetricsRow(sheet, 11, groupA.subtotal);
+  let row = 8;
+  for (const group of document.groups) {
+    writeGroupHeader(sheet, row, group.title);
+    row += 1;
+    writeEmployeeRow(sheet, row, group.employees);
+    row += 1;
+    writeBankFeeRow(sheet, row, group.bankFee);
+    row += 1;
+    writeSubtotalRow(sheet, row, group.subtotal);
+    row += 1;
   }
 
-  if (groupB) {
-    writeGroupHeader(sheet, 12, groupB.title);
-    writeMetricsRow(sheet, 13, groupB.employees);
-    writeMetricsRow(sheet, 14, {
-      ...groupB.employees,
-      actualAmount: groupB.bankFee.actualAmount,
-      fhea25: groupB.bankFee.fhea25,
-    }, { onlyBankColumns: true });
-    writeMetricsRow(sheet, 15, groupB.subtotal);
-  }
+  const grandTotalRow = row;
+  writeGrandTotalRow(sheet, row, document.grandTotal);
 
-  writeMetricsRow(sheet, 16, document.grandTotal);
+  const paymentRow2111 = grandTotalRow + 4;
+  const paymentRow2121 = paymentRow2111 + 1;
+  const paymentSpacerRow = paymentRow2121 + 1;
+  const paymentTotalRow = paymentSpacerRow + 1;
 
-  writePaymentRow(sheet, 20, document.paymentRows[0]);
-  writePaymentRow(sheet, 21, document.paymentRows[1]);
-  writePaymentRow(sheet, 23, document.paymentTotal);
+  writePaymentRow(sheet, paymentRow2111, document.paymentRows[0]);
+  writePaymentRow(sheet, paymentRow2121, document.paymentRows[1]);
+  clearPaymentRow(sheet, paymentSpacerRow);
+  writePaymentRow(sheet, paymentTotalRow, document.paymentTotal);
 
-  sheet.getCell('J30').value = document.directorName;
-  sheet.getCell('J33').value = document.accountantName;
+  const directorRow = paymentRow2111 + 10;
+  const accountantRow = paymentRow2111 + 13;
+  sheet.getCell(directorRow, 10).value = document.directorName;
+  sheet.getCell(accountantRow, 10).value = document.accountantName;
 
   return workbook;
 }
