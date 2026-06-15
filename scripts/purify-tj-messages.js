@@ -15,7 +15,7 @@ const updates = {
   projectUrl: 'Суроғаи пайванд',
   projectCategory: 'Гурӯҳ',
   viewGithub: 'Профили GitHub',
-  adminDataSelectCategories: 'Интихоби функсияҳо барои чоп ва барунбар',
+  adminDataSelectCategories: 'Интихоби функсияҳо барои чоп ва захиракунӣ',
   adminDataCatTimesheets: 'Ҷадвалҳои ҳузур',
   actVeterinary: 'Ветеринарӣ',
   actFinance: 'Муҳосибот ва молия',
@@ -30,12 +30,12 @@ const updates = {
   payrollLedgerColTabNo: '№ ҲИСОБ',
   bankPaymentSubtitle:
     'Музди меҳнат аз китоби музди меҳнат + ёрипулии суғуртаи иҷтимоӣ (ҳомиладорӣ, беморӣ) — барои чоп ва бонкинги интернетӣ',
-  bankPaymentExport: 'Барунбар ба Эксел',
-  documentExport: 'Барунбар',
+  bankPaymentExport: 'Захиракунӣ ба Excel',
+  documentExport: 'Захиракунӣ',
   documentExportPdf: 'Ба формати PDF',
   documentExportWord: 'Ба формати Word',
   documentExportExcel: 'Ба формати Excel',
-  documentExportError: 'Барунбар иҷро нашуд. Боз кӯшиш кунед.',
+  documentExportError: 'Захиракунӣ иҷро нашуд. Боз кӯшиш кунед.',
   bankPaymentMissingAccounts:
     '{count} корманд суратҳисоби бонкии 20-рақама надорад — дар варақаи «Воридот» дохил намешаванд.',
   bankPaymentImportHint:
