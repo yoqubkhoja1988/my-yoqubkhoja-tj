@@ -98,6 +98,10 @@ async function loadTemplateWorkbook(): Promise<ExcelJS.Workbook> {
   return workbook;
 }
 
+function writeGroupHeader(sheet: ExcelJS.Worksheet, row: number, title: string) {
+  sheet.getCell(row, 1).value = title;
+}
+
 export async function buildLocalPayrollRequirementWorkbook(
   document: LocalPayrollRequirementDocument
 ): Promise<ExcelJS.Workbook> {
@@ -117,6 +121,7 @@ export async function buildLocalPayrollRequirementWorkbook(
   const [groupA, groupB] = document.groups;
 
   if (groupA) {
+    writeGroupHeader(sheet, 8, groupA.title);
     writeMetricsRow(sheet, 9, groupA.employees);
     writeMetricsRow(sheet, 10, {
       ...groupA.employees,
@@ -127,6 +132,7 @@ export async function buildLocalPayrollRequirementWorkbook(
   }
 
   if (groupB) {
+    writeGroupHeader(sheet, 12, groupB.title);
     writeMetricsRow(sheet, 13, groupB.employees);
     writeMetricsRow(sheet, 14, {
       ...groupB.employees,

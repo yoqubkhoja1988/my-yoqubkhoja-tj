@@ -23,6 +23,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { analyzeFinance } from '@/lib/finance-analytics';
+import { supportsLocalPayrollRequirement } from '@/lib/finance-local-payroll-requirement';
 import { analyzeStaffing } from '@/lib/staff-analytics';
 import { Organization } from '@/types/organization';
 import FinanceBudgetPanel from './FinanceBudgetPanel';
@@ -495,6 +496,7 @@ export default function EditableSectionContent({
         <FinanceSectionNav
           activeId={activeFinanceSection}
           onSelect={selectFinanceSection}
+          organizationId={organizationId}
         />
       )}
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -836,7 +838,9 @@ export default function EditableSectionContent({
         />
       )}
 
-      {section === 'finance' && activeFinanceSection === 'finance-local-payroll-requirement' && (
+      {section === 'finance' &&
+        activeFinanceSection === 'finance-local-payroll-requirement' &&
+        supportsLocalPayrollRequirement(organizationId) && (
         <FinanceLocalPayrollRequirementPanel
           organizationId={organizationId}
           organization={organization}

@@ -3,13 +3,28 @@ import {
   formatLedgerAmount,
   mergePayrollLedgerForMonth,
 } from '@/lib/finance-payroll-ledger';
-import { isKindergartenOrganization } from '@/lib/organization-scope';
+import {
+  isFoodSafetyCenterOrganization,
+  isKindergartenOrganization,
+} from '@/lib/organization-scope';
 import { analyzeStaffing } from '@/lib/staff-analytics';
 import { detectStaffColumns, parseAmount } from '@/lib/staff-table-calc';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent, StaffEmployee } from '@/types/organization-section';
 
-export const LOCAL_PAYROLL_REQUIREMENT_GROUPS = [
+export type LocalPayrollRequirementGroupId =
+  | 'admin_teachers'
+  | 'technical'
+  | 'leadership_specialists'
+  | 'service_staff';
+
+export type LocalPayrollRequirementGroupConfig = {
+  id: LocalPayrollRequirementGroupId;
+  title: string;
+  departments: readonly string[];
+};
+
+const KINDERGARTEN_LOCAL_PAYROLL_GROUPS: LocalPayrollRequirementGroupConfig[] = [
   {
     id: 'admin_teachers',
     title: 'МАЪМУРИЯТ ВА ОМУЗГОРОН',
@@ -20,10 +35,45 @@ export const LOCAL_PAYROLL_REQUIREMENT_GROUPS = [
     title: 'КОРМАНДОНИ ҲАЙАТИ ТЕХНИКӢ',
     departments: ['КОРМАНДОНИ ЁРИРАСОН', 'КОРМАНДОНИ ЁРИРАСОН (ТЕХНИКӢ)'],
   },
-] as const;
+];
 
-export type LocalPayrollRequirementGroupId =
-  (typeof LOCAL_PAYROLL_REQUIREMENT_GROUPS)[number]['id'];
+const FOOD_SAFETY_LOCAL_PAYROLL_GROUPS: LocalPayrollRequirementGroupConfig[] = [
+  {
+    id: 'leadership_specialists',
+    title: 'РОҲБАРИКУНАНДА ВА МУТАХАССИСОН',
+    departments: [
+      '1. Роҳбарият',
+      '2. Шуъбаи назорати байторӣ ва зотпарварӣ',
+      '3. Бахши назорати фитосанитарӣ, карантинӣ ва тухмӣ',
+      '4. Бахши санҷиши қонунгузории бехатарии озуқаворӣ',
+      '5. Бахши муҳосибот ва кадрҳо',
+    ],
+  },
+  {
+    id: 'service_staff',
+    title: 'КОРМАНДОНИ ХИЗМАТРАСОНӢ',
+    departments: ['Кормандони хизматрасонӣ'],
+  },
+];
+
+/** @deprecated Use getLocalPayrollRequirementGroups */
+export const LOCAL_PAYROLL_REQUIREMENT_GROUPS = KINDERGARTEN_LOCAL_PAYROLL_GROUPS;
+
+export function getLocalPayrollRequirementGroups(
+  organizationId?: string
+): LocalPayrollRequirementGroupConfig[] {
+  if (isFoodSafetyCenterOrganization(organizationId)) {
+    return FOOD_SAFETY_LOCAL_PAYROLL_GROUPS;
+  }
+  return KINDERGARTEN_LOCAL_PAYROLL_GROUPS;
+}
+
+export function supportsLocalPayrollRequirement(organizationId?: string): boolean {
+  return (
+    isKindergartenOrganization(organizationId) ||
+    isFoodSafetyCenterOrganization(organizationId)
+  );
+}
 
 export type LocalPayrollRequirementGroupRow = {
   rowNo: number;
@@ -120,7 +170,40 @@ function isTechnicalStaffDepartment(department: string): boolean {
   );
 }
 
-export function departmentBelongsToGroup(
+function isFoodSafetyServiceDepartment(department: string): boolean {
+  const key = normalizeDepartmentKey(department);
+  return key.includes('ХИЗМАТРАСОН') && !key.includes('ҲАМАГӢ');
+}
+
+function departmentBelongsToFoodSafetyGroup(
+  department: string,
+  groupId: LocalPayrollRequirementGroupId
+): boolean {
+  const key = normalizeDepartmentKey(department);
+  if (!key || key.includes('ҲАМАГӢ')) return false;
+
+  const isService = isFoodSafetyServiceDepartment(department);
+
+  if (groupId === 'service_staff') return isService;
+
+  if (groupId === 'leadership_specialists') {
+    if (isService) return false;
+    const trimmed = department.trim();
+    return (
+      /^\d+\./.test(trimmed) ||
+      key.includes('РОҲБАР') ||
+      key.includes('ШУЪБА') ||
+      key.includes('БАХШ') ||
+      key.includes('НАЗОРАТ') ||
+      key.includes('МУТАХАССИС') ||
+      key.includes('МУҲОСИБ')
+    );
+  }
+
+  return false;
+}
+
+function departmentBelongsToKindergartenGroup(
   department: string,
   groupId: LocalPayrollRequirementGroupId,
   organizationId?: string
@@ -128,7 +211,7 @@ export function departmentBelongsToGroup(
   const key = normalizeDepartmentKey(department);
   if (!key) return false;
 
-  const group = LOCAL_PAYROLL_REQUIREMENT_GROUPS.find((item) => item.id === groupId);
+  const group = KINDERGARTEN_LOCAL_PAYROLL_GROUPS.find((item) => item.id === groupId);
   if (!group) return false;
 
   if (group.departments.some((item) => normalizeDepartmentKey(item) === key)) {
@@ -154,6 +237,18 @@ export function departmentBelongsToGroup(
     key.includes('ТИББ') ||
     key.includes('ҲАМШИР')
   );
+}
+
+export function departmentBelongsToGroup(
+  department: string,
+  groupId: LocalPayrollRequirementGroupId,
+  organizationId?: string
+): boolean {
+  if (isFoodSafetyCenterOrganization(organizationId)) {
+    return departmentBelongsToFoodSafetyGroup(department, groupId);
+  }
+
+  return departmentBelongsToKindergartenGroup(department, groupId, organizationId);
 }
 
 function resolveEmployeeDepartment(
@@ -200,6 +295,37 @@ function readFinancePayrollSourceFunds(
   }
 
   return funds;
+}
+
+function supplementStaffMetricsFromStaffGrandTables(
+  metrics: LocalPayrollRequirementGroupMetrics,
+  groupId: LocalPayrollRequirementGroupId,
+  staffContent: OrganizationSectionContent,
+  organizationId?: string
+) {
+  if (metrics.approvedFund > 0) return;
+  if (!isFoodSafetyCenterOrganization(organizationId)) return;
+
+  for (const table of staffContent.tables ?? []) {
+    const title = normalizeDepartmentKey(table.title);
+    if (!title.includes('ҲАМАГӢ')) continue;
+
+    const lower = table.columns.map((column) => column.toLowerCase());
+    const monthlyIndex = lower.findIndex(
+      (column) => column.includes('музди') && column.includes('моҳона')
+    );
+    if (monthlyIndex < 0 || table.rows.length === 0) continue;
+
+    const monthlyFund = parseAmount(table.rows[0][monthlyIndex] ?? '');
+    if (monthlyFund === null || monthlyFund <= 0) continue;
+
+    if (groupId === 'leadership_specialists' && title.includes('РОҲБАРИКУНАНДА')) {
+      metrics.approvedFund = roundMoney(monthlyFund);
+    }
+    if (groupId === 'service_staff' && title.includes('ХИЗМАТРАСОН')) {
+      metrics.approvedFund = roundMoney(monthlyFund);
+    }
+  }
 }
 
 function supplementStaffMetricsFromFinance(
@@ -308,6 +434,13 @@ function buildStaffMetrics(
     metrics.vacantAmount += unitWage * slot.vacant;
   }
 
+  supplementStaffMetricsFromStaffGrandTables(
+    metrics,
+    groupId,
+    staffContent,
+    organizationId
+  );
+
   supplementStaffMetricsFromFinance(metrics, groupId, financeContent, organizationId);
 
   metrics.approvedUnits = roundMoney(metrics.approvedUnits);
@@ -359,7 +492,7 @@ function buildLedgerMetrics(
 }
 
 function buildGroup(
-  group: (typeof LOCAL_PAYROLL_REQUIREMENT_GROUPS)[number],
+  group: LocalPayrollRequirementGroupConfig,
   staffContent: OrganizationSectionContent,
   financeContent: OrganizationSectionContent,
   month: string,
@@ -452,7 +585,7 @@ export function buildLocalPayrollRequirementDocument(
   const settings = financeContent.localPayrollRequirementSettings?.find((item) => item.month === month);
   const decree469ByGroup = settings?.decree469ByGroup ?? {};
 
-  const groups = LOCAL_PAYROLL_REQUIREMENT_GROUPS.map((group) =>
+  const groups = getLocalPayrollRequirementGroups(organization?.id).map((group) =>
     buildGroup(
       group,
       staffContent,

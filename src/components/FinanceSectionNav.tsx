@@ -1,6 +1,7 @@
 'use client';
 
 import { FinanceSectionId } from '@/lib/finance-section-nav';
+import { supportsLocalPayrollRequirement } from '@/lib/finance-local-payroll-requirement';
 import { useTranslations } from 'next-intl';
 
 const links: { id: FinanceSectionId; labelKey: string }[] = [
@@ -20,14 +21,20 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
 type Props = {
   activeId: FinanceSectionId;
   onSelect: (id: FinanceSectionId) => void;
+  organizationId?: string;
 };
 
-export default function FinanceSectionNav({ activeId, onSelect }: Props) {
+export default function FinanceSectionNav({ activeId, onSelect, organizationId }: Props) {
   const t = useTranslations();
+  const visibleLinks = links.filter(
+    (link) =>
+      link.id !== 'finance-local-payroll-requirement' ||
+      supportsLocalPayrollRequirement(organizationId)
+  );
 
   return (
     <nav className="flex flex-wrap gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] p-1">
-      {links.map(({ id, labelKey }) => (
+      {visibleLinks.map(({ id, labelKey }) => (
         <button
           key={id}
           type="button"

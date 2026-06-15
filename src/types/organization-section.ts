@@ -312,7 +312,12 @@ export interface OrganizationSectionContent {
 export interface LocalPayrollRequirementMonthSettings {
   month: string;
   budgetArticle2121Amount?: string;
-  decree469ByGroup?: Partial<Record<'admin_teachers' | 'technical', string>>;
+  decree469ByGroup?: Partial<
+    Record<
+      'admin_teachers' | 'technical' | 'leadership_specialists' | 'service_staff',
+      string
+    >
+  >;
 }
 
 export type OrganizationSectionsMap = Record<string, OrganizationSectionContent>;
