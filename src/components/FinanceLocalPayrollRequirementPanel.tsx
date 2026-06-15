@@ -8,7 +8,11 @@ import {
   readBudgetArticle2121Amount,
   resolveLocalPayrollRequirementMonth,
 } from '@/lib/finance-local-payroll-requirement';
-import { downloadLocalPayrollRequirementExcel } from '@/lib/finance-local-payroll-requirement-export';
+import DocumentExportMenu from '@/components/DocumentExportMenu';
+import {
+  downloadLocalPayrollRequirementExcel,
+  localPayrollRequirementFileName,
+} from '@/lib/finance-local-payroll-requirement-export';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import { updateOrganizationSection } from '@/lib/organization-sections';
@@ -128,11 +132,7 @@ export default function FinanceLocalPayrollRequirementPanel({
 
   async function handleExcelExport() {
     if (!documentData) return;
-    try {
-      await downloadLocalPayrollRequirementExcel(documentData);
-    } catch {
-      setError(t('documentExportError'));
-    }
+    await downloadLocalPayrollRequirementExcel(documentData);
   }
 
   return (
@@ -177,14 +177,12 @@ export default function FinanceLocalPayrollRequirementPanel({
           >
             🖨 {t('localPayrollRequirementPrint')}
           </button>
-          <button
-            type="button"
-            onClick={handleExcelExport}
-            className="btn-secondary text-xs"
-            disabled={!documentData}
-          >
-            {t('localPayrollRequirementExport')}
-          </button>
+          <DocumentExportMenu
+            documentId="finance-local-payroll-requirement-document"
+            filename={localPayrollRequirementFileName(month).replace(/\.xlsx$/i, '')}
+            disabled={!documentData || !hasData}
+            customExcelExport={handleExcelExport}
+          />
         </div>
       </div>
 
