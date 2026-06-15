@@ -775,6 +775,7 @@
   "localPayrollRequirementPrint": "Chop etish",
   "localPayrollRequirementExport": "Excelga eksport",
   "localPayrollRequirementNoData": "Ushbu oy uchun mehnat haqi kitobi yoki kadrlar ma'lumoti topilmadi.",
+  "localPayrollRequirementNoDataHint": "«Mehnat haqi kitobi»da hisoblangan oyni tanlang. «Kadrlar» bo'limidagi shtat jadvali va xodimlar ro'yxati to'ldirilgan bo'lishi kerak.",
   "localPayrollRequirementInfoLabel": "Ma'lumot",
   "localPayrollRequirementDocumentHeading": "{month} oyi uchun maosh hisobi va bo'sh lavozimlar",
   "localPayrollRequirementArticle2121": "2121-modda to'lov summasi",

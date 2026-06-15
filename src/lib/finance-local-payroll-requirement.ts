@@ -3,11 +3,11 @@ import {
   formatLedgerAmount,
   mergePayrollLedgerForMonth,
 } from '@/lib/finance-payroll-ledger';
+import { isKindergartenOrganization } from '@/lib/organization-scope';
 import { analyzeStaffing } from '@/lib/staff-analytics';
-import { parseAmount } from '@/lib/staff-table-calc';
-import { activeEmployees } from '@/lib/staff-timesheet';
+import { detectStaffColumns, parseAmount } from '@/lib/staff-table-calc';
 import { Organization } from '@/types/organization';
-import { OrganizationSectionContent } from '@/types/organization-section';
+import { OrganizationSectionContent, StaffEmployee } from '@/types/organization-section';
 
 export const LOCAL_PAYROLL_REQUIREMENT_GROUPS = [
   {
@@ -107,6 +107,123 @@ function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function normalizeDepartmentKey(value: string): string {
+  return value.trim().toUpperCase().replace(/\s+/g, ' ');
+}
+
+function isTechnicalStaffDepartment(department: string): boolean {
+  const key = normalizeDepartmentKey(department);
+  return (
+    key.includes('ЁРИРАСОН') ||
+    key.includes('ХИЗМАТРАСОН') ||
+    key.includes('ТЕХНИК')
+  );
+}
+
+export function departmentBelongsToGroup(
+  department: string,
+  groupId: LocalPayrollRequirementGroupId,
+  organizationId?: string
+): boolean {
+  const key = normalizeDepartmentKey(department);
+  if (!key) return false;
+
+  const group = LOCAL_PAYROLL_REQUIREMENT_GROUPS.find((item) => item.id === groupId);
+  if (!group) return false;
+
+  if (group.departments.some((item) => normalizeDepartmentKey(item) === key)) {
+    return true;
+  }
+
+  if (!isKindergartenOrganization(organizationId)) {
+    return false;
+  }
+
+  if (group.id === 'technical') {
+    return isTechnicalStaffDepartment(key);
+  }
+
+  if (isTechnicalStaffDepartment(key)) {
+    return false;
+  }
+
+  return (
+    key.includes('РОҲБАР') ||
+    key.includes('МУРАББ') ||
+    key.includes('ОМУЗГОР') ||
+    key.includes('ТИББ') ||
+    key.includes('ҲАМШИР')
+  );
+}
+
+function resolveEmployeeDepartment(
+  employee: StaffEmployee,
+  staffContent: OrganizationSectionContent
+): string {
+  const direct = employee.department?.trim();
+  if (direct) return direct;
+
+  const position = employee.position?.trim();
+  if (!position) return '';
+
+  for (const table of staffContent.tables ?? []) {
+    const columns = detectStaffColumns(table.columns);
+    if (!columns) continue;
+
+    for (const row of table.rows) {
+      if (row[columns.position]?.trim() === position) {
+        return table.title;
+      }
+    }
+  }
+
+  return '';
+}
+
+function readFinancePayrollSourceFunds(
+  financeContent: OrganizationSectionContent
+): Map<string, number> {
+  const funds = new Map<string, number>();
+
+  for (const table of financeContent.tables ?? []) {
+    const title = table.title.toLowerCase();
+    if (!title.includes('музди') && !title.includes('манба')) continue;
+    if (table.columns.length < 2) continue;
+
+    for (const row of table.rows) {
+      const label = row[0]?.trim();
+      if (!label || label.toLowerCase().includes('ҷамъ')) continue;
+      const amount = parseAmount(row[1]);
+      if (amount === null) continue;
+      funds.set(normalizeDepartmentKey(label), amount);
+    }
+  }
+
+  return funds;
+}
+
+function supplementStaffMetricsFromFinance(
+  metrics: LocalPayrollRequirementGroupMetrics,
+  groupId: LocalPayrollRequirementGroupId,
+  financeContent: OrganizationSectionContent,
+  organizationId?: string
+) {
+  if (metrics.approvedFund > 0) return;
+
+  const funds = readFinancePayrollSourceFunds(financeContent);
+  if (funds.size === 0) return;
+
+  let addedFund = 0;
+  for (const [label, amount] of funds.entries()) {
+    if (!departmentBelongsToGroup(label, groupId, organizationId)) continue;
+    addedFund += amount;
+  }
+
+  if (addedFund > 0) {
+    metrics.approvedFund = roundMoney(addedFund);
+  }
+}
+
 function emptyMetrics(): LocalPayrollRequirementGroupMetrics {
   return {
     approvedUnits: 0,
@@ -168,7 +285,9 @@ function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
 
 function buildStaffMetrics(
   staffContent: OrganizationSectionContent,
-  departments: readonly string[],
+  financeContent: OrganizationSectionContent,
+  groupId: LocalPayrollRequirementGroupId,
+  organizationId?: string,
   decree469 = 0
 ): LocalPayrollRequirementGroupMetrics {
   const analytics = analyzeStaffing(staffContent);
@@ -176,7 +295,7 @@ function buildStaffMetrics(
   metrics.decree469 = decree469;
 
   for (const slot of analytics.slots) {
-    if (!departments.includes(slot.department)) continue;
+    if (!departmentBelongsToGroup(slot.department, groupId, organizationId)) continue;
     metrics.approvedUnits += slot.quota;
     metrics.actualUnits += slot.filled;
     metrics.vacantUnits += slot.vacant;
@@ -189,9 +308,13 @@ function buildStaffMetrics(
     metrics.vacantAmount += unitWage * slot.vacant;
   }
 
+  supplementStaffMetricsFromFinance(metrics, groupId, financeContent, organizationId);
+
   metrics.approvedUnits = roundMoney(metrics.approvedUnits);
   metrics.actualUnits = roundMoney(metrics.actualUnits);
   metrics.vacantUnits = roundMoney(metrics.vacantUnits);
+  metrics.approvedFund = roundMoney(metrics.approvedFund);
+  metrics.vacantAmount = roundMoney(metrics.vacantAmount);
   return metrics;
 }
 
@@ -199,7 +322,7 @@ function buildLedgerMetrics(
   financeContent: OrganizationSectionContent,
   staffContent: OrganizationSectionContent,
   month: string,
-  departments: readonly string[],
+  groupId: LocalPayrollRequirementGroupId,
   organizationId?: string
 ): LocalPayrollRequirementGroupMetrics {
   const ledger = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
@@ -209,14 +332,19 @@ function buildLedgerMetrics(
     payrollLedgers: financeContent.payrollLedgers,
   });
 
-  const employeeMap = new Map(activeEmployees(staffContent.employees).map((item) => [item.id, item]));
   const metrics = emptyMetrics();
 
   for (const entry of ledger.entries) {
-    const employee = employeeMap.get(entry.employeeId);
-    if (!employee?.department || !departments.includes(employee.department)) continue;
+    const employee = staffContent.employees?.find((item) => item.id === entry.employeeId);
+    if (!employee) continue;
+
+    const department = resolveEmployeeDepartment(employee, staffContent);
+    if (!departmentBelongsToGroup(department, groupId, organizationId)) continue;
 
     const totals = calcEntryTotals(entry);
+    if (totals.gross > 0) {
+      metrics.actualUnits += 1;
+    }
     metrics.actualAmount += totals.gross;
     metrics.incomeTax += totals.tax;
     metrics.fhea1 += totals.fhea;
@@ -226,6 +354,7 @@ function buildLedgerMetrics(
     metrics.netPay += totals.netPay;
   }
 
+  metrics.actualUnits = roundMoney(metrics.actualUnits);
   return metrics;
 }
 
@@ -237,17 +366,25 @@ function buildGroup(
   organizationId?: string,
   decree469 = 0
 ): LocalPayrollRequirementGroup {
-  const staffMetrics = buildStaffMetrics(staffContent, group.departments, decree469);
+  const staffMetrics = buildStaffMetrics(
+    staffContent,
+    financeContent,
+    group.id,
+    organizationId,
+    decree469
+  );
   const ledgerMetrics = buildLedgerMetrics(
     financeContent,
     staffContent,
     month,
-    group.departments,
+    group.id,
     organizationId
   );
 
   const employees: LocalPayrollRequirementGroupMetrics = {
     ...staffMetrics,
+    actualUnits:
+      ledgerMetrics.actualUnits > 0 ? ledgerMetrics.actualUnits : staffMetrics.actualUnits,
     actualAmount: ledgerMetrics.actualAmount,
     incomeTax: ledgerMetrics.incomeTax,
     fhea1: ledgerMetrics.fhea1,
@@ -409,4 +546,15 @@ export function buildLocalPayrollRequirementDocument(
 
 export function formatRequirementAmount(value: number): string {
   return formatLedgerAmount(value);
+}
+
+export function hasLocalPayrollRequirementData(
+  document: LocalPayrollRequirementDocument | null | undefined
+): boolean {
+  if (!document) return false;
+  return (
+    document.grandTotal.approvedFund > 0 ||
+    document.grandTotal.actualAmount > 0 ||
+    document.grandTotal.netPay > 0
+  );
 }

@@ -772,6 +772,7 @@
   "localPayrollRequirementPrint": "Чоп кардан",
   "localPayrollRequirementExport": "Барунбар ба Excel",
   "localPayrollRequirementNoData": "Барои ин моҳ китоби музди меҳнат ё маълумоти кадрҳо ёфт нашуд.",
+  "localPayrollRequirementNoDataHint": "Моҳеро интихоб кунед, ки дар «Китоби музди меҳнат» ҳисоб шудааст. Басти штат ва қайди кормандон дар бахши «Кадрҳо» бояд пур бошанд.",
   "localPayrollRequirementInfoLabel": "Маълумот",
   "localPayrollRequirementDocumentHeading": "Оиди ҳисоби намудани музди маош, музди маоши додамешуда, ҷойи кори холи дар моҳи {month}",
   "localPayrollRequirementArticle2121": "Моддаи 2121 — маблағи пардохт (санатория)",

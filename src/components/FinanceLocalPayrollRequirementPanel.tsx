@@ -3,6 +3,7 @@
 import {
   buildLocalPayrollRequirementDocument,
   formatRequirementAmount,
+  hasLocalPayrollRequirementData,
   readBudgetArticle2121Amount,
   resolveLocalPayrollRequirementMonth,
 } from '@/lib/finance-local-payroll-requirement';
@@ -94,6 +95,7 @@ export default function FinanceLocalPayrollRequirementPanel({
   }, [financeWithOverrides, staffContent, month, organization, reportOrganizationName]);
 
   const monthLabel = formatMonthLabel(month, locale);
+  const hasData = hasLocalPayrollRequirementData(documentData);
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const accountantSignatureLabel = getAccountantSignatureLabel(staffContent, {
     chiefAccountantName: organization?.chiefAccountant,
@@ -209,8 +211,11 @@ export default function FinanceLocalPayrollRequirementPanel({
 
       {!staffContent ? (
         <p className="text-xs text-[var(--text-muted)]">{t('financePayrollNoStaff')}</p>
-      ) : !documentData ? (
-        <p className="text-xs text-[var(--text-muted)]">{t('localPayrollRequirementNoData')}</p>
+      ) : !documentData || !hasData ? (
+        <div className="space-y-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-xs text-amber-100 print:hidden">
+          <p>{t('localPayrollRequirementNoData')}</p>
+          <p className="text-[var(--text-muted)]">{t('localPayrollRequirementNoDataHint')}</p>
+        </div>
       ) : (
         <div className="local-payroll-requirement-scroll w-full overflow-x-auto print:overflow-visible">
           <div

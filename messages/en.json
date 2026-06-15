@@ -775,6 +775,7 @@
   "localPayrollRequirementPrint": "Print",
   "localPayrollRequirementExport": "Export to Excel",
   "localPayrollRequirementNoData": "No payroll ledger or staff data found for this month.",
+  "localPayrollRequirementNoDataHint": "Pick the month calculated in Payroll ledger. Staff tables and employee registry under Staff must be filled in.",
   "localPayrollRequirementInfoLabel": "Information",
   "localPayrollRequirementDocumentHeading": "On accrued wages, net pay, and vacant positions for {month}",
   "localPayrollRequirementArticle2121": "Budget article 2121 payment amount",

@@ -774,6 +774,7 @@
   "localPayrollRequirementPrint": "Печать",
   "localPayrollRequirementExport": "Экспорт в Excel",
   "localPayrollRequirementNoData": "Нет книги зарплаты или кадровых данных за этот месяц.",
+  "localPayrollRequirementNoDataHint": "Выберите месяц, рассчитанный в книге зарплаты. Штатное расписание и реестр сотрудников в разделе «Кадры» должны быть заполнены.",
   "localPayrollRequirementInfoLabel": "Сведения",
   "localPayrollRequirementDocumentHeading": "О начислении зарплаты, выплатах и вакансиях за {month}",
   "localPayrollRequirementArticle2121": "Статья 2121 — сумма платежа",

@@ -12,6 +12,13 @@ function setNumber(cell: ExcelJS.Cell, value: number) {
   cell.numFmt = '#,##0.00';
 }
 
+function clearAndSetNumber(cell: ExcelJS.Cell, value: number) {
+  if ('formula' in cell) {
+    delete (cell as { formula?: string }).formula;
+  }
+  setNumber(cell, value);
+}
+
 function writeMetricsRow(
   sheet: ExcelJS.Worksheet,
   row: number,
@@ -19,45 +26,45 @@ function writeMetricsRow(
   options?: { onlyAmount?: boolean; onlyBankColumns?: boolean }
 ) {
   if (options?.onlyBankColumns) {
-    setNumber(sheet.getCell(row, 9), metrics.actualAmount);
-    setNumber(sheet.getCell(row, 17), metrics.fhea25);
+    clearAndSetNumber(sheet.getCell(row, 9), metrics.actualAmount);
+    clearAndSetNumber(sheet.getCell(row, 17), metrics.fhea25);
     return;
   }
 
   if (options?.onlyAmount) {
-    setNumber(sheet.getCell(row, 3), metrics.approvedUnits);
-    setNumber(sheet.getCell(row, 4), metrics.approvedFund);
-    setNumber(sheet.getCell(row, 5), metrics.decree469);
-    setNumber(sheet.getCell(row, 6), metrics.vacantUnits);
-    setNumber(sheet.getCell(row, 7), metrics.vacantAmount);
-    setNumber(sheet.getCell(row, 8), metrics.actualUnits);
-    setNumber(sheet.getCell(row, 9), metrics.actualAmount);
-    setNumber(sheet.getCell(row, 10), metrics.incomeTax);
-    setNumber(sheet.getCell(row, 11), metrics.fhea1);
-    setNumber(sheet.getCell(row, 12), metrics.unionFee);
-    setNumber(sheet.getCell(row, 13), metrics.hhdt);
-    setNumber(sheet.getCell(row, 14), metrics.otherDeductions);
-    setNumber(sheet.getCell(row, 15), metrics.totalDeductions);
-    setNumber(sheet.getCell(row, 16), metrics.netPay);
-    setNumber(sheet.getCell(row, 17), metrics.fhea25);
+    clearAndSetNumber(sheet.getCell(row, 3), metrics.approvedUnits);
+    clearAndSetNumber(sheet.getCell(row, 4), metrics.approvedFund);
+    clearAndSetNumber(sheet.getCell(row, 5), metrics.decree469);
+    clearAndSetNumber(sheet.getCell(row, 6), metrics.vacantUnits);
+    clearAndSetNumber(sheet.getCell(row, 7), metrics.vacantAmount);
+    clearAndSetNumber(sheet.getCell(row, 8), metrics.actualUnits);
+    clearAndSetNumber(sheet.getCell(row, 9), metrics.actualAmount);
+    clearAndSetNumber(sheet.getCell(row, 10), metrics.incomeTax);
+    clearAndSetNumber(sheet.getCell(row, 11), metrics.fhea1);
+    clearAndSetNumber(sheet.getCell(row, 12), metrics.unionFee);
+    clearAndSetNumber(sheet.getCell(row, 13), metrics.hhdt);
+    clearAndSetNumber(sheet.getCell(row, 14), metrics.otherDeductions);
+    clearAndSetNumber(sheet.getCell(row, 15), metrics.totalDeductions);
+    clearAndSetNumber(sheet.getCell(row, 16), metrics.netPay);
+    clearAndSetNumber(sheet.getCell(row, 17), metrics.fhea25);
     return;
   }
 
-  setNumber(sheet.getCell(row, 3), metrics.approvedUnits);
-  setNumber(sheet.getCell(row, 4), metrics.approvedFund);
-  setNumber(sheet.getCell(row, 5), metrics.decree469);
-  setNumber(sheet.getCell(row, 6), metrics.vacantUnits);
-  setNumber(sheet.getCell(row, 7), metrics.vacantAmount);
-  setNumber(sheet.getCell(row, 8), metrics.actualUnits);
-  setNumber(sheet.getCell(row, 9), metrics.actualAmount);
-  setNumber(sheet.getCell(row, 10), metrics.incomeTax);
-  setNumber(sheet.getCell(row, 11), metrics.fhea1);
-  setNumber(sheet.getCell(row, 12), metrics.unionFee);
-  setNumber(sheet.getCell(row, 13), metrics.hhdt);
-  setNumber(sheet.getCell(row, 14), metrics.otherDeductions);
-  setNumber(sheet.getCell(row, 15), metrics.totalDeductions);
-  setNumber(sheet.getCell(row, 16), metrics.netPay);
-  setNumber(sheet.getCell(row, 17), metrics.fhea25);
+  clearAndSetNumber(sheet.getCell(row, 3), metrics.approvedUnits);
+  clearAndSetNumber(sheet.getCell(row, 4), metrics.approvedFund);
+  clearAndSetNumber(sheet.getCell(row, 5), metrics.decree469);
+  clearAndSetNumber(sheet.getCell(row, 6), metrics.vacantUnits);
+  clearAndSetNumber(sheet.getCell(row, 7), metrics.vacantAmount);
+  clearAndSetNumber(sheet.getCell(row, 8), metrics.actualUnits);
+  clearAndSetNumber(sheet.getCell(row, 9), metrics.actualAmount);
+  clearAndSetNumber(sheet.getCell(row, 10), metrics.incomeTax);
+  clearAndSetNumber(sheet.getCell(row, 11), metrics.fhea1);
+  clearAndSetNumber(sheet.getCell(row, 12), metrics.unionFee);
+  clearAndSetNumber(sheet.getCell(row, 13), metrics.hhdt);
+  clearAndSetNumber(sheet.getCell(row, 14), metrics.otherDeductions);
+  clearAndSetNumber(sheet.getCell(row, 15), metrics.totalDeductions);
+  clearAndSetNumber(sheet.getCell(row, 16), metrics.netPay);
+  clearAndSetNumber(sheet.getCell(row, 17), metrics.fhea25);
 }
 
 function writePaymentRow(
@@ -66,17 +73,17 @@ function writePaymentRow(
   payment: LocalPayrollRequirementDocument['paymentRows'][number]
 ) {
   sheet.getCell(row, 3).value = payment.article;
-  setNumber(sheet.getCell(row, 4), payment.salaryPay);
-  setNumber(sheet.getCell(row, 5), payment.incomeTax);
-  setNumber(sheet.getCell(row, 6), payment.fhea1);
-  setNumber(sheet.getCell(row, 7), payment.unionFee);
-  setNumber(sheet.getCell(row, 8), payment.hhdt);
-  setNumber(sheet.getCell(row, 9), payment.otherDeductions);
-  setNumber(sheet.getCell(row, 10), payment.totalDeductions);
-  setNumber(sheet.getCell(row, 11), payment.bankFee);
-  setNumber(sheet.getCell(row, 12), payment.sanatorium15);
-  setNumber(sheet.getCell(row, 13), payment.fhea25Payment);
-  setNumber(sheet.getCell(row, 14), payment.totalExpense);
+  clearAndSetNumber(sheet.getCell(row, 4), payment.salaryPay);
+  clearAndSetNumber(sheet.getCell(row, 5), payment.incomeTax);
+  clearAndSetNumber(sheet.getCell(row, 6), payment.fhea1);
+  clearAndSetNumber(sheet.getCell(row, 7), payment.unionFee);
+  clearAndSetNumber(sheet.getCell(row, 8), payment.hhdt);
+  clearAndSetNumber(sheet.getCell(row, 9), payment.otherDeductions);
+  clearAndSetNumber(sheet.getCell(row, 10), payment.totalDeductions);
+  clearAndSetNumber(sheet.getCell(row, 11), payment.bankFee);
+  clearAndSetNumber(sheet.getCell(row, 12), payment.sanatorium15);
+  clearAndSetNumber(sheet.getCell(row, 13), payment.fhea25Payment);
+  clearAndSetNumber(sheet.getCell(row, 14), payment.totalExpense);
 }
 
 async function loadTemplateWorkbook(): Promise<ExcelJS.Workbook> {
@@ -95,7 +102,13 @@ export async function buildLocalPayrollRequirementWorkbook(
   document: LocalPayrollRequirementDocument
 ): Promise<ExcelJS.Workbook> {
   const workbook = await loadTemplateWorkbook();
-  const sheet = workbook.worksheets[0];
+  const sheet =
+    workbook.getWorksheet('талабот') ??
+    workbook.worksheets.find((item) => item.name.toLowerCase().includes('талабот')) ??
+    workbook.worksheets[0];
+  if (!sheet) {
+    throw new Error('Payroll requirement template sheet not found');
+  }
 
   const title = `Оиди ҳисоби намудани музди маош, музди маоши додамешуда, ҷои кори холи дар мохи ${document.monthLabel}`;
   sheet.getCell('A2').value = title;
