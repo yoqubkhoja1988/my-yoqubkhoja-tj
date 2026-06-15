@@ -36,7 +36,10 @@ export function isFoodSafetyCenterOrganization(organizationId?: string): boolean
 
 /** Логотип дар сарлавҳаи ҳуҷҷатҳои расмӣ (чоп, PDF, Word). */
 export function showOrganizationDocumentLogo(organizationId?: string): boolean {
-  return !isFoodSafetyCenterOrganization(organizationId);
+  return (
+    !isFoodSafetyCenterOrganization(organizationId) &&
+    !isKindergartenOrganization(organizationId)
+  );
 }
 
 export function isYoqubkhojaInnovationCenter(organizationId?: string): boolean {
