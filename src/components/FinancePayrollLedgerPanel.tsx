@@ -122,7 +122,6 @@ export default function FinancePayrollLedgerPanel({
       organizationId,
       positionHandovers: financeContent.positionHandovers,
       laborLeaves: financeContent.laborLeaves,
-      funeralAllowances: financeContent.funeralAllowances,
       payrollLedgers: financeContent.payrollLedgers,
     });
     setLedger(merged);
@@ -131,7 +130,6 @@ export default function FinancePayrollLedgerPanel({
     financeContent.payrollLedgers,
     financeContent.positionHandovers,
     financeContent.laborLeaves,
-    financeContent.funeralAllowances,
     staffContent,
     staffContent?.timesheets,
     month,
@@ -162,7 +160,6 @@ export default function FinancePayrollLedgerPanel({
       gross: totals.reduce((sum, item) => sum + item.gross, 0),
       allowances: totals.reduce((sum, item) => sum + item.allowances, 0),
       laborLeavePay: totals.reduce((sum, item) => sum + item.laborLeavePay, 0),
-      funeralAllowancePay: totals.reduce((sum, item) => sum + item.funeralAllowancePay, 0),
       baseSalary: totals.reduce((sum, item) => sum + item.baseSalary, 0),
       fhea: totals.reduce((sum, item) => sum + item.fhea, 0),
       kik: totals.reduce((sum, item) => sum + item.kik, 0),
@@ -211,7 +208,6 @@ export default function FinancePayrollLedgerPanel({
         organizationId,
         positionHandovers: financeContent.positionHandovers,
         laborLeaves: financeContent.laborLeaves,
-        funeralAllowances: financeContent.funeralAllowances,
         payrollLedgers: financeContent.payrollLedgers,
       }),
       preparedAt: new Date().toISOString().slice(0, 10),
@@ -247,7 +243,6 @@ export default function FinancePayrollLedgerPanel({
         organizationId,
         positionHandovers: financeBase.positionHandovers,
         laborLeaves: financeBase.laborLeaves,
-        funeralAllowances: financeBase.funeralAllowances,
         payrollLedgers: financeBase.payrollLedgers,
       }
     );
@@ -297,7 +292,6 @@ export default function FinancePayrollLedgerPanel({
           organizationId,
           positionHandovers: saved.positionHandovers,
           laborLeaves: saved.laborLeaves,
-          funeralAllowances: saved.funeralAllowances,
           payrollLedgers: saved.payrollLedgers,
         })
       );
@@ -437,7 +431,7 @@ export default function FinancePayrollLedgerPanel({
                   <th rowSpan={2} className="min-w-[8rem] border border-slate-300 px-2 py-2">
                     {t('payrollLedgerColPosition')}
                   </th>
-                  <th colSpan={5} className="border border-slate-300 px-2 py-2">
+                  <th colSpan={4} className="border border-slate-300 px-2 py-2">
                     {t('payrollLedgerColAccrued')}
                   </th>
                   <th colSpan={5} className="border border-slate-300 px-2 py-2">
@@ -451,7 +445,6 @@ export default function FinancePayrollLedgerPanel({
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColBase')}</th>
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColBonus')}</th>
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColLaborLeave')}</th>
-                  <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColFuneralAllowance')}</th>
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColGross')}</th>
                   <th className="border border-slate-300 px-2 py-2">ФҲИА</th>
                   <th className="border border-slate-300 px-2 py-2">КИК</th>
@@ -495,15 +488,6 @@ export default function FinancePayrollLedgerPanel({
                         editing={editing}
                         value={entry.laborLeavePay ?? '0,00'}
                         onChange={(value) => patchEntry(entry.employeeId, 'laborLeavePay', value)}
-                      />
-                    </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
-                      <AmountInput
-                        editing={editing}
-                        value={entry.funeralAllowancePay ?? '0,00'}
-                        onChange={(value) =>
-                          patchEntry(entry.employeeId, 'funeralAllowancePay', value)
-                        }
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right font-semibold">
@@ -557,9 +541,6 @@ export default function FinancePayrollLedgerPanel({
                   </td>
                   <td className="border border-slate-300 px-2 py-2 text-right">
                     {formatLedgerAmount(summary.laborLeavePay)}
-                  </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
-                    {formatLedgerAmount(summary.funeralAllowancePay)}
                   </td>
                   <td className="border border-slate-300 px-2 py-2 text-right">
                     {formatLedgerAmount(summary.gross)}

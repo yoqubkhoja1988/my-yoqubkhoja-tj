@@ -7,7 +7,6 @@ import {
   OrganizationSectionContent,
   PayrollLedger,
   PositionHandover,
-  FuneralAllowance,
 } from '@/types/organization-section';
 
 export const VACANT_HANDOVER_PREFIX = 'vacant:';
@@ -62,8 +61,7 @@ export function syncLedgersAfterHandoverChange(
   staffContent: OrganizationSectionContent,
   months: string[],
   laborLeaves?: LaborLeave[],
-  organizationId?: string,
-  funeralAllowances?: FuneralAllowance[]
+  organizationId?: string
 ): PayrollLedger[] {
   let ledgers = payrollLedgers ?? [];
 
@@ -84,8 +82,7 @@ export function syncLedgersAfterHandoverChange(
       positionHandovers,
       laborLeaves,
       ledgers,
-      organizationId,
-      funeralAllowances
+      organizationId
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,

@@ -271,7 +271,6 @@ export function buildBankPaymentDocument(
     organizationId: organization?.id,
     positionHandovers: financeContent.positionHandovers,
     laborLeaves: financeContent.laborLeaves,
-    funeralAllowances: financeContent.funeralAllowances,
     payrollLedgers: financeContent.payrollLedgers,
   });
 

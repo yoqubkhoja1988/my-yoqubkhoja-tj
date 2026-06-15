@@ -19,10 +19,8 @@ import {
   usesPreschoolWageScales,
 } from '@/lib/preschool-wage-scales';
 import { laborLeavePayForEmployee } from '@/lib/finance-labor-leave-pay';
-import { funeralAllowancePayForEmployee } from '@/lib/finance-funeral-allowance-pay';
 import {
   EmploymentWorkType,
-  FuneralAllowance,
   LaborLeave,
   OrganizationSectionContent,
   PayrollLedger,
@@ -322,7 +320,6 @@ function emptyEntry(employeeId: string): PayrollLedgerEntry {
     baseSalary: ZERO,
     allowances: ZERO,
     laborLeavePay: ZERO,
-    funeralAllowancePay: ZERO,
     fhea: ZERO,
     kik: ZERO,
     hhdt: ZERO,
@@ -334,8 +331,7 @@ export function calcEntryTotals(entry: PayrollLedgerEntry) {
   const baseSalary = parseAmount(entry.baseSalary) ?? 0;
   const allowances = parseAmount(entry.allowances) ?? 0;
   const laborLeavePay = parseAmount(entry.laborLeavePay ?? '') ?? 0;
-  const funeralAllowancePay = parseAmount(entry.funeralAllowancePay ?? '') ?? 0;
-  const gross = baseSalary + allowances + laborLeavePay + funeralAllowancePay;
+  const gross = baseSalary + allowances + laborLeavePay;
   const fhea = parseAmount(entry.fhea) ?? 0;
   const kik = parseAmount(entry.kik) ?? 0;
   const hhdt = parseAmount(entry.hhdt) ?? 0;
@@ -346,7 +342,6 @@ export function calcEntryTotals(entry: PayrollLedgerEntry) {
     baseSalary,
     allowances,
     laborLeavePay,
-    funeralAllowancePay,
     gross,
     fhea,
     kik,
@@ -393,8 +388,7 @@ export function buildLedgerEntry(
   positionHandovers?: PositionHandover[],
   laborLeaves?: LaborLeave[],
   payrollLedgers?: PayrollLedger[],
-  organizationId?: string,
-  funeralAllowances?: FuneralAllowance[]
+  organizationId?: string
 ): PayrollLedgerEntry {
   const timesheet = mergeTimesheetForMonth(
     staffContent.timesheets,
@@ -425,23 +419,17 @@ export function buildLedgerEntry(
     month,
     employee.id
   );
-  const funeralAllowancePay = funeralAllowancePayForEmployee(
-    funeralAllowances,
-    month,
-    employee.id
-  );
 
   if (!wage) {
-    if (handoverAllowance <= 0 && laborLeavePay <= 0 && funeralAllowancePay <= 0) return base;
+    if (handoverAllowance <= 0 && laborLeavePay <= 0) return base;
 
-    const gross = handoverAllowance + laborLeavePay + funeralAllowancePay;
+    const gross = handoverAllowance + laborLeavePay;
     const deductions = autoDeductions(gross, saved, workedDays, normDays, workType);
     return {
       employeeId: employee.id,
       baseSalary: ZERO,
       allowances: formatAmount(handoverAllowance),
       laborLeavePay: formatAmount(laborLeavePay),
-      funeralAllowancePay: formatAmount(funeralAllowancePay),
       ...deductions,
     };
   }
@@ -449,7 +437,7 @@ export function buildLedgerEntry(
   const baseSalary = proportional(wage.baseSalary, workedDays, normDays);
   const nightAllowance = proportional(wage.allowances, workedDays, normDays);
   const allowances = nightAllowance + handoverAllowance;
-  const gross = baseSalary + allowances + laborLeavePay + funeralAllowancePay;
+  const gross = baseSalary + allowances + laborLeavePay;
   const deductions = autoDeductions(gross, saved, workedDays, normDays, workType);
 
   return {
@@ -457,7 +445,6 @@ export function buildLedgerEntry(
     baseSalary: formatAmount(baseSalary),
     allowances: formatAmount(allowances),
     laborLeavePay: formatAmount(laborLeavePay),
-    funeralAllowancePay: formatAmount(funeralAllowancePay),
     ...deductions,
   };
 }
@@ -466,7 +453,6 @@ export type PayrollLedgerBuildContext = {
   organizationId?: string;
   positionHandovers?: PositionHandover[];
   laborLeaves?: LaborLeave[];
-  funeralAllowances?: FuneralAllowance[];
   payrollLedgers?: PayrollLedger[];
 };
 
@@ -477,8 +463,7 @@ export function buildPayrollLedger(
   positionHandovers?: PositionHandover[],
   laborLeaves?: LaborLeave[],
   payrollLedgers?: PayrollLedger[],
-  organizationId?: string,
-  funeralAllowances?: FuneralAllowance[]
+  organizationId?: string
 ): PayrollLedger {
   const savedMap = new Map((savedLedger?.entries ?? []).map((entry) => [entry.employeeId, entry]));
   const historyLedgers = payrollLedgers;
@@ -495,8 +480,7 @@ export function buildPayrollLedger(
         positionHandovers,
         laborLeaves,
         historyLedgers,
-        organizationId,
-        funeralAllowances
+        organizationId
       )
     ),
   };
@@ -507,8 +491,7 @@ export function recalculatePayrollLedger(
   staffContent: OrganizationSectionContent,
   context: PayrollLedgerBuildContext = {}
 ): PayrollLedger {
-  const { organizationId, positionHandovers, laborLeaves, funeralAllowances, payrollLedgers } =
-    context;
+  const { organizationId, positionHandovers, laborLeaves, payrollLedgers } = context;
   return {
     ...ledger,
     entries: ledger.entries.map((entry) => {
@@ -522,8 +505,7 @@ export function recalculatePayrollLedger(
         positionHandovers,
         laborLeaves,
         payrollLedgers,
-        organizationId,
-        funeralAllowances
+        organizationId
       );
     }),
   };
@@ -543,8 +525,7 @@ export function mergePayrollLedgerForMonth(
     context.positionHandovers,
     context.laborLeaves,
     ledgers,
-    context.organizationId,
-    context.funeralAllowances
+    context.organizationId
   );
 }
 
@@ -600,8 +581,7 @@ export function syncPayrollLedgersAfterTimesheetChange(
       context.positionHandovers,
       context.laborLeaves,
       ledgers,
-      context.organizationId,
-      context.funeralAllowances
+      context.organizationId
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,

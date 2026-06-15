@@ -8,7 +8,6 @@ export const FINANCE_SECTION_IDS = [
   'finance-labor-leave',
   'finance-maternity-leave',
   'finance-sick-leave',
-  'finance-funeral-allowance',
   'finance-contacts',
 ] as const;
 

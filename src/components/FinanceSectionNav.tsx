@@ -13,7 +13,6 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-labor-leave', labelKey: 'financeNavLaborLeave' },
   { id: 'finance-maternity-leave', labelKey: 'financeNavMaternityLeave' },
   { id: 'finance-sick-leave', labelKey: 'financeNavSickLeave' },
-  { id: 'finance-funeral-allowance', labelKey: 'financeNavFuneralAllowance' },
   { id: 'finance-contacts', labelKey: 'financeNavContacts' },
 ];
 
