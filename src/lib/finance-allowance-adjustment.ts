@@ -8,16 +8,21 @@ import {
 } from '@/types/organization-section';
 
 export {
+  allowanceCalcMonthSpecs,
   allowanceMonthsAffected,
   allowancePaymentMonth,
   allowanceRetroMonths,
   calcAllowanceAdjustmentAmount,
   calcAllowanceAdjustmentBreakdown,
+  explainAllowanceBreakdownIssue,
+  formatQualificationDutySalaryPreview,
   previewDutySalaryFromEducation,
 } from '@/lib/finance-allowance-calc';
 export type {
   AllowanceAdjustmentBreakdown,
+  AllowanceBreakdownIssue,
   AllowanceMonthLine,
+  AllowanceMonthSpec,
 } from '@/lib/finance-allowance-calc';
 
 export function createSalaryAllowanceAdjustment(): SalaryAllowanceAdjustment {

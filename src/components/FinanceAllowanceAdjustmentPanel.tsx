@@ -5,7 +5,10 @@ import {
   allowancePaymentMonth,
   calcAllowanceAdjustmentBreakdown,
   createSalaryAllowanceAdjustment,
+  explainAllowanceBreakdownIssue,
+  formatQualificationDutySalaryPreview,
   nextAllowanceOrderNumber,
+  previewDutySalaryFromEducation,
   removeSalaryAllowanceAdjustment,
   sortSalaryAllowanceAdjustments,
   syncLedgersAfterAllowanceAdjustmentChange,
@@ -15,10 +18,7 @@ import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
-import {
-  getEducationLevelsForOrganization,
-  usesEducationLevel,
-} from '@/lib/preschool-wage-scales';
+import { getEducationLevelsForOrganization } from '@/lib/preschool-wage-scales';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
@@ -137,9 +137,34 @@ export default function FinanceAllowanceAdjustmentPanel({
   }, [savedAdjustments, selectedId, editing, financeContent.salaryAllowanceAdjustments, t]);
 
   const employee = employeeMap.get(draft.employeeId);
-  const showEducationFields =
-    draft.kind === 'qualification_degree_difference' &&
-    Boolean(employee && usesEducationLevel(employee.wageScale?.group));
+  const isQualificationKind = draft.kind === 'qualification_degree_difference';
+
+  const qualificationSalaries = useMemo(() => {
+    if (!employee || !isQualificationKind) return null;
+    const from =
+      draft.fromEducationLevel &&
+      previewDutySalaryFromEducation(employee, draft.fromEducationLevel, organizationId);
+    const to =
+      draft.toEducationLevel &&
+      previewDutySalaryFromEducation(employee, draft.toEducationLevel, organizationId);
+    return { from, to };
+  }, [
+    employee,
+    isQualificationKind,
+    draft.fromEducationLevel,
+    draft.toEducationLevel,
+    organizationId,
+  ]);
+
+  const breakdownIssue = useMemo(() => {
+    if (!staffContent || !draft.employeeId) return null;
+    return explainAllowanceBreakdownIssue(
+      draft,
+      staffContent,
+      organizationId,
+      financeContent.laborLeaves
+    );
+  }, [staffContent, draft, organizationId, financeContent.laborLeaves]);
 
   const breakdown = useMemo(() => {
     if (!staffContent || !draft.employeeId) return null;
@@ -194,9 +219,27 @@ export default function FinanceAllowanceAdjustmentPanel({
     setDraft((current) => ({
       ...current,
       kind,
-      legalBasis: current.legalBasis || defaultLegalBasis(kind, t),
-      reason: current.reason || defaultReason(kind, t),
+      legalBasis: defaultLegalBasis(kind, t),
+      reason: defaultReason(kind, t),
+      ...(kind === 'past_month_difference'
+        ? { fromEducationLevel: undefined, toEducationLevel: undefined }
+        : { fromDutySalary: undefined, toDutySalary: undefined }),
     }));
+  }
+
+  function applyEducationLevel(
+    field: 'fromEducationLevel' | 'toEducationLevel',
+    value: SalaryAllowanceAdjustment['fromEducationLevel']
+  ) {
+    setDraft((current) => {
+      const next = { ...current, [field]: value };
+      if (employee && value) {
+        const preview = formatQualificationDutySalaryPreview(employee, value, organizationId);
+        if (field === 'fromEducationLevel') next.fromDutySalary = preview;
+        if (field === 'toEducationLevel') next.toDutySalary = preview;
+      }
+      return next;
+    });
   }
 
   function applyEmployee(employeeId: string) {
@@ -217,6 +260,11 @@ export default function FinanceAllowanceAdjustmentPanel({
         selected?.wageScale?.educationLevel
       ) {
         next.toEducationLevel = selected.wageScale.educationLevel;
+        next.toDutySalary = formatQualificationDutySalaryPreview(
+          selected,
+          selected.wageScale.educationLevel,
+          organizationId
+        );
       }
       return next;
     });
@@ -294,15 +342,40 @@ export default function FinanceAllowanceAdjustmentPanel({
       setError(t('allowancePaymentMonthRequired'));
       return;
     }
-    if (
-      draft.kind === 'qualification_degree_difference' &&
-      (!draft.fromEducationLevel || !draft.toEducationLevel)
-    ) {
+
+    if (!staffContent) {
+      setError(t('sectionSaveError'));
+      return;
+    }
+
+    const issue = explainAllowanceBreakdownIssue(
+      draft,
+      staffContent,
+      organizationId,
+      financeContent.laborLeaves
+    );
+    if (issue === 'missing_qualification_levels') {
       setError(t('allowanceEducationLevelsRequired'));
       return;
     }
-    if (draft.kind === 'past_month_difference' && (!draft.fromDutySalary || !draft.toDutySalary)) {
+    if (issue === 'missing_manual_salaries') {
       setError(t('allowanceDutySalariesRequired'));
+      return;
+    }
+    if (issue === 'invalid_salary_diff') {
+      setError(t('allowanceSalaryDiffInvalid'));
+      return;
+    }
+    if (issue === 'no_calc_months') {
+      setError(
+        isQualificationKind
+          ? t('allowanceNoCalcMonthsQualification')
+          : t('allowanceNoRetroMonthsOnSave')
+      );
+      return;
+    }
+    if (issue === 'no_worked_days') {
+      setError(t('allowanceNoWorkedDays'));
       return;
     }
     if (!breakdown || breakdown.totalAmount <= 0) {
@@ -503,6 +576,12 @@ export default function FinanceAllowanceAdjustmentPanel({
             ))}
           </div>
 
+          <p className="rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 text-xs text-[var(--text-muted)]">
+            {isQualificationKind
+              ? t('allowanceModeHintQualification')
+              : t('allowanceModeHintPastMonth')}
+          </p>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs">
               <span className="font-semibold text-[var(--text-muted)]">{t('allowanceOrderNumber')}</span>
@@ -594,56 +673,78 @@ export default function FinanceAllowanceAdjustmentPanel({
             </label>
           </div>
 
-          {showEducationFields ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-xs">
-                <span className="font-semibold text-[var(--text-muted)]">
-                  {t('allowanceFromEducationLevel')}
-                </span>
-                <select
-                  value={draft.fromEducationLevel ?? ''}
-                  onChange={(event) =>
-                    patch(
-                      'fromEducationLevel',
-                      event.target.value as SalaryAllowanceAdjustment['fromEducationLevel']
-                    )
-                  }
-                  className="input-field mt-1"
-                  disabled={!editing || saving}
-                >
-                  <option value="">{t('allowanceSelectEducationLevel')}</option>
-                  {educationLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {t(`wageScaleEducation_${level}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-xs">
-                <span className="font-semibold text-[var(--text-muted)]">
-                  {t('allowanceToEducationLevel')}
-                </span>
-                <select
-                  value={draft.toEducationLevel ?? ''}
-                  onChange={(event) =>
-                    patch(
-                      'toEducationLevel',
-                      event.target.value as SalaryAllowanceAdjustment['toEducationLevel']
-                    )
-                  }
-                  className="input-field mt-1"
-                  disabled={!editing || saving}
-                >
-                  <option value="">{t('allowanceSelectEducationLevel')}</option>
-                  {educationLevels.map((level) => (
-                    <option key={level} value={level}>
-                      {t(`wageScaleEducation_${level}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          {isQualificationKind ? (
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs">
+                  <span className="font-semibold text-[var(--text-muted)]">
+                    {t('allowanceFromEducationLevel')}
+                  </span>
+                  <select
+                    value={draft.fromEducationLevel ?? ''}
+                    onChange={(event) =>
+                      applyEducationLevel(
+                        'fromEducationLevel',
+                        event.target.value as SalaryAllowanceAdjustment['fromEducationLevel']
+                      )
+                    }
+                    className="input-field mt-1"
+                    disabled={!editing || saving || !employee}
+                  >
+                    <option value="">{t('allowanceSelectEducationLevel')}</option>
+                    {educationLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {t(`wageScaleEducation_${level}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-xs">
+                  <span className="font-semibold text-[var(--text-muted)]">
+                    {t('allowanceToEducationLevel')}
+                  </span>
+                  <select
+                    value={draft.toEducationLevel ?? ''}
+                    onChange={(event) =>
+                      applyEducationLevel(
+                        'toEducationLevel',
+                        event.target.value as SalaryAllowanceAdjustment['toEducationLevel']
+                      )
+                    }
+                    className="input-field mt-1"
+                    disabled={!editing || saving || !employee}
+                  >
+                    <option value="">{t('allowanceSelectEducationLevel')}</option>
+                    {educationLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {t(`wageScaleEducation_${level}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {qualificationSalaries && (
+                <div className="grid gap-2 text-xs sm:grid-cols-2">
+                  <p className="text-[var(--text-muted)]">
+                    {t('allowanceTariffFrom')}:{' '}
+                    <strong className="text-[var(--text)]">
+                      {qualificationSalaries.from != null
+                        ? `${formatAmount(qualificationSalaries.from)} сомонӣ`
+                        : '—'}
+                    </strong>
+                  </p>
+                  <p className="text-[var(--text-muted)]">
+                    {t('allowanceTariffTo')}:{' '}
+                    <strong className="text-[var(--text)]">
+                      {qualificationSalaries.to != null
+                        ? `${formatAmount(qualificationSalaries.to)} сомонӣ`
+                        : '—'}
+                    </strong>
+                  </p>
+                </div>
+              )}
             </div>
-          ) : draft.kind === 'past_month_difference' ? (
+          ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block text-xs">
                 <span className="font-semibold text-[var(--text-muted)]">{t('allowanceFromDutySalary')}</span>
@@ -668,7 +769,7 @@ export default function FinanceAllowanceAdjustmentPanel({
                 />
               </label>
             </div>
-          ) : null}
+          )}
 
           <label className="block text-xs">
             <span className="font-semibold text-[var(--text-muted)]">{t('allowanceLegalBasis')}</span>
@@ -692,7 +793,11 @@ export default function FinanceAllowanceAdjustmentPanel({
 
         <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
           <h5 className="text-sm font-bold">{t('allowanceBreakdownTitle')}</h5>
-          <p className="text-xs text-[var(--text-muted)]">{t('allowanceBreakdownHint')}</p>
+          <p className="text-xs text-[var(--text-muted)]">
+            {isQualificationKind
+              ? t('allowanceBreakdownHintQualification')
+              : t('allowanceBreakdownHintPastMonth')}
+          </p>
           {breakdown ? (
             <>
               <div className="grid gap-2 text-xs sm:grid-cols-2">
@@ -727,7 +832,12 @@ export default function FinanceAllowanceAdjustmentPanel({
                     <tbody>
                       {breakdown.lines.map((line) => (
                         <tr key={line.month} className="border-b border-[var(--border)]/60">
-                          <td className="py-2 pr-2">{formatMonth(line.month)}</td>
+                          <td className="py-2 pr-2">
+                            {formatMonth(line.month)}
+                            {line.partialFromDay && line.partialFromDay > 1
+                              ? ` (${t('allowanceFromDay', { day: line.partialFromDay })})`
+                              : ''}
+                          </td>
                           <td className="py-2 pr-2">{line.workedDays}</td>
                           <td className="py-2 pr-2">{line.normDays}</td>
                           <td className="py-2">
@@ -749,12 +859,26 @@ export default function FinanceAllowanceAdjustmentPanel({
                   </table>
                 </div>
               ) : (
-                <p className="text-xs text-[var(--text-muted)]">{t('allowanceNoRetroMonths')}</p>
+                <p className="text-xs text-amber-400">{t('allowanceNoRetroMonthsHint')}</p>
               )}
               <p className="text-xs text-[var(--text-muted)]">{t('allowanceLedgerHint')}</p>
             </>
           ) : (
-            <p className="text-xs text-[var(--text-muted)]">{t('allowanceBreakdownEmpty')}</p>
+            <p className="text-xs text-[var(--text-muted)]">
+              {breakdownIssue === 'missing_qualification_levels'
+                ? t('allowanceEducationLevelsRequired')
+                : breakdownIssue === 'missing_manual_salaries'
+                  ? t('allowanceDutySalariesRequired')
+                : breakdownIssue === 'invalid_salary_diff'
+                  ? t('allowanceSalaryDiffInvalid')
+                  : breakdownIssue === 'no_calc_months'
+                    ? isQualificationKind
+                      ? t('allowanceNoCalcMonthsQualification')
+                      : t('allowanceNoRetroMonthsHint')
+                    : breakdownIssue === 'no_worked_days'
+                      ? t('allowanceNoWorkedDays')
+                      : t('allowanceBreakdownEmpty')}
+            </p>
           )}
         </div>
       </div>
