@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Шартномаи хизматрасонӣ — Омодакунии утоқи шахсӣ</title>
+  <style>
+    :root {
+      --primary: #1a5f9e;
+      --text: #0f2847;
+      --border: #c8d6e5;
+      --muted: #4a6278;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 11.5pt;
+      background: #f4f7fb;
+    }
+    .page {
+      max-width: 210mm;
+      margin: 0 auto;
+      background: white;
+      padding: 14mm 16mm 18mm;
+    }
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .page { padding: 0; max-width: 100%; }
+      section { break-inside: avoid; }
+    }
+    .toolbar {
+      max-width: 210mm;
+      margin: 0 auto 0.5rem;
+      padding: 0.5rem 1rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .toolbar button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .header-org {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.15rem;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .blank {
+      border-bottom: 1px solid #333;
+      display: inline-block;
+      min-width: 8rem;
+      padding: 0 0.25rem;
+    }
+    .blank.wide { min-width: 14rem; }
+    .blank.full { min-width: 100%; display: block; margin: 0.25rem 0; }
+    p { margin-bottom: 0.55rem; text-align: justify; }
+    h2 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      margin: 1rem 0 0.45rem;
+    }
+    ol { margin: 0.35rem 0 0.65rem 1.25rem; }
+    li { margin-bottom: 0.35rem; text-align: justify; }
+    .parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    .party {
+      border: 1px solid var(--border);
+      padding: 0.65rem;
+      font-size: 0.85rem;
+    }
+    .party strong {
+      display: block;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      font-size: 0.8rem;
+    }
+    .signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .sign-line {
+      border-top: 1px solid #333;
+      margin-top: 2.5rem;
+      padding-top: 0.35rem;
+      font-size: 0.85rem;
+    }
+    .footnote {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      font-style: italic;
+      color: var(--muted);
+      text-align: justify;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.5rem;
+      vertical-align: top;
+    }
+    th { background: #e8eef5; text-align: left; }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <button type="button" onclick="window.print()">🖨 Чоп / захира ба PDF</button>
+  </div>
+
+  <div class="page">
+    <div class="header-org">
+      <strong>МАРКАЗИ БАРНОМАСОЗӢ ВА ТЕХНОЛОГИЯҲОИ ИННОВАТСИОНИИ YOQUBKHOJA</strong><br />
+      ҶДММ · Платформаи идоракунии ташкилотҳо — https://yoqubkhoja.tj
+    </div>
+
+    <h1>Шартномаи хизматрасонӣ № <span class="blank">_____</span></h1>
+
+    <div class="meta">
+      <span>шаҳри Душанбе</span>
+      <span>«<span class="blank">___</span>» <span class="blank wide">_______________</span> 2026 с.</span>
+    </div>
+
+    <p>
+      <strong>Ҷамъияти дорои масъулияти маҳдуди «МАРКАЗИ БАРНОМАСОЗӢ ВА ТЕХНОЛОГИЯҲОИ ИННОВАТСИОНИИ YOQUBKHOJA»</strong>
+      (минбаъд «Иҷрокунанда»), дар шахсияти директор <strong>Ахроров Ёқубхоҷа Яҳёевич</strong>, аз як тараф, ва
+      <strong><span class="blank wide">_________________________________</span></strong>
+      (минбаъд «Фармоишгар»), дар шахсияти
+      <span class="blank wide">_________________________________</span>, аз тарафи дигар,
+      ки дар ин шартнома «Тарафҳо» номида мешаванд, мувофиқи қонунгузории амалкунандаи Ҷумҳурии Тоҷикистон шартномаи зеринро ба имзо расониданд:
+    </p>
+
+    <h2>1. Мавзӯи шартнома</h2>
+    <ol>
+      <li>
+        Иҷрокунанда уҳдадор мешавад, ки хизматрасонии <strong>омодакунии утоқи шахсии истифодабаранда</strong>
+        (минбаъд «Утоқ») дар платформаи идоракунии ташкилотҳои электронии Yoqubkhoja Hub барои Фармоишгарро анҷом диҳад,
+        ва Фармоишгар уҳдадор мешавад, ки барои хизматрасониҳои қабулшуда пардохт намояд.
+      </li>
+      <li>
+        Дохилии хизматрасонӣ (боқияд ба пакети интихобшуда дар ҷадвали ҷилди 1):
+        <ul>
+          <li>сабти номи ташкилоти Фармоишгар ва танзими дастрасӣ;</li>
+          <li>эҷод ва танзими корбар(ҳо)и утоқ бо иҷозатҳои муайян;</li>
+          <li>танзими менюи бахшҳо мувофиқи намуди ташкилот;</li>
+          <li>пуркунии маълумоти аввалия (агар дар пакет пешбинӣ шуда бошад);</li>
+          <li>санҷиши вуруд, супоридани варақаи дастурӣ ва дастгирии техникии аввалин 14 рӯз.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Кори ҳаррӯзаи Фармоишгар</strong> (пур кардани маълумот, ҳисобот, ҳуҷҷатҳо) дар утоқи кории худи
+        кормандони Фармоишгар анҷом дода мешавад ва дар дохилии ин шартнома дохил намешавад.
+      </li>
+    </ol>
+
+    <h2>2. Нарх ва тартиби пардохт</h2>
+    <ol>
+      <li>
+        Пакети интихобшуда: <strong><span class="blank wide">_________________________</span></strong>
+      </li>
+      <li>
+        Маблағи умумии хизматрасонӣ: <strong><span class="blank">__________</span></strong> сомонӣ, бе ААИ.
+      </li>
+      <li>
+        ААИ (14%): <strong><span class="blank">__________</span></strong> сомонӣ. Ҳамагӣ бо ААИ:
+        <strong><span class="blank">__________</span></strong> сомонӣ (агар татбиқ шавад), мувофиқи Кодекси андози Ҷумҳурии Тоҷикистон.
+      </li>
+      <li>
+        Тартиби пардохт:
+        <span class="blank full">50% пешпардохт ҳангоми имзо; 50% пас аз қабули акти супориш-қабул</span>
+        (ё тавре ки Тарафҳо ба тавофиқ расонанд).
+      </li>
+    </ol>
+
+    <h2>3. Мӯҳлат ва тартиби иҷро</h2>
+    <ol>
+      <li>Мӯҳлати иҷро: <strong>3–10 рӯзи корӣ</strong> аз рӯзи гирифтани пешпардохт ва маълумоти зарурӣ.</li>
+      <li>Иҷрокунанда Утоқро тайёр карда, варақаи супориш-қабулро ба Фармоишгар месупорад.</li>
+      <li>Фармоишгар дар мӯҳлати <strong>3 рӯзи корӣ</strong> Утоқро месанҷад ва актро имзо мекунад ё эътирози хаттӣ медиҳад.</li>
+    </ol>
+
+    <h2>4. Ҳуқуқ ва уҳдадориҳои тарафҳо</h2>
+    <ol>
+      <li>Иҷрокунанда хизматрасониҳоро мувофиқи пакети интихобшуда ва стандартҳои касбӣ анҷом медиҳад.</li>
+      <li>Фармоишгар маълумоти дуруст (номи ташкилот, РМА, рӯйхати кормандон, иҷозатҳо) сари вақт пешниҳод мекунад.</li>
+      <li>Иҷрокунанда барои махфияти маълумоти Фармоишгар дар доираи қонунгузорӣ масъул аст.</li>
+      <li>Дастгирии техникии ройгон оид ба вуруд ва иҷозатҳо — <strong>14 рӯз</strong> пас аз супориш. Дастгирии минбаъд — бо шартномаи алоҳида.</li>
+    </ol>
+
+    <h2>5. Ҳалли ихтилофот</h2>
+    <p>
+      Ихтилофот бо роҳи музокира ҳал карда мешавад. Дар сурати ба ҳал наёфтан, ба суди махсуси Ҷумҳурии Тоҷикистон
+      мувофиқи қонунгузории амалкунанда супурда мешавад.
+    </p>
+
+    <h2>6. Тартиби дигар</h2>
+    <ol>
+      <li>
+        Асоси ҳуқуқӣ: моддаҳои 307–341 Кодекси шаҳрвандии Ҷумҳурии Тоҷикистон, Қонуни ҶТ «Дар бораи соҳибкорӣ»,
+        Қонуни ҶТ «Дар бораи иттилоот ва ҳифзи иттилоот».
+      </li>
+      <li>Шартнома дар ду нусхаи ҳамсон тартиб дода шуда, як нусха барои ҳар як Тараф дода мешавад.</li>
+    </ol>
+
+    <p class="footnote">
+      Ин шартнома мувофиқи моддаҳои 307–341 Кодекси шаҳрвандии Ҷумҳурии Тоҷикистон, Қонуни ҶТ «Дар бораи соҳибкорӣ»
+      ва қонунгузории амалкунандаи Ҷумҳурии Тоҷикистон тартиб дода шудааст.
+    </p>
+
+    <div class="parties">
+      <div class="party">
+        <strong>Иҷрокунанда</strong>
+        ҶДММ «МАРКАЗИ БАРНОМАСОЗӢ ВА ТЕХНОЛОГИЯҲОИ ИННОВАТСИОНИИ YOQUBKHOJA»<br />
+        Суроға: Ҷумҳурии Тоҷикистон, вилояти Суғд, ноҳияи Ҷаббор Расулов<br />
+        РМА: <span class="blank">____________</span><br />
+        Тел.: +992 92 791 7704<br />
+        Сайт: https://yoqubkhoja.tj
+      </div>
+      <div class="party">
+        <strong>Фармоишгар</strong>
+        Ном: <span class="blank full">______________________________</span>
+        Шакли ҳуқуқӣ: <span class="blank full">______________________________</span>
+        РМА: <span class="blank full">______________________________</span>
+        Суроға: <span class="blank full">______________________________</span>
+        Тел.: <span class="blank full">______________________________</span>
+      </div>
+    </div>
+
+    <div class="signatures">
+      <div>
+        <p><strong>Директори Иҷрокунанда</strong></p>
+        <p class="sign-line">Ахроров Ё.Я. / имзо, мӯҳр</p>
+      </div>
+      <div>
+        <p><strong>Роҳбари Фармоишгар</strong></p>
+        <p class="sign-line"><span class="blank wide">________________</span> / имзо, мӯҳр</p>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 2rem; page-break-before: always;">Ҷилди 1. Пакетҳои хизматрасонӣ (нархнома)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Пакет</th>
+          <th>Дохил</th>
+          <th>Нарх (бе ААИ)</th>
+          <th>Бо ААИ 14%</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Оғозӣ</strong></td>
+          <td>Утоқ + 1 корбар + дастрасӣ ба ташкилот</td>
+          <td>400 сомонӣ</td>
+          <td>456 сомонӣ</td>
+        </tr>
+        <tr>
+          <td><strong>Стандартӣ</strong></td>
+          <td>2–3 корбар + бахши «Кадрҳо» ё «Молия» (бе пуркунии пурра)</td>
+          <td>800 сомонӣ</td>
+          <td>912 сомонӣ</td>
+        </tr>
+        <tr>
+          <td><strong>Кадрӣ</strong></td>
+          <td>Стандартӣ + басти штат + қайди то 30 корманд</td>
+          <td>1 500 сомонӣ</td>
+          <td>1 710 сомонӣ</td>
+        </tr>
+        <tr>
+          <td><strong>Кадр + Молия</strong></td>
+          <td>Кадрӣ + модулҳои музди меҳнат, санҷиши ҳуҷҷати аввалин моҳ</td>
+          <td>2 400 сомонӣ</td>
+          <td>2 736 сомонӣ</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="footnote" style="margin-top: 0.75rem;">
+      Хизматҳои иловагӣ: корбари иловагӣ — 80 сомонӣ; қайди ҳар 10 корманд (аз 30) — 200 сомонӣ; омӯзиши иловагӣ (1 соат) — 150 сомонӣ.
+    </p>
+  </div>
+</body>
+</html>

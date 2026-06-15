@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Дастурамали истифодабарӣ — Утоқи шахсӣ | Yoqubkhoja Hub</title>
+  <style>
+    :root {
+      --primary: #1a5f9e;
+      --primary-dark: #0f2847;
+      --accent: #1a7a4c;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --border: #c8d6e5;
+      --muted: #4a6278;
+      --text: #0f2847;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card);
+      box-shadow: 0 4px 24px rgba(15, 40, 71, 0.1);
+    }
+    @media print {
+      body { background: white; }
+      .page { box-shadow: none; max-width: 100%; }
+      .no-print { display: none !important; }
+      .section { break-inside: avoid; }
+    }
+    .cover {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--accent) 100%);
+      color: white;
+      padding: 3rem 2.5rem;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .cover-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      margin-bottom: 0.75rem;
+    }
+    .cover h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+    .cover p { opacity: 0.92; max-width: 36rem; font-size: 1rem; }
+    .cover-meta {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    .toolbar {
+      padding: 0.75rem 1.5rem;
+      background: #e8eef5;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .toolbar button, .toolbar a {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .toolbar button:hover, .toolbar a:hover { background: var(--primary-dark); }
+    .content { padding: 2rem 2.5rem 3rem; }
+    .toc {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .toc h2 { font-size: 1rem; margin-bottom: 0.75rem; color: var(--primary); }
+    .toc ol { padding-left: 1.25rem; columns: 2; column-gap: 2rem; }
+    .toc li { margin-bottom: 0.35rem; font-size: 0.85rem; }
+    .toc a { color: var(--primary); text-decoration: none; }
+    .section { margin-bottom: 2.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .section:last-child { border-bottom: none; }
+    .section-num {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+    h2.section-title { font-size: 1.35rem; color: var(--primary-dark); margin-bottom: 0.5rem; }
+    h3 { font-size: 1rem; color: var(--primary); margin: 1rem 0 0.5rem; }
+    p { margin-bottom: 0.65rem; color: var(--text); }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    ul, ol { margin: 0.5rem 0 0.75rem 1.25rem; }
+    li { margin-bottom: 0.3rem; }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin: 0.75rem 0;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      background: var(--bg);
+    }
+    .card strong { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .card span { font-size: 0.75rem; color: var(--muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--primary); color: white; font-weight: 600; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: #e8f5ee;
+      color: #0d3d24;
+      margin-right: 0.25rem;
+    }
+    .badge-view { background: #e8f0fa; color: var(--primary-dark); }
+    .badge-edit { background: #e8f5ee; color: #0d3d24; }
+    .tip {
+      border-left: 4px solid var(--accent);
+      background: #e8f5ee;
+      padding: 0.75rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 0.75rem 0;
+      font-size: 0.85rem;
+    }
+    .warning {
+      border-left: 4px solid #d97706;
+      background: #fffbeb;
+      padding: 0.75rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 0.75rem 0;
+      font-size: 0.85rem;
+    }
+    .footer {
+      background: var(--primary-dark);
+      color: rgba(255,255,255,0.85);
+      padding: 1.5rem 2.5rem;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    .footer a { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="cover">
+      <p class="cover-eyebrow">Маркази барномасозӣ ва технологияҳои инноватсионии Yoqubkhoja</p>
+      <h1>Дастурамали истифодабарии барнома</h1>
+      <p>Утоқи шахсӣ — дастур барои корбарони тасдиқшуда: вуруд, ташкилотҳо, кадр, молия, ҳисоботҳо, ҳуҷҷатҳо ва чати зинда.</p>
+      <p class="cover-meta">Сомона: <strong>my-yoqubkhoja-tj.vercel.app</strong> · Забонҳо: тоҷикӣ, русӣ, англисӣ, ӯзбекӣ · Нашр: 2026</p>
+    </header>
+
+    <div class="toolbar no-print">
+      <button type="button" onclick="window.print()">🖨 Чоп / PDF</button>
+      <a href="https://my-yoqubkhoja-tj.vercel.app/tj/login">Кушодани утоқ</a>
+      <a href="https://my-yoqubkhoja-tj.vercel.app/tj">Сомонаи оммавӣ</a>
+    </div>
+
+    <main class="content">
+      <nav class="toc">
+        <h2>Мундариҷа</h2>
+        <ol>
+          <li><a href="#s1">Оғози кор</a></li>
+          <li><a href="#s2">Сабти ном ва вуруд</a></li>
+          <li><a href="#s3">Утоқи шахсӣ</a></li>
+          <li><a href="#s4">Ташкилотҳо</a></li>
+          <li><a href="#s5">Менюи ташкилот</a></li>
+          <li><a href="#s6">Кормандон ва кадрҳо</a></li>
+          <li><a href="#s7">Муҳосибот ва молия</a></li>
+          <li><a href="#s8">Ҳисоботҳои молиявӣ</a></li>
+          <li><a href="#s9">Ҳуҷҷатҳои ҳуқуқӣ</a></li>
+          <li><a href="#s10">Шартномаҳо</a></li>
+          <li><a href="#s11">Иҷозатҳо</a></li>
+          <li><a href="#s12">Чати зинда</a></li>
+          <li><a href="#s13">Маслиҳатҳои муфид</a></li>
+        </ol>
+      </nav>
+
+      <section class="section" id="s1">
+        <span class="section-num">БОБ 1</span>
+        <h2 class="section-title">Оғози кор</h2>
+        <p>Барномаи <strong>Yoqubkhoja Hub</strong> платформаи идоракунии ташкилотҳо, кадр, молия, ҳисоботҳои молиявӣ ва ҳуҷҷатҳои расмӣ мебошад. Барои кор бо маълумоти ҳасас утоқи шахсӣ лозим аст.</p>
+        <div class="card-grid">
+          <div class="card"><strong>Сомонаи оммавӣ</strong><span>Маълумот дар бораи марказ, хизматҳо, тамос</span></div>
+          <div class="card"><strong>Утоқи шахсӣ</strong><span>Ташкилотҳо, кадр, молия, ҳуҷҷатҳо</span></div>
+          <div class="card"><strong>Чати зинда</strong><span>Дархост ва ёрии фаврӣ</span></div>
+          <div class="card"><strong>4 забон</strong><span>Тоҷикӣ, русӣ, англисӣ, ӯзбекӣ</span></div>
+        </div>
+        <div class="tip"><strong>Маслиҳат:</strong> Пас аз вуруд ҳамеша аз менюи боло забони дилхоҳро интихоб кунед.</div>
+      </section>
+
+      <section class="section" id="s2">
+        <span class="section-num">БОБ 2</span>
+        <h2 class="section-title">Сабти ном ва вуруд</h2>
+        <h3>2.1 Сабти ном</h3>
+        <ol>
+          <li>Ба саҳифаи <strong>«Сабти ном»</strong> гузаред.</li>
+          <li>Номи корбар (ҳадди ақал 3 аломат), рамз (ҳадди ақал 6 аломат) ва такрори рамзро ворид кунед.</li>
+          <li>Пас аз сабт ҳисоби шумо дар ҳолати <strong>«Интизори иҷозат»</strong> мемонад.</li>
+          <li>Маъмури сомона ҳисобро тасдиқ мекунад ва ташкилотҳо/бахшҳоро таъин мекунад.</li>
+        </ol>
+        <h3>2.2 Вуруд</h3>
+        <p>Дар саҳифаи <strong>«Ворид шудан»</strong> номи корбар ва рамзро ворид кунед. Пас аз вуруд ба <strong>Утоқи шахсӣ</strong> мегузаред.</p>
+        <table>
+          <tr><th>Ҳолат</th><th>Маъно</th></tr>
+          <tr><td>Иҷозат дода шуд</td><td>Метавонед ворид шавед ва кор кунед</td></tr>
+          <tr><td>Интизори иҷозат</td><td>Вуруд мумкин нест — бо маъмур тамос гиред</td></tr>
+          <tr><td>Дастрасӣ баста шудааст</td><td>Ҳисоб бекор карда шудааст</td></tr>
+        </table>
+      </section>
+
+      <section class="section" id="s3">
+        <span class="section-num">БОБ 3</span>
+        <h2 class="section-title">Утоқи шахсӣ</h2>
+        <p>Пас аз вуруд саҳифаи асосии утоқ кушода мешавад. Дар ин ҷо:</p>
+        <ul>
+          <li><strong>Профил</strong> — номи шумо ва ҳолати корбар</li>
+          <li><strong>Дастрасии зуд</strong> — кортҳои «Лоиҳаҳо» ва «Ташкилотҳо» (агар иҷозат бошад)</li>
+          <li><strong>Ташкилотҳои ман</strong> — рӯйхати ташкилотҳои иҷозатдодашуда</li>
+          <li><strong>Қонунҳо, қарорҳо ва санадҳои расмӣ</strong> — ҷустуҷӯи санадҳои меъёрии давлатӣ</li>
+        </ul>
+        <p class="muted">Менюи боло: Утоқи шахсӣ · Лоиҳаҳо (агар иҷозат) · Ташкилотҳо · Чат · Забон · Баромад</p>
+        <div class="warning"><strong>Таваҷҷуҳ:</strong> Корбарони оддӣ дар бахши «Лоиҳаҳо» танҳо тасвири маркази инноватсияро мебинанд. Идоракунии лоиҳаҳо танҳо барои маъмури сомона аст.</div>
+      </section>
+
+      <section class="section" id="s4">
+        <span class="section-num">БОБ 4</span>
+        <h2 class="section-title">Ташкилотҳо</h2>
+        <p>Аз меню <strong>«Ташкилотҳо»</strong> ташкилотҳои иҷозатдодашударо мебинед. Рӯйхат мувофиқи <strong>соҳаҳои иқтисодӣ</strong> гуруҳбандӣ шудааст.</p>
+        <h3>Имкониятҳо</h3>
+        <ul>
+          <li>Ҷустуҷӯ бо ном, РМА, суроға, роҳбар</li>
+          <li>Филтр аз рӯи соҳаи иқтисодӣ</li>
+          <li>Кушодани ташкилот → менюи бахшҳо</li>
+        </ul>
+        <p>Дар саҳифаи <strong>«Умумӣ»</strong> маълумоти асосӣ намоиш дода мешавад: ном, РМА, РЯМ, суроға, роҳбар, сармуҳосиб, телефонҳо.</p>
+      </section>
+
+      <section class="section" id="s5">
+        <span class="section-num">БОБ 5</span>
+        <h2 class="section-title">Менюи ташкилот — ҳамаи самтҳои корӣ</h2>
+        <p>Менюи ҳар ташкилот вобаста ба намуди он фарқ мекунад. Бахшҳо дар гурӯҳҳо ҷойгир шудаанд.</p>
+
+        <h3>5.1 Гурӯҳҳои умумӣ</h3>
+        <table>
+          <tr><th>Гурӯҳ</th><th>Мазмун</th></tr>
+          <tr><td>Умумӣ</td><td>Умумӣ, Маълумот (сарлавҳаҳои ҳисобот)</td></tr>
+          <tr><td>Фаъолият</td><td>Барномаҳо, лоиҳаҳо, хизматрасониҳо, иҷозатнома</td></tr>
+          <tr><td>Қонунгузорӣ ва санадҳо</td><td>Қонунҳо, қарорҳо, санадҳои расмӣ</td></tr>
+          <tr><td>Хабарҳо ва иттилоот</td><td>Хабарҳо, суратнигор, видео, маҷалла</td></tr>
+          <tr><td>Муроҷиат</td><td>Муроҷиат ба роҳбар</td></tr>
+          <tr><td>Идоракунӣ</td><td>Кадр, молия, ҳисобот, ҳуҷҷатҳои ҳуқуқӣ</td></tr>
+          <tr><td>Ҳисоботҳои молиявӣ</td><td>Шаклҳои 1–6, солона, фосилавӣ, мӯҳлатҳо</td></tr>
+        </table>
+
+        <h3>5.2 Бахшҳои асосӣ (ҳамаи ташкилотҳо)</h3>
+        <table>
+          <tr><th>Бахш</th><th>Вазифа</th><th>Дастрасӣ*</th></tr>
+          <tr><td>Умумӣ (overview)</td><td>Тавсифи ташкилот</td><td><span class="badge badge-view">Намоиш</span></td></tr>
+          <tr><td>Маълумот (org-info)</td><td>Сарлавҳаҳои ҳисобот, мақомоти болоӣ</td><td><span class="badge badge-edit">Таҳрир</span></td></tr>
+          <tr><td>Қонунҳо / Қарорҳо / Санадҳо</td><td>Каталоги расмии давлатӣ</td><td><span class="badge badge-edit">Таҳрир</span></td></tr>
+          <tr><td>Кормандон ва кадрҳо</td><td>Кадр, табель, музди меҳнат</td><td><span class="badge badge-view">Намоиш</span></td></tr>
+          <tr><td>Муҳосибот ва молия</td><td>Буҷет, музди меҳнат, рухсатиҳо</td><td><span class="badge badge-view">Намоиш</span></td></tr>
+          <tr><td>Ҳисоботи ташкилӣ</td><td>Ҳисоботи басти вазифаҳо</td><td><span class="badge badge-view">Намоиш</span></td></tr>
+          <tr><td>Ҳисоботҳои молиявӣ</td><td>Шаклҳои 1–6, мӯҳлатҳо</td><td><span class="badge badge-edit">Таҳрир</span></td></tr>
+          <tr><td>Ҳуҷҷатҳои ҳуқуқӣ / Оиннома</td><td>Ҳуҷҷатҳои дохили ташкилот</td><td><span class="badge badge-edit">Таҳрир</span></td></tr>
+          <tr><td>Шартнома бо ташкилотҳо</td><td>Шартномаҳо, ҳисобномаҳо, реестр</td><td><span class="badge badge-edit">Таҳрир</span></td></tr>
+          <tr><td>Хабарҳо, Муроҷиат</td><td>Иттилоот ва муроҷиатҳо</td><td><span class="badge badge-view">Намоиш</span></td></tr>
+        </table>
+        <p class="muted">* «Таҳрир» — агар бахш иҷозат дода шуда бошад ва режими «танҳо назорат» фаъол набошад.</p>
+
+        <h3>5.3 Бахшҳои махсус (вобаста ба намуди ташкилот)</h3>
+        <div class="card-grid">
+          <div class="card"><strong>Бехатарии озуқаворӣ</strong><span>Ветеринария, фитосанитария, ҳимояи растаниҳо, тухмӣ, корхонаҳо</span></div>
+          <div class="card"><strong>Томактабӣ / мактаб</strong><span>Таълиму тарбия, гурӯҳҳои синну солӣ, тарбиягирандагон, ғизо, тиб</span></div>
+          <div class="card"><strong>Маркази инноватсия (ҶДММ)</strong><span>Хизматрасониҳо, лоиҳаҳои барномавӣ, шартномаҳо, идоракунӣ</span></div>
+        </div>
+      </section>
+
+      <section class="section" id="s6">
+        <span class="section-num">БОБ 6</span>
+        <h2 class="section-title">Кормандон ва кадрҳо</h2>
+        <p>Бахши <strong>«Кормандон ва кадрҳо»</strong> иттилооти кадриро дар зерин бахшҳо нишон медиҳад:</p>
+        <table>
+          <tr><th>Зерин бахш</th><th>Мазмун</th></tr>
+          <tr><td>Омор</td><td>Омори кадрӣ</td></tr>
+          <tr><td>Басти вазифаҳо</td><td>Ҷадвали вазифаҳо ва музди меҳнат (ҳисоби автоматӣ)</td></tr>
+          <tr><td>Холигиҳо</td><td>Холигиҳои вазифавӣ</td></tr>
+          <tr><td>Бақайдгирӣ</td><td>Реестри кормандон</td></tr>
+          <tr><td>Ҷадвали ҳузур</td><td>Табели ҳузур</td></tr>
+        </table>
+        <div class="warning">Корбарони утоқи шахсӣ ин бахшро <strong>танҳо мебинанд</strong>. Таҳрир ва захира кардан танҳо барои кормандони ваколатдор (маъмур/кадр) мумкин аст.</div>
+      </section>
+
+      <section class="section" id="s7">
+        <span class="section-num">БОБ 7</span>
+        <h2 class="section-title">Муҳосибот ва молия</h2>
+        <p>Бахши <strong>«Муҳосибот ва молия»</strong> зерин саҳифаҳо дорад:</p>
+        <ul>
+          <li><strong>Омор</strong> — омори буҷет ва музди меҳнат</li>
+          <li><strong>Буҷет</strong> — буҷети солона ва фосидавӣ</li>
+          <li><strong>Манбаи музди меҳнат</strong> — аз басти вазифаҳо</li>
+          <li><strong>Вогузоркунии вазифа</strong> — ҳуҷҷатҳои гузариш</li>
+          <li><strong>Китоби музди меҳнат</strong> — ҳисоботи моҳона (чоп)</li>
+          <li><strong>Пардохт ба бонк</strong> — варақаи пардохт (чоп/Excel)</li>
+          <li><strong>Рухсатии меҳнатӣ, ҳомиладорӣ, беморӣ, кумакпулӣ</strong></li>
+          <li><strong>Тамос</strong> — реквизитҳои бонкӣ</li>
+        </ul>
+        <p class="muted">Барои корбарони утоқ: <strong>намоиш ва чоп</strong> — бе имкони тағйир.</p>
+      </section>
+
+      <section class="section" id="s8">
+        <span class="section-num">БОБ 8</span>
+        <h2 class="section-title">Ҳисоботҳои молиявӣ</h2>
+        <p>Мувофиқи Дастурномаи №204 (ШМБДТ) шаклҳои зерин дастрасанд:</p>
+        <table>
+          <tr><th>Шакл</th><th>Ном</th></tr>
+          <tr><td>№1</td><td>Баланси ҳисоботӣ</td></tr>
+          <tr><td>№2</td><td>Ҳисоботи даромадҳо ва хароҷот</td></tr>
+          <tr><td>№3</td><td>Тағйироти капитал</td></tr>
+          <tr><td>№4</td><td>Ҷараёни пули нақд</td></tr>
+          <tr><td>№5</td><td>Иҷрои буҷет (даромад/хароҷот)</td></tr>
+          <tr><td>№6</td><td>Иҷрои басти вазифаҳо</td></tr>
+        </table>
+        <p>Инчунин: <strong>Ҳисоботи солона</strong>, <strong>Ҳисоботи фосилавӣ</strong>, <strong>Мӯҳлатҳо</strong>.</p>
+        <div class="tip">Агар ба шумо иҷозати ин бахш дода шуда бошад, метавонед маълумотро пур кунед ва нигоҳ доред.</div>
+      </section>
+
+      <section class="section" id="s9">
+        <span class="section-num">БОБ 9</span>
+        <h2 class="section-title">Ҳуҷҷатҳои ҳуқуқӣ</h2>
+        <ul>
+          <li><strong>Қонунҳо, қарорҳо, санадҳои расмӣ</strong> — аз манбаъҳои давлатӣ синхронизатсия мешаванд</li>
+          <li><strong>Оиннома, ҳуҷҷатҳои ҳуқуқӣ</strong> — ҳуҷҷатҳои дохили ташкилот (агар иҷозат бошад)</li>
+          <li><strong>Ҳуҷҷатҳои иҷозатдиҳӣ</strong> — иҷозатномаҳо</li>
+          <li>Дар утоқи шахсӣ — <strong>ҷустуҷӯи умумии санадҳои меъёрӣ</strong></li>
+        </ul>
+      </section>
+
+      <section class="section" id="s10">
+        <span class="section-num">БОБ 10</span>
+        <h2 class="section-title">Шартнома бо ташкилотҳо</h2>
+        <p>(Барои ташкилотҳои мувофиқ, масалан Маркази инноватсия)</p>
+        <ul>
+          <li>Реестри контрагентҳо</li>
+          <li>Шартномаҳои хизматрасонӣ</li>
+          <li>Ҳисобномаҳо (invoice)</li>
+          <li>Ҷустуҷӯи РМА ва BIC</li>
+          <li>Чоп ва содироти Excel</li>
+        </ul>
+      </section>
+
+      <section class="section" id="s11">
+        <span class="section-num">БОБ 11</span>
+        <h2 class="section-title">Иҷозатҳо ва режимҳои дастрасӣ</h2>
+        <p>Маъмури сомона барои ҳар корбар муайян мекунад:</p>
+        <table>
+          <tr><th>Иҷозат</th><th>Маъно</th></tr>
+          <tr><td>Дастрасӣ ба лоиҳаҳо</td><td>Менюи «Лоиҳаҳо» ва саҳифаи марказ</td></tr>
+          <tr><td>Ташкилотҳо</td><td>Кадом ташкилотҳо дидан мешаванд</td></tr>
+          <tr><td>Бахшҳо</td><td>Кадом бахшҳои меню кушода мешаванд</td></tr>
+          <tr><td>Танҳо назорат</td><td>Ҳама бахшҳо намоиш — тағйир мамнуъ</td></tr>
+        </table>
+        <div class="warning">Агар пайғоми <strong>«Режими танҳо назорат»</strong> пайдо шавад, шумо маълумотро мебинед, аммо нигоҳ доштан ё тағйир додан наметавонед.</div>
+        <p>Бе иҷозати мустақим ҳам дастрасанд (агар ташкилот таъин шуда бошад): Маълумот, Қонунҳо, Қарорҳо, Санадҳо, Ҳисоботҳои молиявӣ.</p>
+      </section>
+
+      <section class="section" id="s12">
+        <span class="section-num">БОБ 12</span>
+        <h2 class="section-title">Чати зинда</h2>
+        <p>Тугмаи <strong>«💬 Чат»</strong> дар гӯшаи поёни рост ё дар менюи боло.</p>
+        <h3>Барои корбари воридшуда</h3>
+        <ul>
+          <li>Чат фавран оғоз мешавад</li>
+          <li>Ёрдамчии автоматӣ ба саволҳои умумӣ ҷавоб медиҳад</li>
+          <li>Тугмаҳои зуд: вуруд, сабти ном, ташкилотҳо, иҷозатҳо, кадр, молия</li>
+          <li><strong>«📞 Дархост ба маъмур»</strong> — пайваст шудани маъмур</li>
+          <li>Нишон: «Маъмур менависад»</li>
+          <li>Таҳрири паёми худ дар <strong>60 сония</strong></li>
+        </ul>
+        <h3>Барои меҳмон (бе вуруд)</h3>
+        <ul>
+          <li>Пеш аз чат: ном (ҳатмӣ), email ва телефон (ихтиёрӣ)</li>
+          <li>Маълумот ба маъмур мерасад</li>
+        </ul>
+      </section>
+
+      <section class="section" id="s13">
+        <span class="section-num">БОБ 13</span>
+        <h2 class="section-title">Маслиҳатҳои муфид</h2>
+        <ol>
+          <li>Агар вуруд нашавад — бо маъмури сомона ё чат тамос гиред.</li>
+          <li>Барои кор бо ташкилот — аввал «Ташкилотҳои ман»-ро санҷед.</li>
+          <li>Барои чопи ҳисоботҳо — тугмаи «Чоп»-ро дар браузер истифода баред.</li>
+          <li>Забонро аз менюи боло иваз кунед.</li>
+          <li>Аз «Ба сомона» барои баргашт ба саҳифаи оммавӣ истифода баред.</li>
+          <li>Рамзро фаромӯш кардед? Маъмур метавонад рамзи нав таъин кунад.</li>
+        </ol>
+        <div class="tip">
+          <strong>Тамос:</strong> my-yoqubkhoja-tj.vercel.app · Чати зинда · Telegram (агар дар сомона нишон дода шуда бошад)
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2026 Маркази барномасозӣ ва технологияҳои инноватсионии Yoqubkhoja</p>
+      <p>Дастурамали утоқи шахсӣ · <a href="https://my-yoqubkhoja-tj.vercel.app/tj">my-yoqubkhoja-tj.vercel.app</a></p>
+    </footer>
+  </div>
+</body>
+</html>

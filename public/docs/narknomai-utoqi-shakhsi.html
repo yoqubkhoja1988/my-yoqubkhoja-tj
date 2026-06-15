@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Нархнома — Омодакунии утоқи шахсӣ</title>
+  <style>
+    :root {
+      --primary: #1a5f9e;
+      --primary-dark: #0f2847;
+      --accent: #1a7a4c;
+      --border: #c8d6e5;
+      --muted: #4a6278;
+      --text: #0f2847;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7fb;
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 11pt;
+    }
+    .page {
+      max-width: 210mm;
+      margin: 0 auto;
+      background: white;
+    }
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+    }
+    .toolbar {
+      max-width: 210mm;
+      margin: 0 auto 0.5rem;
+      padding: 0.5rem 1rem;
+    }
+    .toolbar button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .cover {
+      background: var(--primary-dark);
+      color: white;
+      padding: 2rem 1.75rem;
+    }
+    .cover-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+    .cover h1 {
+      font-size: 1.5rem;
+      margin: 0.5rem 0;
+      line-height: 1.25;
+    }
+    .cover p { opacity: 0.9; font-size: 0.9rem; max-width: 32rem; }
+    .cover-meta { margin-top: 1.25rem; font-size: 0.75rem; opacity: 0.8; }
+    .content { padding: 1.5rem 1.75rem 2rem; }
+    h2 {
+      font-size: 1rem;
+      color: var(--primary);
+      margin: 1.25rem 0 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 0.25rem;
+    }
+    p { margin-bottom: 0.5rem; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 0.65rem 0 1rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.55rem;
+      vertical-align: top;
+    }
+    th { background: var(--primary); color: white; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .price { font-weight: 700; white-space: nowrap; }
+    .highlight { background: #e8f5ee !important; }
+    .note {
+      border-left: 4px solid var(--accent);
+      background: #f0faf4;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+    }
+    .exclude {
+      border-left: 4px solid #d97706;
+      background: #fffbeb;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+    }
+    ul { margin: 0.35rem 0 0.65rem 1.1rem; }
+    li { margin-bottom: 0.25rem; }
+    .footer {
+      background: var(--primary-dark);
+      color: rgba(255,255,255,0.9);
+      padding: 1rem 1.75rem;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 0.75rem 0;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: #f8fafc;
+    }
+    .card strong { color: var(--primary-dark); display: block; margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <button type="button" onclick="window.print()">🖨 Чоп / захира ба PDF</button>
+  </div>
+
+  <div class="page">
+    <div class="cover">
+      <p class="cover-eyebrow">МАРКАЗИ БАРНОМАСОЗӢ ВА ТЕХНОЛОГИЯҲОИ ИННОВАТСИОНИИ YOQUBKHOJA</p>
+      <h1>Нархномаи хизматрасонӣ<br />Омодакунии утоқи шахсӣ</h1>
+      <p>
+        Хизматрасонии якмаротиба: кормандони Марказ утоқро омода ва супориш медиҳанд;
+        корманди ташкилот дар утоқи кории худ ҳаррӯза кор мекунад.
+      </p>
+      <p class="cover-meta">Эътибор: аз июн 2026 · Валюта: сомонӣ (TJS) · https://yoqubkhoja.tj</p>
+    </div>
+
+    <div class="content">
+      <div class="note">
+        <strong>Меъёри соатӣ:</strong> 120 сомонӣ/соат (барои хизматҳои берун аз пакет).
+        Мӯҳлати иҷро: 3–10 рӯзи корӣ. Дастгирии техникии ройгон: 14 рӯз пас аз супориш.
+      </div>
+
+      <h2>1. Пакетҳои асосӣ</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Пакет</th>
+            <th>Дохил</th>
+            <th>Соат</th>
+            <th>Бе ААИ</th>
+            <th>Бо ААИ 14%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>Оғозӣ</strong></td>
+            <td>Утоқи шахсӣ + 1 корбар + дастрасӣ ба ташкилот; санҷиши вуруд; варақаи супориш</td>
+            <td>3</td>
+            <td class="price">400 с.</td>
+            <td class="price">456 с.</td>
+          </tr>
+          <tr class="highlight">
+            <td>2</td>
+            <td><strong>Стандартӣ</strong></td>
+            <td>Оғозӣ + 2–3 корбар + бахши «Кадрҳо» <em>ё</em> «Молия» (бе пуркунии пурра)</td>
+            <td>6</td>
+            <td class="price">800 с.</td>
+            <td class="price">912 с.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Кадрӣ</strong></td>
+            <td>Стандартӣ + басти штат + қайди то 30 корманд</td>
+            <td>12</td>
+            <td class="price">1 500 с.</td>
+            <td class="price">1 710 с.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Кадр + Молия</strong></td>
+            <td>Кадрӣ + модулҳои музди меҳнат; санҷиши ҳуҷҷати аввалин моҳ</td>
+            <td>18</td>
+            <td class="price">2 400 с.</td>
+            <td class="price">2 736 с.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>2. Хизматҳои иловагӣ</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Хизмат</th>
+            <th>Тавсиф</th>
+            <th>Нарх</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Корбари иловагӣ</td>
+            <td>Сабт, иҷозатҳо, санҷиши вуруд</td>
+            <td class="price">80 сомонӣ</td>
+          </tr>
+          <tr>
+            <td>Қайди кормандон</td>
+            <td>Ҳар 10 нафар иловагӣ (аз 30 нафар)</td>
+            <td class="price">200 сомонӣ</td>
+          </tr>
+          <tr>
+            <td>Омӯзиши дурдаст</td>
+            <td>1 соат барои корманди ташкилот</td>
+            <td class="price">150 сомонӣ</td>
+          </tr>
+          <tr>
+            <td>Сафари хизматӣ</td>
+            <td>Дар ноҳияҳои дигар (бе хароҷоти ҷудогона)</td>
+            <td class="price">500–1 500 сомонӣ</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>3. Таркиби кори Марказ (омодакунӣ)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Қадам</th>
+            <th>Кор</th>
+            <th>Вақти миёна</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Сабти ташкилот (ном, РМА, роҳбар, суроға)</td><td>0,5–1 соат</td></tr>
+          <tr><td>2</td><td>Корбарони утоқ ва иҷозатҳо</td><td>0,5–1 соат/корбар</td></tr>
+          <tr><td>3</td><td>Танзими меню (МДТМ, бехатарии озуқаворӣ ва ғ.)</td><td>0,5–1 соат</td></tr>
+          <tr><td>4</td><td>Бахши кадрҳо (ихтиёрӣ)</td><td>2–8 соат</td></tr>
+          <tr><td>5</td><td>Бахши молия (ихтиёрӣ)</td><td>2–6 соат</td></tr>
+          <tr><td>6</td><td>Супоридан + дастури кӯтоҳ</td><td>1,5 соат</td></tr>
+        </tbody>
+      </table>
+
+      <h2>4. Тавсия барои сегментҳо</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>МДТМ / мактаби томактабӣ</strong>
+          <span class="muted">Ташкилот худ маълумотро мепуррад → <strong>Стандартӣ: 800 с.</strong></span>
+        </div>
+        <div class="card">
+          <strong>Маркази давлатӣ</strong>
+          <span class="muted">Басти штатро Марказ мепуррад → <strong>Кадрӣ: 1 500 с.</strong></span>
+        </div>
+      </div>
+
+      <div class="exclude">
+        <strong>Дар нархи омодакунӣ дохил нест:</strong>
+        <ul>
+          <li>кори ҳаррӯзаи корманди ташкилот дар утоқ;</li>
+          <li>нигоҳдории сервер ва домен (агар алоҳида қарордод нашавад);</li>
+          <li>таҳрири моҳонаи ҳисоботҳо;</li>
+          <li>дастгирӣ пас аз 14 рӯзи супориш.</li>
+        </ul>
+      </div>
+
+      <h2>5. Тамос</h2>
+      <p>
+        <strong>ҶДММ «МАРКАЗИ БАРНОМАСОЗӢ ВА ТЕХНОЛОГИЯҲОИ ИННОВАТСИОНИИ YOQUBKHOJA»</strong><br />
+        Вилояти Суғд, ноҳияи Ҷаббор Расулов · Тел.: +992 92 791 7704<br />
+        Сайт: https://yoqubkhoja.tj · Telegram: @yoqubkhoja1988
+      </p>
+      <p class="muted" style="margin-top: 1rem;">
+        Нархҳо тавсиявӣ ҳастанд. Шартномаи хизматрасонӣ бо имзои Тарафҳо эътибор пайдо мекунад.
+        ААИ мувофиқи Кодекси андози Ҷумҳурии Тоҷикистон ба хизматрасониҳои мувофиқ татбиқ мешавад.
+      </p>
+    </div>
+
+    <div class="footer">
+      © 2026 Маркази барномасозӣ ва технологияҳои инноватсионии Yoqubkhoja · Нархномаи утоқи шахсӣ
+    </div>
+  </div>
+</body>
+</html>
