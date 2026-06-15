@@ -17,12 +17,12 @@ export default function OrganizationReportDocumentHeader({
   showAddress,
 }: Props) {
   const t = useTranslations();
-  const { organizationName, superiorAuthorities } = useOrganizationReportHeader();
+  const { organizationName, superiorAuthorities, showDocumentLogo } = useOrganizationReportHeader();
 
   if (variant === 'document') {
     return (
       <header className={`mb-6 text-center text-xs leading-relaxed text-slate-700 ${className}`}>
-        <OrganizationOfficialLogo variant="document" />
+        {showDocumentLogo ? <OrganizationOfficialLogo variant="document" /> : null}
         <p>{t('payrollLedgerRepublic')}</p>
         {superiorAuthorities.map((line) => (
           <p key={line}>
@@ -41,7 +41,9 @@ export default function OrganizationReportDocumentHeader({
 
   return (
     <header className={`border-b border-[var(--border)] pb-4 text-center ${className}`}>
-      <OrganizationOfficialLogo variant="document" size={72} className="mb-3" />
+      {showDocumentLogo ? (
+        <OrganizationOfficialLogo variant="document" size={72} className="mb-3" />
+      ) : null}
       <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent)]">
         {t('vacancyNoticeRepublic')}
       </p>

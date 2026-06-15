@@ -5,19 +5,24 @@ import {
   resolveOrganizationReportName,
   resolveSuperiorAuthorities,
 } from '@/lib/organization-info';
+import { showOrganizationDocumentLogo } from '@/lib/organization-scope';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
 import { useLocale } from 'next-intl';
 import { createContext, useContext, useMemo } from 'react';
 
 export type ResolvedOrganizationReportHeader = {
+  organizationId: string;
   organizationName: string;
   superiorAuthorities: string[];
+  showDocumentLogo: boolean;
 };
 
 const OrganizationReportHeaderContext = createContext<ResolvedOrganizationReportHeader>({
+  organizationId: '',
   organizationName: '',
   superiorAuthorities: [],
+  showDocumentLogo: true,
 });
 
 export function OrganizationReportHeaderProvider({
@@ -32,6 +37,7 @@ export function OrganizationReportHeaderProvider({
   const locale = useLocale();
   const value = useMemo(
     () => ({
+      organizationId: organization.id,
       organizationName: resolveOrganizationReportName(
         orgInfoContent?.reportHeader,
         organization.name,
@@ -43,6 +49,7 @@ export function OrganizationReportHeaderProvider({
           .map((line) => line.trim())
           .filter(Boolean)
       ),
+      showDocumentLogo: showOrganizationDocumentLogo(organization.id),
     }),
     [organization.id, organization.name, orgInfoContent?.reportHeader, locale]
   );
