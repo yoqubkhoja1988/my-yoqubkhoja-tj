@@ -3,6 +3,7 @@ export const FINANCE_SECTION_IDS = [
   'finance-budget',
   'finance-payroll',
   'finance-position-handover',
+  'finance-allowance-adjustment',
   'finance-payroll-ledger',
   'finance-local-payroll-requirement',
   'finance-bank-payment',

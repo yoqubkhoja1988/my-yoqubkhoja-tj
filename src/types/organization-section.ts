@@ -140,6 +140,41 @@ export interface PositionHandover {
   salaryHandoverPercent?: number;
 }
 
+/** Навъи иловапулӣ мувофиқи қонунгузории меҳнатии ҶТ */
+export type AllowanceAdjustmentKind =
+  | 'past_month_difference'
+  | 'qualification_degree_difference';
+
+/**
+ * Ҳуҷҷати иловапулӣ (фарқияти моҳҳои гузашта ё дараҷаи тахассус).
+ * КМҶ моддаҳои 161, 165; Қарори Ҳукумати ҶТ №113 (тарифи музди меҳнат).
+ */
+export interface SalaryAllowanceAdjustment {
+  id: string;
+  preparedAt: string;
+  orderNumber: string;
+  employeeId: string;
+  department: string;
+  position: string;
+  kind: AllowanceAdjustmentKind;
+  /** Санаи эътибори тариф/дараҷаи нав */
+  effectiveDate: string;
+  /** Моҳи пардохти иловапулӣ (YYYY-MM) */
+  paymentMonth: string;
+  /** Маоши вазифавии қаблӣ (сомонӣ) */
+  fromDutySalary?: string;
+  /** Маоши вазифавии нав (сомонӣ) */
+  toDutySalary?: string;
+  /** Дараҷаи таҳсилот/категорияи қаблӣ */
+  fromEducationLevel?: EmployeeWageScale['educationLevel'];
+  /** Дараҷаи таҳсилот/категорияи нав */
+  toEducationLevel?: EmployeeWageScale['educationLevel'];
+  /** Асоси ҳуқуқӣ */
+  legalBasis: string;
+  reason: string;
+  notes?: string;
+}
+
 export type LaborLeaveType =
   | 'annual'
   | 'unpaid'
@@ -300,6 +335,7 @@ export interface OrganizationSectionContent {
   timesheets?: StaffTimesheet[];
   payrollLedgers?: PayrollLedger[];
   positionHandovers?: PositionHandover[];
+  salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[];
   laborLeaves?: LaborLeave[];
   contractCounterparties?: ContractCounterparty[];
   serviceContracts?: OrganizationServiceContract[];

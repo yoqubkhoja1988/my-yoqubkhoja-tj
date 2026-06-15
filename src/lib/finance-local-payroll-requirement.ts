@@ -472,6 +472,7 @@ function buildLedgerMetrics(
   const ledger = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
     organizationId,
     positionHandovers: financeContent.positionHandovers,
+    salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
     laborLeaves: financeContent.laborLeaves,
     payrollLedgers: financeContent.payrollLedgers,
   });

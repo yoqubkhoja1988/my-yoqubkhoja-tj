@@ -270,6 +270,7 @@ export function buildBankPaymentDocument(
   const ledger = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
     organizationId: organization?.id,
     positionHandovers: financeContent.positionHandovers,
+    salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
     laborLeaves: financeContent.laborLeaves,
     payrollLedgers: financeContent.payrollLedgers,
   });

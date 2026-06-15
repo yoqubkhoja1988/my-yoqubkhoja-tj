@@ -95,6 +95,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       ...(body.positionHandovers !== undefined
         ? { positionHandovers: body.positionHandovers }
         : {}),
+      ...(body.salaryAllowanceAdjustments !== undefined
+        ? { salaryAllowanceAdjustments: body.salaryAllowanceAdjustments }
+        : {}),
       ...(body.laborLeaves !== undefined ? { laborLeaves: body.laborLeaves } : {}),
       ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
       ...(body.contractCounterparties !== undefined
@@ -121,6 +124,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
               {
                 organizationId: id,
                 positionHandovers: finance.positionHandovers,
+                salaryAllowanceAdjustments: finance.salaryAllowanceAdjustments,
                 laborLeaves: finance.laborLeaves,
                 payrollLedgers: finance.payrollLedgers,
               }
@@ -166,6 +170,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
                 {
                   organizationId: id,
                   positionHandovers: financeCurrent.positionHandovers,
+                  salaryAllowanceAdjustments: financeCurrent.salaryAllowanceAdjustments,
                   laborLeaves: body.laborLeaves,
                   payrollLedgers: financeCurrent.payrollLedgers,
                 }

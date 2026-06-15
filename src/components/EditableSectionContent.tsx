@@ -35,6 +35,7 @@ import FinancePayrollPanel from './FinancePayrollPanel';
 import FinanceLaborLeavePanel from './FinanceLaborLeavePanel';
 import FinanceMaternityLeavePanel from './FinanceMaternityLeavePanel';
 import FinanceSickLeavePanel from './FinanceSickLeavePanel';
+import FinanceAllowanceAdjustmentPanel from './FinanceAllowanceAdjustmentPanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
 import OrganizationContractsPanel from './OrganizationContractsPanel';
 import FinanceReportsPanel from './FinanceReportsPanel';
@@ -821,6 +822,17 @@ export default function EditableSectionContent({
           financeContent={displayData}
           staffContent={liveStaffContent}
           onHandoverSaved={setPayrollLedgerMonth}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' && activeFinanceSection === 'finance-allowance-adjustment' && (
+        <FinanceAllowanceAdjustmentPanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          staffContent={liveStaffContent}
+          onAllowanceSaved={setPayrollLedgerMonth}
           onUpdate={setData}
         />
       )}

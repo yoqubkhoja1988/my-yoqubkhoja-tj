@@ -121,6 +121,7 @@ export default function FinancePayrollLedgerPanel({
     const merged = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
       organizationId,
       positionHandovers: financeContent.positionHandovers,
+      salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
       laborLeaves: financeContent.laborLeaves,
       payrollLedgers: financeContent.payrollLedgers,
     });
@@ -129,6 +130,7 @@ export default function FinancePayrollLedgerPanel({
   }, [
     financeContent.payrollLedgers,
     financeContent.positionHandovers,
+    financeContent.salaryAllowanceAdjustments,
     financeContent.laborLeaves,
     staffContent,
     staffContent?.timesheets,
@@ -242,6 +244,7 @@ export default function FinancePayrollLedgerPanel({
       {
         organizationId,
         positionHandovers: financeBase.positionHandovers,
+        salaryAllowanceAdjustments: financeBase.salaryAllowanceAdjustments,
         laborLeaves: financeBase.laborLeaves,
         payrollLedgers: financeBase.payrollLedgers,
       }
@@ -291,6 +294,7 @@ export default function FinancePayrollLedgerPanel({
         mergePayrollLedgerForMonth(saved.payrollLedgers, month, staffContent, {
           organizationId,
           positionHandovers: saved.positionHandovers,
+          salaryAllowanceAdjustments: saved.salaryAllowanceAdjustments,
           laborLeaves: saved.laborLeaves,
           payrollLedgers: saved.payrollLedgers,
         })
