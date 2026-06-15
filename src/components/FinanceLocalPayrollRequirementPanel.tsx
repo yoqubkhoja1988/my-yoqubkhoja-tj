@@ -49,7 +49,7 @@ export default function FinanceLocalPayrollRequirementPanel({
     resolveLocalPayrollRequirementMonth(financeContent, preferredMonth)
   );
   const [article2121, setArticle2121] = useState(() =>
-    String(readBudgetArticle2121Amount(financeContent, month) || 78)
+    String(readBudgetArticle2121Amount(financeContent, month, staffContent) || '')
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -64,8 +64,15 @@ export default function FinanceLocalPayrollRequirementPanel({
   }, [preferredMonth, onPreferredMonthApplied]);
 
   useEffect(() => {
-    setArticle2121(String(readBudgetArticle2121Amount(financeContent, month) || 78));
-  }, [financeContent.localPayrollRequirementSettings, month]);
+    setArticle2121(
+      String(readBudgetArticle2121Amount(financeContent, month, staffContent) || '')
+    );
+  }, [
+    financeContent.localPayrollRequirementSettings,
+    financeContent.laborLeaves,
+    staffContent,
+    month,
+  ]);
 
   const financeWithOverrides = useMemo(
     () => ({
@@ -353,11 +360,11 @@ export default function FinanceLocalPayrollRequirementPanel({
                       <tr key={`${group.id}-bank`}>
                         <td className="border border-slate-300 px-1 py-1 text-center">2</td>
                         <td className="border border-slate-300 px-1 py-1">Хизмати бонк-0,5%</td>
-                        <td colSpan={7} className="border border-slate-300 px-1 py-1" />
+                        <td colSpan={6} className="border border-slate-300 px-1 py-1" />
                         <td className="border border-slate-300 px-1 py-1 text-right">
                           <MetricCell value={group.bankFee.actualAmount} />
                         </td>
-                        <td colSpan={6} className="border border-slate-300 px-1 py-1" />
+                        <td colSpan={7} className="border border-slate-300 px-1 py-1" />
                         <td className="border border-slate-300 px-1 py-1 text-right">
                           <MetricCell value={group.bankFee.fhea25} />
                         </td>

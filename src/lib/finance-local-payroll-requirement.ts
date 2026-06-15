@@ -1,4 +1,7 @@
 import {
+  collectSocialInsuranceBankPayments,
+} from '@/lib/finance-social-insurance-pay';
+import {
   calcEntryTotals,
   formatLedgerAmount,
   mergePayrollLedgerForMonth,
@@ -565,12 +568,33 @@ export function resolveLocalPayrollRequirementMonth(
   return months[0] ?? new Date().toISOString().slice(0, 7);
 }
 
-export function readBudgetArticle2121Amount(
+export function calcSocialInsuranceArticle2121Amount(
   financeContent: OrganizationSectionContent,
+  staffContent: OrganizationSectionContent,
   month: string
 ): number {
+  const payments = collectSocialInsuranceBankPayments(
+    financeContent.laborLeaves,
+    staffContent,
+    financeContent.payrollLedgers,
+    month
+  );
+  return roundMoney(payments.reduce((sum, payment) => sum + payment.amount, 0));
+}
+
+export function readBudgetArticle2121Amount(
+  financeContent: OrganizationSectionContent,
+  month: string,
+  staffContent?: OrganizationSectionContent | null
+): number {
   const saved = financeContent.localPayrollRequirementSettings?.find((item) => item.month === month);
-  return parseAmount(saved?.budgetArticle2121Amount ?? '') ?? 0;
+  const savedRaw = saved?.budgetArticle2121Amount?.trim();
+  if (savedRaw) {
+    const parsed = parseAmount(savedRaw);
+    if (parsed !== null) return parsed;
+  }
+  if (!staffContent) return 0;
+  return calcSocialInsuranceArticle2121Amount(financeContent, staffContent, month);
 }
 
 export function buildLocalPayrollRequirementDocument(
@@ -602,8 +626,11 @@ export function buildLocalPayrollRequirementDocument(
   }
   finalizeGroupMetrics(grandTotal);
 
-  const budgetArticle2121Amount =
-    parseAmount(settings?.budgetArticle2121Amount ?? '') ?? 78;
+  const budgetArticle2121Amount = readBudgetArticle2121Amount(
+    financeContent,
+    month,
+    staffContent
+  );
 
   const payment2111: LocalPayrollRequirementPaymentRow = {
     article: '2111',
