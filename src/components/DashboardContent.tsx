@@ -8,6 +8,7 @@ import { addProject, getProjects, initializeProjects, removeProject, updateProje
 import { Project, ProjectCategory, ProjectStatus } from '@/types/project';
 import AdminChatPanel from './AdminChatPanel';
 import AdminChatRegistryPanel from './AdminChatRegistryPanel';
+import AdminInternalDocsPanel from './AdminInternalDocsPanel';
 import AdminDataPanel from './AdminDataPanel';
 import AdminOrganizationsRegistryPanel from './AdminOrganizationsRegistryPanel';
 import AdminUsersPanel from './AdminUsersPanel';
@@ -16,7 +17,7 @@ import InnovationCenterBuilding from './InnovationCenterBuilding';
 import LegalDocumentsHub from './LegalDocumentsHub';
 
 type DashboardTab = 'projects' | 'admin';
-type AdminSubTab = 'users' | 'organizations' | 'data' | 'chat';
+type AdminSubTab = 'users' | 'organizations' | 'data' | 'chat' | 'docs';
 
 const statusClass: Record<ProjectStatus, string> = {
   active: 'bg-amber-500/20 text-amber-400',
@@ -241,6 +242,17 @@ export default function DashboardContent({
               >
                 {t('adminChatTab')}
               </button>
+              <button
+                type="button"
+                onClick={() => setAdminSubTab('docs')}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  adminSubTab === 'docs'
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'border border-[var(--border)] text-[var(--text-muted)]'
+                }`}
+              >
+                {t('adminDocsTab')}
+              </button>
             </div>
             {adminSubTab === 'users' ? (
               <AdminUsersPanel />
@@ -251,6 +263,8 @@ export default function DashboardContent({
                 <AdminChatPanel />
                 <AdminChatRegistryPanel />
               </div>
+            ) : adminSubTab === 'docs' ? (
+              <AdminInternalDocsPanel />
             ) : (
               <AdminDataPanel />
             )}

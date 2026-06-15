@@ -1,5 +1,5 @@
 /**
- * Генератсияи PDF аз ҳуҷҷатҳои HTML дар public/docs/
+ * Генератсияи PDF аз ҳуҷҷатҳои HTML дар private/admin-docs/
  * Иҷро: node scripts/generate-utoq-docs-pdf.mjs
  */
 import { mkdirSync, existsSync } from 'fs';
@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
-const docsDir = join(root, 'public', 'docs');
+const docsDir = join(root, 'private', 'admin-docs');
 const pdfDir = join(docsDir, 'pdf');
 
 const DOCUMENTS = [
