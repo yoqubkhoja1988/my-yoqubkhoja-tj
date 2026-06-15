@@ -150,7 +150,11 @@ const TAJIK_MONTHS = [
 function formatMonthLabelTj(monthKey: string): string {
   const [year, month] = monthKey.split('-');
   const index = Number.parseInt(month ?? '1', 10) - 1;
-  return `${TAJIK_MONTHS[index] ?? month} ${year}`;
+  return `${TAJIK_MONTHS[index] ?? month} ${year} с.`;
+}
+
+export function formatLocalPayrollRequirementMonthLabel(monthKey: string): string {
+  return formatMonthLabelTj(monthKey);
 }
 const BANK_FEE_RATE = 0.005;
 const FHEA_EMPLOYER_RATE = 0.25;

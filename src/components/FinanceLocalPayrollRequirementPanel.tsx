@@ -2,6 +2,7 @@
 
 import {
   buildLocalPayrollRequirementDocument,
+  formatLocalPayrollRequirementMonthLabel,
   formatRequirementAmount,
   hasLocalPayrollRequirementData,
   readBudgetArticle2121Amount,
@@ -13,10 +14,10 @@ import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { printDocument } from '@/lib/print-document';
-import { formatMonthLabel, shiftMonth } from '@/lib/staff-timesheet';
+import { shiftMonth } from '@/lib/staff-timesheet';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState, Fragment } from 'react';
 
 type Props = {
@@ -43,7 +44,6 @@ export default function FinanceLocalPayrollRequirementPanel({
   onUpdate,
 }: Props) {
   const t = useTranslations();
-  const locale = useLocale();
   const { organizationName: reportOrganizationName } = useOrganizationReportHeader();
   const [month, setMonth] = useState(() =>
     resolveLocalPayrollRequirementMonth(financeContent, preferredMonth)
@@ -101,7 +101,7 @@ export default function FinanceLocalPayrollRequirementPanel({
     );
   }, [financeWithOverrides, staffContent, month, organization, reportOrganizationName]);
 
-  const monthLabel = formatMonthLabel(month, locale);
+  const monthLabel = formatLocalPayrollRequirementMonthLabel(month);
   const hasData = hasLocalPayrollRequirementData(documentData);
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const accountantSignatureLabel = getAccountantSignatureLabel(staffContent, {
