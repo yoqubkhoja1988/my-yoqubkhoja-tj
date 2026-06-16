@@ -13,9 +13,17 @@ import {
   generateNextPersonnelNumber,
   hasMissingPersonnelNumbers,
 } from '@/lib/staff-personnel-number';
+import {
+  buildEmployeeImportColumns,
+  isEmployeeImportFile,
+  mergeImportedEmployees,
+  parseEmployeesCsv,
+  parseEmployeesExcel,
+} from '@/lib/staff-import';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import {
   calculateWageScale,
+  EDUCATION_LEVELS,
   emptyWageScale,
   formatWageAmount,
   formatWorkUnitRate,
@@ -51,7 +59,7 @@ import {
   StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 type EmployeeForm = {
   fullName: string;
@@ -194,8 +202,10 @@ export default function StaffEmployeeRegistry({
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
   const backfillStarted = useRef(false);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredEmployees = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -249,6 +259,37 @@ export default function StaffEmployeeRegistry({
     }),
     [t]
   );
+
+  const importColumns = useMemo(
+    () =>
+      buildEmployeeImportColumns(t, {
+        includeProfessionalDevelopment: showProfessionalDevelopment,
+      }),
+    [t, showProfessionalDevelopment]
+  );
+
+  const importLabelPack = useMemo(
+    () => ({
+      employmentWorkType: {
+        primary: t('employmentWorkTypePrimary'),
+        secondary: t('employmentWorkTypeSecondary'),
+      },
+      status: {
+        active: t('employeeStatusActive'),
+        vacation: t('employeeStatusVacation'),
+        inactive: t('employeeStatusInactive'),
+      },
+    }),
+    [t]
+  );
+
+  const educationLabels = useMemo(() => {
+    const labels = {} as Record<EducationLevel, string>;
+    for (const level of EDUCATION_LEVELS) {
+      labels[level] = t(`wageScaleEducation_${level}`);
+    }
+    return labels;
+  }, [t]);
 
   function wageScaleEducationLabel(scale: EmployeeWageScale): string {
     return formatWageScaleQualificationLabel(scale, qualificationLabels);
@@ -464,6 +505,87 @@ export default function StaffEmployeeRegistry({
     await downloadEmployeesExcel(rows, columns, employeeExportFilename('xlsx'), t('employeeRegistryTitle'));
   }
 
+  async function handleImportFile(file: File) {
+    if (!isEmployeeImportFile(file)) {
+      setError(t('employeeImportInvalidFile'));
+      return;
+    }
+
+    setImporting(true);
+    setError('');
+
+    try {
+      const lowerName = file.name.toLowerCase();
+      const parsed =
+        lowerName.endsWith('.csv')
+          ? parseEmployeesCsv(await file.text(), importColumns, importLabelPack)
+          : await parseEmployeesExcel(await file.arrayBuffer(), importColumns, importLabelPack);
+
+      if (parsed.rows.length === 0) {
+        setError(t('employeeImportNoRows'));
+        return;
+      }
+
+      const mergeResult = mergeImportedEmployees(
+        employees,
+        parsed.rows,
+        organizationId,
+        qualificationLabels,
+        educationLabels
+      );
+
+      const confirmMessage = t('employeeImportConfirm', {
+        count: parsed.rows.length,
+        added: mergeResult.added,
+        updated: mergeResult.updated,
+      });
+      if (!confirm(confirmMessage)) return;
+
+      const ok = await persistEmployees(mergeResult.employees);
+      if (!ok) return;
+
+      const issueMessages = [
+        ...parsed.errors.map((issue) =>
+          t('employeeImportRowError', {
+            row: issue.row,
+            message: t(`employeeImportError_${issue.message}`),
+          })
+        ),
+        ...mergeResult.errors.map((issue) =>
+          t('employeeImportRowError', {
+            row: issue.row,
+            message: t(`employeeImportError_${issue.message}`),
+          })
+        ),
+      ];
+
+      window.alert(
+        issueMessages.length > 0
+          ? `${t('employeeImportSuccess', {
+              added: mergeResult.added,
+              updated: mergeResult.updated,
+            })}\n\n${issueMessages.join('\n')}`
+          : t('employeeImportSuccess', {
+              added: mergeResult.added,
+              updated: mergeResult.updated,
+            })
+      );
+    } catch {
+      setError(t('employeeImportInvalidFile'));
+    } finally {
+      setImporting(false);
+      if (importFileInputRef.current) {
+        importFileInputRef.current.value = '';
+      }
+    }
+  }
+
+  function handleImportInputChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    void handleImportFile(file);
+  }
+
   function employmentWorkTypeLabel(workType?: EmploymentWorkType) {
     return workType === 'secondary'
       ? t('employmentWorkTypeSecondary')
@@ -550,6 +672,25 @@ export default function StaffEmployeeRegistry({
           <p className="mt-1 text-xs text-[var(--text-muted)]">{t('employeeRegistrySubtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {canEdit && (
+            <>
+              <input
+                ref={importFileInputRef}
+                type="file"
+                accept=".csv,.xlsx"
+                className="hidden"
+                onChange={handleImportInputChange}
+              />
+              <button
+                type="button"
+                onClick={() => importFileInputRef.current?.click()}
+                disabled={saving || importing}
+                className="btn-secondary"
+              >
+                {importing ? '...' : t('importEmployees')}
+              </button>
+            </>
+          )}
           <details className="relative">
             <summary
               className={`btn-secondary list-none cursor-pointer [&::-webkit-details-marker]:hidden ${
