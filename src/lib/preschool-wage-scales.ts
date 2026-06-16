@@ -475,6 +475,8 @@ export function hydrateWageScale(
     merged.educationLevel = normalizeEducationLevel(savedEducation, organizationId);
   } else if (usesEducationLevel(merged.group)) {
     merged.educationLevel = normalizeEducationLevel(merged.educationLevel, organizationId);
+  } else {
+    delete merged.educationLevel;
   }
 
   if (!merged.group) merged.group = defaults.group;
@@ -608,6 +610,37 @@ export function parseWageAmount(value?: string): number | null {
   const normalized = value.replace(/\s/g, '').replace(',', '.');
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+export type WageScaleQualificationLabels = {
+  education: (level: EducationLevel) => string;
+  medical: (category: MedicalCategory) => string;
+};
+
+export function formatWageScaleQualificationLabel(
+  scale: EmployeeWageScale | undefined,
+  labels: WageScaleQualificationLabels
+): string {
+  if (!scale?.group) return '';
+  if (scale.group === 'medical' && scale.medicalCategory) {
+    return labels.medical(scale.medicalCategory);
+  }
+  if (!scale.educationLevel || !usesEducationLevel(scale.group)) return '';
+  return labels.education(scale.educationLevel);
+}
+
+/** Тахассус/дарача аз меъёри музд ё майдони дастӣ — бе fallback-и кӯҳна барои вазифаҳои бе дарача */
+export function resolveEmployeeQualificationLabel(
+  employee: Pick<StaffEmployee, 'position' | 'wageScale' | 'education'>,
+  organizationId: string,
+  labels: WageScaleQualificationLabels,
+  preferWageScale = true
+): string {
+  const wageScale = hydrateWageScale(employee.wageScale, organizationId, employee.position);
+  const fromScale = formatWageScaleQualificationLabel(wageScale, labels);
+  if (fromScale) return fromScale;
+  if (preferWageScale && wageScale.group) return '';
+  return employee.education?.trim() ?? '';
 }
 
 export function getEmployeeMonthlyWage(employee: StaffEmployee): number | null {

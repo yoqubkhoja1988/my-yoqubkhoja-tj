@@ -1116,6 +1116,8 @@
   "filterAllDepartments": "Ҳамаи шуъбаҳо",
   "filterAllStatuses": "Ҳамаи ҳолатҳо",
   "exportEmployees": "Содирот ба ҷадвал",
+  "exportEmployeesCsv": "CSV (.csv)",
+  "exportEmployeesExcel": "Excel (.xlsx)",
   "wageScaleTitle": "Шкалаи музди меҳнат",
   "wageScaleSubtitle": "Меъёрҳои музди меҳнат (Қарори Ҳукумати ҶТ №113, аз 01.09.2025)",
   "wageScaleGroup": "Қисми шкала",

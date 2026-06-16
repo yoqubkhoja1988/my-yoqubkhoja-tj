@@ -1,7 +1,13 @@
 'use client';
 
 import { analyzeStaffing } from '@/lib/staff-analytics';
-import { downloadCsv, exportEmployeesToCsv } from '@/lib/staff-export';
+import {
+  downloadCsv,
+  downloadEmployeesExcel,
+  employeeExportFilename,
+  exportEmployeesToCsv,
+  ExportColumn,
+} from '@/lib/staff-export';
 import {
   assignMissingPersonnelNumbers,
   generateNextPersonnelNumber,
@@ -13,10 +19,13 @@ import {
   emptyWageScale,
   formatWageAmount,
   formatWorkUnitRate,
+  formatWageScaleQualificationLabel,
   hydrateWageScale,
+  MedicalCategory,
   parseWageAmount,
   parseWorkUnitRate,
-  usesEducationLevel,
+  resolveEmployeeQualificationLabel,
+  type EducationLevel,
 } from '@/lib/preschool-wage-scales';
 import {
   extractStaffingOptions,
@@ -233,12 +242,25 @@ export default function StaffEmployeeRegistry({
     return null;
   }, [analytics.slots, form.department, form.position, editingId, t]);
 
+  const qualificationLabels = useMemo(
+    () => ({
+      education: (level: EducationLevel) => t(`wageScaleEducation_${level}`),
+      medical: (category: MedicalCategory) => t(`wageScaleMedical_${category}`),
+    }),
+    [t]
+  );
+
   function wageScaleEducationLabel(scale: EmployeeWageScale): string {
-    if (scale.group === 'medical' && scale.medicalCategory) {
-      return t(`wageScaleMedical_${scale.medicalCategory}`);
-    }
-    if (!scale.educationLevel || !usesEducationLevel(scale.group)) return '';
-    return t(`wageScaleEducation_${scale.educationLevel}`);
+    return formatWageScaleQualificationLabel(scale, qualificationLabels);
+  }
+
+  function employeeQualificationLabel(employee: StaffEmployee): string {
+    return resolveEmployeeQualificationLabel(
+      employee,
+      organizationId,
+      qualificationLabels,
+      showWageScales
+    );
   }
 
   function handlePositionChange(position: string) {
@@ -262,7 +284,7 @@ export default function StaffEmployeeRegistry({
         ...current,
         position,
         wageScale,
-        education: education || current.education,
+        education,
       };
     });
   }
@@ -273,7 +295,7 @@ export default function StaffEmployeeRegistry({
     setForm((current) => ({
       ...current,
       wageScale: next,
-      education: education || current.education,
+      education,
     }));
   }
 
@@ -285,7 +307,7 @@ export default function StaffEmployeeRegistry({
         ? hydrateWageScale(employee.wageScale, organizationId, employee.position)
         : employee.wageScale;
       const education = showWageScales
-        ? wageScaleEducationLabel(wageScale!) || employee.education || ''
+        ? wageScaleEducationLabel(wageScale!)
         : employee.education || '';
       setEditingId(id);
       setForm({ ...toForm(employee), wageScale: wageScale ?? emptyWageScale(organizationId), education });
@@ -347,7 +369,20 @@ export default function StaffEmployeeRegistry({
       ? form.personnelNumber.trim()
       : form.personnelNumber.trim() || generateNextPersonnelNumber(employees);
 
-    const employee = toEmployee({ ...form, personnelNumber }, organizationId, editingId ?? undefined);
+    const educationLabel = showWageScales
+      ? wageScaleEducationLabel(
+          hydrateWageScale(form.wageScale, organizationId, form.position)
+        )
+      : form.education.trim();
+
+    const employee = toEmployee(
+      { ...form, personnelNumber, education: educationLabel },
+      organizationId,
+      editingId ?? undefined
+    );
+    if (showWageScales && !educationLabel) {
+      delete employee.education;
+    }
     const nextEmployees = editingId
       ? employees.map((item) => (item.id === editingId ? employee : item))
       : [...employees, employee];
@@ -361,7 +396,7 @@ export default function StaffEmployeeRegistry({
     await persistEmployees(employees.filter((item) => item.id !== id));
   }
 
-  function handleExport() {
+  function buildEmployeeExportPayload() {
     const rows = filteredEmployees.map((employee, index) => ({
       index: String(index + 1),
       fullName: employee.fullName,
@@ -375,7 +410,7 @@ export default function StaffEmployeeRegistry({
       email: employee.email ?? '',
       bankAccount: employee.bankAccount ?? '',
       hiredAt: employee.hiredAt ?? '',
-      education: employee.education ?? '',
+      education: employeeQualificationLabel(employee),
       experience: employee.experience ?? '',
       birthYear: employee.birthYear ?? '',
       specializationCycle: showProfessionalDevelopment
@@ -387,7 +422,7 @@ export default function StaffEmployeeRegistry({
       status: statusLabel(employee.status),
     }));
 
-    const csv = exportEmployeesToCsv(rows, [
+    const columns: ExportColumn<(typeof rows)[number]>[] = [
       { key: 'index', label: t('staffColNo') },
       { key: 'fullName', label: t('employeeFullName') },
       { key: 'position', label: t('employeePosition') },
@@ -413,8 +448,20 @@ export default function StaffEmployeeRegistry({
           ]
         : []),
       { key: 'status', label: t('employeeStatus') },
-    ]);
-    downloadCsv(`employees-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+    ];
+
+    return { rows, columns };
+  }
+
+  function handleExportCsv() {
+    const { rows, columns } = buildEmployeeExportPayload();
+    const csv = exportEmployeesToCsv(rows, columns);
+    downloadCsv(employeeExportFilename('csv'), csv);
+  }
+
+  async function handleExportExcel() {
+    const { rows, columns } = buildEmployeeExportPayload();
+    await downloadEmployeesExcel(rows, columns, employeeExportFilename('xlsx'), t('employeeRegistryTitle'));
   }
 
   function employmentWorkTypeLabel(workType?: EmploymentWorkType) {
@@ -490,7 +537,7 @@ export default function StaffEmployeeRegistry({
       department,
       position,
       wageScale,
-      education: education || form.education,
+      education,
     });
   }
 
@@ -503,14 +550,33 @@ export default function StaffEmployeeRegistry({
           <p className="mt-1 text-xs text-[var(--text-muted)]">{t('employeeRegistrySubtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={filteredEmployees.length === 0}
-            className="btn-secondary"
-          >
-            {t('exportEmployees')}
-          </button>
+          <details className="relative">
+            <summary
+              className={`btn-secondary list-none cursor-pointer [&::-webkit-details-marker]:hidden ${
+                filteredEmployees.length === 0 ? 'pointer-events-none opacity-50' : ''
+              }`}
+            >
+              {t('exportEmployees')} ▾
+            </summary>
+            <div className="absolute right-0 z-20 mt-1 min-w-[10rem] rounded-lg border border-[var(--border)] bg-[var(--bg-card)] p-1 shadow-lg">
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                disabled={filteredEmployees.length === 0}
+                className="block w-full rounded-md px-3 py-2 text-left text-xs hover:bg-[var(--bg-input)]"
+              >
+                {t('exportEmployeesCsv')}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleExportExcel()}
+                disabled={filteredEmployees.length === 0}
+                className="block w-full rounded-md px-3 py-2 text-left text-xs hover:bg-[var(--bg-input)]"
+              >
+                {t('exportEmployeesExcel')}
+              </button>
+            </div>
+          </details>
           {canEdit && (
             <button type="button" onClick={() => openModal()} className="btn-primary" disabled={saving}>
               + {t('addEmployee')}
@@ -639,7 +705,7 @@ export default function StaffEmployeeRegistry({
                   <td>{employee.email || '—'}</td>
                   <td className="md:whitespace-nowrap font-mono text-xs">{employee.bankAccount || '—'}</td>
                   <td className="md:whitespace-nowrap">{employee.hiredAt || '—'}</td>
-                  <td>{employee.education || '—'}</td>
+                  <td>{employeeQualificationLabel(employee) || '—'}</td>
                   <td>{employee.experience || '—'}</td>
                   <td>{employee.birthYear || '—'}</td>
                   {showProfessionalDevelopment && (
@@ -708,7 +774,7 @@ export default function StaffEmployeeRegistry({
                 [t('employeeEmail'), viewEmployee.email],
                 [t('employeeBankAccount'), viewEmployee.bankAccount],
                 [t('employeeHiredAt'), viewEmployee.hiredAt],
-                [t('employeeEducation'), viewEmployee.education],
+                [t('employeeEducation'), employeeQualificationLabel(viewEmployee)],
                 [t('employeeExperience'), viewEmployee.experience],
                 [t('employeeBirthYear'), viewEmployee.birthYear],
                 [t('employeeStatus'), statusLabel(viewEmployee.status)],
