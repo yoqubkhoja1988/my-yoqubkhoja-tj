@@ -562,7 +562,7 @@ export default function FinancePayrollLedgerPanel({
                         </span>
                       )}
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.baseSalary}
@@ -573,7 +573,7 @@ export default function FinancePayrollLedgerPanel({
                         }
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.allowances}
@@ -584,7 +584,7 @@ export default function FinancePayrollLedgerPanel({
                         }
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.laborLeavePay ?? '0,00'}
@@ -595,41 +595,41 @@ export default function FinancePayrollLedgerPanel({
                         }
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right font-semibold">
+                    <td className="border border-slate-300 px-2 py-2 text-center font-semibold">
                       {formatLedgerAmount(totals.gross)}
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.fhea}
                         onChange={canPatch ? (value) => patchEntry(entryIds[0], 'fhea', value) : undefined}
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.kik}
                         onChange={canPatch ? (value) => patchEntry(entryIds[0], 'kik', value) : undefined}
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.hhdt}
                         onChange={canPatch ? (value) => patchEntry(entryIds[0], 'hhdt', value) : undefined}
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right">
+                    <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
                         value={entry.tax}
                         onChange={canPatch ? (value) => patchEntry(entryIds[0], 'tax', value) : undefined}
                       />
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right font-semibold">
+                    <td className="border border-slate-300 px-2 py-2 text-center font-semibold">
                       {formatLedgerAmount(totals.deductions)}
                     </td>
-                    <td className="border border-slate-300 px-2 py-2 text-right font-bold text-emerald-700">
+                    <td className="border border-slate-300 px-2 py-2 text-center font-bold text-emerald-700">
                       {formatLedgerAmount(totals.netPay)}
                     </td>
                   </tr>
@@ -638,34 +638,34 @@ export default function FinancePayrollLedgerPanel({
                   <td colSpan={4} className="border border-slate-300 px-2 py-2 text-center">
                     {t('payrollLedgerTotal')}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.baseSalary)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.allowances)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.laborLeavePay)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.gross)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.fhea)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.kik)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.hhdt)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.tax)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right">
+                  <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.deductions)}
                   </td>
-                  <td className="border border-slate-300 px-2 py-2 text-right text-emerald-700">
+                  <td className="border border-slate-300 px-2 py-2 text-center text-emerald-700">
                     {formatLedgerAmount(summary.netPay)}
                   </td>
                 </tr>
