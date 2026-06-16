@@ -22,7 +22,7 @@ import OrganizationReportDocumentHeader from '@/components/OrganizationReportDoc
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
-import { parseAmount } from '@/lib/staff-table-calc';
+import { formatAmount, parseAmount } from '@/lib/staff-table-calc';
 import {
   activeEmployees,
   currentMonthKey,
@@ -34,6 +34,7 @@ import {
   OrganizationSectionContent,
   PayrollLedger,
   PayrollLedgerEntry,
+  StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -145,14 +146,88 @@ export default function FinancePayrollLedgerPanel({
   });
 
   const rows = useMemo(
-    () =>
-      ledger.entries
-        .map((entry) => {
-          const employee = employeeMap.get(entry.employeeId);
-          if (!employee) return null;
-          return { entry, employee, totals: calcEntryTotals(entry) };
-        })
-        .filter((row): row is NonNullable<typeof row> => row !== null),
+    () => {
+      type GroupRow = {
+        key: string;
+        employees: StaffEmployee[];
+        entryIds: string[];
+        entry: PayrollLedgerEntry;
+        totals: ReturnType<typeof calcEntryTotals>;
+      };
+
+      function groupKey(employee: StaffEmployee) {
+        const personnel = (employee.personnelNumber ?? '').trim();
+        if (personnel) return `pn:${personnel}`;
+        return `name:${employee.fullName.trim().toLowerCase()}`;
+      }
+
+      function sumEntryValues(entries: PayrollLedgerEntry[]): PayrollLedgerEntry {
+        const total = {
+          baseSalary: 0,
+          allowances: 0,
+          laborLeavePay: 0,
+          fhea: 0,
+          kik: 0,
+          hhdt: 0,
+          tax: 0,
+        };
+
+        for (const item of entries) {
+          total.baseSalary += parseAmount(item.baseSalary) ?? 0;
+          total.allowances += parseAmount(item.allowances) ?? 0;
+          total.laborLeavePay += parseAmount(item.laborLeavePay ?? '') ?? 0;
+          total.fhea += parseAmount(item.fhea) ?? 0;
+          total.kik += parseAmount(item.kik) ?? 0;
+          total.hhdt += parseAmount(item.hhdt) ?? 0;
+          total.tax += parseAmount(item.tax) ?? 0;
+        }
+
+        return {
+          employeeId: entries[0]?.employeeId ?? '',
+          baseSalary: formatAmount(total.baseSalary),
+          allowances: formatAmount(total.allowances),
+          laborLeavePay: formatAmount(total.laborLeavePay),
+          fhea: formatAmount(total.fhea),
+          kik: formatAmount(total.kik),
+          hhdt: formatAmount(total.hhdt),
+          tax: formatAmount(total.tax),
+        };
+      }
+
+      const grouped = new Map<string, GroupRow>();
+
+      for (const sourceEntry of ledger.entries) {
+        const employee = employeeMap.get(sourceEntry.employeeId);
+        if (!employee) continue;
+        const key = groupKey(employee);
+        const existing = grouped.get(key);
+        if (!existing) {
+          grouped.set(key, {
+            key,
+            employees: [employee],
+            entryIds: [sourceEntry.employeeId],
+            entry: sourceEntry,
+            totals: calcEntryTotals(sourceEntry),
+          });
+          continue;
+        }
+
+        const employees = [...existing.employees, employee];
+        const entryIds = [...existing.entryIds, sourceEntry.employeeId];
+        const mergedEntries = [existing.entry, sourceEntry];
+        const mergedEntry = sumEntryValues(mergedEntries);
+
+        grouped.set(key, {
+          key,
+          employees,
+          entryIds,
+          entry: mergedEntry,
+          totals: calcEntryTotals(mergedEntry),
+        });
+      }
+
+      return [...grouped.values()];
+    },
     [ledger.entries, employeeMap]
   );
 
@@ -458,40 +533,71 @@ export default function FinancePayrollLedgerPanel({
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ entry, employee, totals }, index) => (
-                  <tr key={entry.employeeId}>
+                {rows.map(({ key, entry, employees: groupedEmployees, entryIds, totals }, index) => {
+                  const mainEmployee = groupedEmployees[0];
+                  const positions = [...new Set(groupedEmployees.map((item) => item.position).filter(Boolean))];
+                  const personnelNumbers = [
+                    ...new Set(groupedEmployees.map((item) => item.personnelNumber).filter(Boolean)),
+                  ];
+                  const isMultiPosition = positions.length > 1;
+                  const anySecondary = groupedEmployees.some(
+                    (item) => resolveEmploymentWorkType(item) === 'secondary'
+                  );
+                  const canPatch = editing && entryIds.length === 1;
+
+                  return (
+                  <tr key={key}>
                     <td className="border border-slate-300 px-2 py-2 text-center">{index + 1}</td>
                     <td className="border border-slate-300 px-2 py-2 font-medium">
-                      {employee.fullName}
-                      {resolveEmploymentWorkType(employee) === 'secondary' && (
+                      {mainEmployee.fullName}
+                      {anySecondary && (
                         <span className="mt-0.5 block text-[9px] font-semibold uppercase text-amber-700">
                           {t('employmentWorkTypeSecondaryShort')}
                         </span>
                       )}
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-center">
-                      {employee.personnelNumber || '—'}
+                      {personnelNumbers.length > 0 ? personnelNumbers.join(', ') : '—'}
                     </td>
-                    <td className="border border-slate-300 px-2 py-2">{employee.position}</td>
+                    <td className="border border-slate-300 px-2 py-2">
+                      {positions.join(', ') || '—'}
+                      {isMultiPosition && (
+                        <span className="mt-0.5 block text-[9px] uppercase text-[var(--text-muted)]">
+                          {entryIds.length} {t('employeePosition')}
+                        </span>
+                      )}
+                    </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.baseSalary}
-                        onChange={(value) => patchEntry(entry.employeeId, 'baseSalary', value)}
+                        onChange={
+                          canPatch
+                            ? (value) => patchEntry(entryIds[0], 'baseSalary', value)
+                            : undefined
+                        }
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.allowances}
-                        onChange={(value) => patchEntry(entry.employeeId, 'allowances', value)}
+                        onChange={
+                          canPatch
+                            ? (value) => patchEntry(entryIds[0], 'allowances', value)
+                            : undefined
+                        }
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.laborLeavePay ?? '0,00'}
-                        onChange={(value) => patchEntry(entry.employeeId, 'laborLeavePay', value)}
+                        onChange={
+                          canPatch
+                            ? (value) => patchEntry(entryIds[0], 'laborLeavePay', value)
+                            : undefined
+                        }
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right font-semibold">
@@ -499,30 +605,30 @@ export default function FinancePayrollLedgerPanel({
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.fhea}
-                        onChange={(value) => patchEntry(entry.employeeId, 'fhea', value)}
+                        onChange={canPatch ? (value) => patchEntry(entryIds[0], 'fhea', value) : undefined}
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.kik}
-                        onChange={(value) => patchEntry(entry.employeeId, 'kik', value)}
+                        onChange={canPatch ? (value) => patchEntry(entryIds[0], 'kik', value) : undefined}
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.hhdt}
-                        onChange={(value) => patchEntry(entry.employeeId, 'hhdt', value)}
+                        onChange={canPatch ? (value) => patchEntry(entryIds[0], 'hhdt', value) : undefined}
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right">
                       <AmountInput
-                        editing={editing}
+                        editing={canPatch}
                         value={entry.tax}
-                        onChange={(value) => patchEntry(entry.employeeId, 'tax', value)}
+                        onChange={canPatch ? (value) => patchEntry(entryIds[0], 'tax', value) : undefined}
                       />
                     </td>
                     <td className="border border-slate-300 px-2 py-2 text-right font-semibold">
@@ -532,7 +638,7 @@ export default function FinancePayrollLedgerPanel({
                       {formatLedgerAmount(totals.netPay)}
                     </td>
                   </tr>
-                ))}
+                )})}
                 <tr className="bg-slate-100 font-bold">
                   <td colSpan={4} className="border border-slate-300 px-2 py-2 text-center">
                     {t('payrollLedgerTotal')}
@@ -576,7 +682,7 @@ export default function FinancePayrollLedgerPanel({
             <p>
               Шумораи кормандон:{' '}
               <strong>
-                {employees.length} нафар
+                {rows.length} нафар
               </strong>
             </p>
             <p>
