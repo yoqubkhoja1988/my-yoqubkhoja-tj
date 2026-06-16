@@ -5,6 +5,8 @@ import {
   calcEntryTotals,
   formatLedgerAmount,
   mergePayrollLedgerForMonth,
+  payrollLedgerPersonGroupKey,
+  resolveEmploymentWorkType,
 } from '@/lib/finance-payroll-ledger';
 import {
   collectSocialInsuranceBankPayments,
@@ -260,6 +262,61 @@ export function amountInWordsTj(amount: number): string {
   return `${somoniWords} \u0441\u043e\u043c\u043e\u043d\u04e3 ${diramText} \u0434\u0438\u0440\u0430\u043c`;
 }
 
+function normalizedBankAccount(value?: string): string {
+  return (value ?? '').replace(/\D/g, '');
+}
+
+function isImportReadyBankAccount(bankAccount: string): boolean {
+  return bankAccount.length === 20;
+}
+
+function pickRepresentativeEmployee(a: StaffEmployee, b: StaffEmployee): StaffEmployee {
+  const aHasBank = isImportReadyBankAccount(normalizedBankAccount(a.bankAccount));
+  const bHasBank = isImportReadyBankAccount(normalizedBankAccount(b.bankAccount));
+  if (aHasBank && !bHasBank) return a;
+  if (bHasBank && !aHasBank) return b;
+  if (resolveEmploymentWorkType(a) === 'primary' && resolveEmploymentWorkType(b) === 'secondary') {
+    return a;
+  }
+  if (resolveEmploymentWorkType(b) === 'primary' && resolveEmploymentWorkType(a) === 'secondary') {
+    return b;
+  }
+  return a;
+}
+
+function mergeBankPaymentRowsByPerson(
+  rows: Omit<BankPaymentRow, 'index'>[],
+  groupKey: (row: Omit<BankPaymentRow, 'index'>) => string
+): Omit<BankPaymentRow, 'index'>[] {
+  const grouped = new Map<string, Omit<BankPaymentRow, 'index'>>();
+
+  for (const row of rows) {
+    const key = groupKey(row);
+    const existing = grouped.get(key);
+    if (!existing) {
+      grouped.set(key, row);
+      continue;
+    }
+
+    const employee = pickRepresentativeEmployee(existing.employee, row.employee);
+    const bankAccount =
+      isImportReadyBankAccount(existing.bankAccount)
+        ? existing.bankAccount
+        : row.bankAccount || existing.bankAccount;
+
+    grouped.set(key, {
+      ...existing,
+      rowKey: `${existing.source}-${key}`,
+      employee,
+      bankAccount,
+      netPay: existing.netPay + row.netPay,
+      importReady: isImportReadyBankAccount(bankAccount),
+    });
+  }
+
+  return [...grouped.values()];
+}
+
 export function buildBankPaymentDocument(
   financeContent: OrganizationSectionContent,
   staffContent: OrganizationSectionContent,
@@ -286,25 +343,28 @@ export function buildBankPaymentDocument(
 
   type DraftBankPaymentRow = Omit<BankPaymentRow, 'index'>;
 
-  const salaryRows = ledger.entries.flatMap((entry): DraftBankPaymentRow[] => {
-    const employee = employeeMap.get(entry.employeeId);
-    if (!employee) return [];
-    const { netPay } = calcEntryTotals(entry);
-    if (netPay <= 0) return [];
-    const bankAccount = (employee.bankAccount ?? '').replace(/\D/g, '');
-    return [
-      {
-        rowKey: `salary-${entry.employeeId}`,
-        employee,
-        bankAccount,
-        netPay,
-        monthLabel,
-        purpose: purposeSalary,
-        source: 'salary',
-        importReady: bankAccount.length === 20,
-      },
-    ];
-  });
+  const salaryRows = mergeBankPaymentRowsByPerson(
+    ledger.entries.flatMap((entry): DraftBankPaymentRow[] => {
+      const employee = employeeMap.get(entry.employeeId);
+      if (!employee) return [];
+      const { netPay } = calcEntryTotals(entry);
+      if (netPay <= 0) return [];
+      const bankAccount = normalizedBankAccount(employee.bankAccount);
+      return [
+        {
+          rowKey: `salary-${entry.employeeId}`,
+          employee,
+          bankAccount,
+          netPay,
+          monthLabel,
+          purpose: purposeSalary,
+          source: 'salary',
+          importReady: isImportReadyBankAccount(bankAccount),
+        },
+      ];
+    }),
+    (row) => payrollLedgerPersonGroupKey(row.employee)
+  );
 
   const socialRows = collectSocialInsuranceBankPayments(
     financeContent.laborLeaves,
@@ -315,7 +375,7 @@ export function buildBankPaymentDocument(
     .flatMap((payment): DraftBankPaymentRow[] => {
       const employee = employeeMap.get(payment.employeeId);
       if (!employee) return [];
-      const bankAccount = (employee.bankAccount ?? '').replace(/\D/g, '');
+      const bankAccount = normalizedBankAccount(employee.bankAccount);
       return [
         {
           rowKey: `social-${payment.leaveId}-${month}`,
@@ -325,7 +385,7 @@ export function buildBankPaymentDocument(
           monthLabel,
           purpose: socialInsurancePurposeTj(payment.kind, monthLabel, year),
           source: 'social_insurance',
-          importReady: bankAccount.length === 20,
+          importReady: isImportReadyBankAccount(bankAccount),
         },
       ];
     });
@@ -511,7 +571,7 @@ async function buildPrintSheet(
     fillCell(sheet.getCell(rowNumber, 3), {
       value: row.netPay,
       bg,
-      hAlign: 'right',
+      hAlign: 'center',
       border: thinBorder,
       numFmt: '#,##0.00',
     });
@@ -543,7 +603,7 @@ async function buildPrintSheet(
     value: document.totalNetPay,
     bold: true,
     bg: COLORS.totalGreen,
-    hAlign: 'right',
+    hAlign: 'center',
     numFmt: '#,##0.00',
     border: thinBorder,
   });
@@ -654,7 +714,7 @@ async function buildImportSheet(
     fillCell(sheet.getCell(rowNumber, 2), {
       value: row.netPay,
       bg,
-      hAlign: 'right',
+      hAlign: 'center',
       border: thinBorder,
       numFmt: '#,##0.00',
     });
@@ -687,7 +747,7 @@ async function buildImportSheet(
       value: importTotal,
       bold: true,
       bg: COLORS.totalGreen,
-      hAlign: 'right',
+      hAlign: 'center',
       numFmt: '#,##0.00',
       border: thinBorder,
     });

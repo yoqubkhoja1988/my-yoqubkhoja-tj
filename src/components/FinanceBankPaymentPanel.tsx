@@ -178,10 +178,10 @@ export default function FinanceBankPaymentPanel({
                     {documentData.rows.map((row) => (
                       <tr key={row.rowKey}>
                         <td className="border border-slate-300 px-2 py-2 text-center">{row.index}</td>
-                        <td className="border border-slate-300 px-2 py-2 font-mono text-[11px]">
+                        <td className="border border-slate-300 px-2 py-2 text-center font-mono text-[11px]">
                           {row.bankAccount || ''}
                         </td>
-                        <td className="border border-slate-300 px-2 py-2 text-right">
+                        <td className="border border-slate-300 px-2 py-2 text-center">
                           {formatBankPaymentAmount(row.netPay)}
                         </td>
                         <td className="border border-slate-300 px-2 py-2">
@@ -193,10 +193,10 @@ export default function FinanceBankPaymentPanel({
                       </tr>
                     ))}
                     <tr className="font-semibold">
-                      <td colSpan={2} className="border border-slate-300 px-2 py-2 text-right">
+                      <td colSpan={2} className="border border-slate-300 px-2 py-2 text-center">
                         {t('bankPaymentTotal')}
                       </td>
-                      <td className="border border-slate-300 px-2 py-2 text-right">
+                      <td className="border border-slate-300 px-2 py-2 text-center">
                         {formatBankPaymentAmount(documentData.totalNetPay)}
                       </td>
                       <td colSpan={2} className="border border-slate-300 px-2 py-2" />
