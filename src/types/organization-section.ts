@@ -62,6 +62,8 @@ export interface EmployeeWageScale {
   medicalCategory?: 'none' | 'superior' | 'category_1' | 'category_2';
   auxiliaryRole?: 'standard' | 'accountant';
   extraDuties?: ('class_leadership' | 'notebook_check' | 'cabinet_management')[];
+  /** Меъёри воҳиди корӣ — тариқи дастӣ (масалан 1, 0,5, 0,75) */
+  workUnitRate?: string;
   baseSalary?: string;
   hourlyRate?: string;
   calculatedMonthly?: string;

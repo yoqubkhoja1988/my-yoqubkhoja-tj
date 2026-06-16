@@ -11,10 +11,12 @@ import { updateOrganizationSection } from '@/lib/organization-sections';
 import {
   calculateWageScale,
   emptyWageScale,
+  formatWageAmount,
+  formatWorkUnitRate,
   hydrateWageScale,
   parseWageAmount,
+  parseWorkUnitRate,
   usesEducationLevel,
-  usesPreschoolWageScales,
 } from '@/lib/preschool-wage-scales';
 import {
   extractStaffingOptions,
@@ -135,10 +137,14 @@ function toEmployee(form: EmployeeForm, organizationId: string, id?: string): St
   return employee;
 }
 
-export default function StaffEmployeeRegistry({ organizationId, content, onUpdate }: Props) {
+export default function StaffEmployeeRegistry({
+  organizationId,
+  content,
+  onUpdate,
+}: Props) {
   const t = useTranslations();
   const { canEdit } = useOrganizationAccess();
-  const showWageScales = usesPreschoolWageScales(organizationId);
+  const showWageScales = true;
   const employees = content.employees ?? [];
   const analytics = useMemo(() => analyzeStaffing(content), [content]);
   const departments = useMemo(
@@ -220,6 +226,7 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
         {
           educationLevel: current.wageScale?.educationLevel,
           extraDuties: current.wageScale?.extraDuties ?? [],
+          workUnitRate: current.wageScale?.workUnitRate,
         },
         organizationId,
         position
@@ -368,6 +375,22 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
     return t('employeeStatusActive');
   }
 
+  function employeeDutySalary(employee: StaffEmployee): string {
+    return employee.wageScale?.baseSalary || '—';
+  }
+
+  function employeeWorkUnitRate(employee: StaffEmployee): string {
+    return employee.wageScale?.workUnitRate?.trim() || '1';
+  }
+
+  function employeeMonthlySalary(employee: StaffEmployee): string {
+    if (employee.wageScale?.calculatedMonthly) return employee.wageScale.calculatedMonthly;
+    const base = parseWageAmount(employee.wageScale?.baseSalary);
+    if (base === null) return '—';
+    const rate = parseWorkUnitRate(employee.wageScale?.workUnitRate);
+    return formatWageAmount(base * rate);
+  }
+
   function handleDepartmentChange(department: string) {
     const positions = getPositionsForDepartment(departments, department);
     const position = positions.includes(form.position) ? form.position : (positions[0] ?? '');
@@ -378,7 +401,11 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
     }
 
     const wageScale = hydrateWageScale(
-      { educationLevel: form.wageScale?.educationLevel, extraDuties: form.wageScale?.extraDuties ?? [] },
+      {
+        educationLevel: form.wageScale?.educationLevel,
+        extraDuties: form.wageScale?.extraDuties ?? [],
+        workUnitRate: form.wageScale?.workUnitRate,
+      },
       organizationId,
       position
     );
@@ -478,6 +505,9 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                 <th>{t('employeeFullName')}</th>
                 <th>{t('employeePosition')}</th>
                 <th>{t('employeeEmploymentWorkType')}</th>
+                <th>{t('wageScaleWorkUnitRate')}</th>
+                <th>{t('wageScaleDutySalary')}</th>
+                <th>{t('wageScaleCalculatedMonthly')}</th>
                 <th>{t('employeeDepartment')}</th>
                 <th>{t('employeePersonnelNumber')}</th>
                 <th>{t('employeeRis')}</th>
@@ -509,6 +539,17 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                   <td className="text-[var(--accent)]">{employee.position}</td>
                   <td className="text-xs">
                     {employmentWorkTypeLabel(employee.employmentWorkType)}
+                  </td>
+                  <td className="font-mono text-xs">{employeeWorkUnitRate(employee)}</td>
+                  <td className="font-mono text-xs">
+                    {employeeDutySalary(employee) === '—'
+                      ? '—'
+                      : `${employeeDutySalary(employee)} ${t('wageScaleSomoni')}`}
+                  </td>
+                  <td className="font-mono text-xs font-semibold text-[var(--accent)]">
+                    {employeeMonthlySalary(employee) === '—'
+                      ? '—'
+                      : `${employeeMonthlySalary(employee)} ${t('wageScaleSomoni')}`}
                   </td>
                   <td>{employee.department || '—'}</td>
                   <td>{employee.personnelNumber || '—'}</td>
@@ -583,6 +624,9 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
                 [t('employeeStatus'), statusLabel(viewEmployee.status)],
                 ...(viewEmployee.wageScale?.baseSalary
                   ? [[t('wageScaleDutySalary'), `${viewEmployee.wageScale.baseSalary} ${t('wageScaleSomoni')}`]]
+                  : []),
+                ...(viewEmployee.wageScale?.workUnitRate
+                  ? [[t('wageScaleWorkUnitRate'), viewEmployee.wageScale.workUnitRate]]
                   : []),
                 ...(viewEmployee.wageScale?.calculatedMonthly
                   ? [[t('wageScaleCalculatedMonthly'), `${viewEmployee.wageScale.calculatedMonthly} ${t('wageScaleSomoni')}`]]
@@ -689,6 +733,53 @@ export default function StaffEmployeeRegistry({ organizationId, content, onUpdat
 
               {departments.length === 0 && (
                 <p className="text-xs text-[var(--warning)]">{t('noStaffingForSelect')}</p>
+              )}
+
+              {showWageScales && form.position && (
+                <div className="rounded-xl border border-[var(--accent)]/40 bg-[var(--accent)]/5 p-3">
+                  <label className="field-label">{t('wageScaleWorkUnitRate')}</label>
+                  <div className="mt-1 flex flex-wrap items-center gap-3">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={form.wageScale.workUnitRate ?? '1'}
+                      onChange={(e) =>
+                        handleWageScaleChange({
+                          ...form.wageScale,
+                          workUnitRate: e.target.value.replace(/[^\d,.\s]/g, ''),
+                        })
+                      }
+                      onBlur={() =>
+                        handleWageScaleChange({
+                          ...form.wageScale,
+                          workUnitRate: formatWorkUnitRate(
+                            parseWorkUnitRate(form.wageScale.workUnitRate)
+                          ),
+                        })
+                      }
+                      placeholder={t('wageScaleWorkUnitRatePlaceholder')}
+                      className="input-field max-w-[8rem] font-mono"
+                    />
+                    {form.wageScale.baseSalary && form.wageScale.calculatedMonthly && (
+                      <p className="text-sm font-semibold text-[var(--accent)]">
+                        {t('wageScaleCalculatedMonthly')}: {form.wageScale.calculatedMonthly}{' '}
+                        {t('wageScaleSomoni')}
+                      </p>
+                    )}
+                  </div>
+                  <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+                    {t('wageScaleWorkUnitRateHint')}
+                  </p>
+                  {form.wageScale.baseSalary && form.wageScale.calculatedMonthly && (
+                    <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+                      {t('wageScaleMonthlyFormula', {
+                        dutySalary: form.wageScale.baseSalary,
+                        workUnitRate: form.wageScale.workUnitRate?.trim() || '1',
+                        monthly: form.wageScale.calculatedMonthly,
+                      })}
+                    </p>
+                  )}
+                </div>
               )}
 
               <div>

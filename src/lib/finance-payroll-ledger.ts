@@ -230,6 +230,10 @@ function findEmployeeWage(
 ) {
   if (organizationId && usesPreschoolWageScales(organizationId)) {
     const scale = hydrateWageScale(employee.wageScale, organizationId, employee.position);
+    const monthly = parseWageAmount(scale.calculatedMonthly);
+    if (monthly !== null) {
+      return { baseSalary: monthly, allowances: 0 };
+    }
     const parsed = parseWageAmount(scale.baseSalary);
     if (parsed !== null) {
       return { baseSalary: parsed, allowances: 0 };

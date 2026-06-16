@@ -364,16 +364,24 @@ export default function PreschoolWageScaleFields({
             {calculated.baseSalary} {t('wageScaleSomoni')}
           </p>
         </div>
+        <div>
+          <p className="text-[11px] text-[var(--text-muted)]">{t('wageScaleCalculatedMonthly')}</p>
+          <p className="text-lg font-bold">
+            {calculated.calculatedMonthly} {t('wageScaleSomoni')}
+          </p>
+          <p className="text-[10px] text-[var(--text-muted)]">
+            {t('wageScaleMonthlyFormula', {
+              dutySalary: calculated.baseSalary ?? '0,00',
+              workUnitRate: value.workUnitRate?.trim() || '1',
+              monthly: calculated.calculatedMonthly ?? '0,00',
+            })}
+          </p>
+        </div>
         {(value.group === 'educator-20h' || value.group === 'teacher-18h') &&
           (value.extraDuties?.length ?? 0) > 0 && (
-            <div>
-              <p className="text-[11px] text-[var(--text-muted)]">
-                {t('wageScaleCalculatedMonthly')}
-              </p>
-              <p className="text-lg font-bold">
-                {calculated.calculatedMonthly} {t('wageScaleSomoni')}
-              </p>
-            </div>
+            <p className="text-[10px] text-[var(--text-muted)]">
+              {t('wageScaleMonthlyWithExtrasNote')}
+            </p>
           )}
         {calculated.hourlyRate && (
           <p className="text-[11px] text-[var(--text-muted)]">

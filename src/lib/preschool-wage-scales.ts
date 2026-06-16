@@ -300,6 +300,7 @@ export function emptyWageScale(organizationId?: string): EmployeeWageScale {
     medicalCategory: 'category_2',
     auxiliaryRole: 'standard',
     extraDuties: [],
+    workUnitRate: '1',
   };
 }
 
@@ -565,12 +566,17 @@ export function calculateWageScale(
   const dutySalary = getDutySalaryFromScale(scale, organizationId);
   const extras = getTeachingExtras(scale);
   const hourlyRate = getHourlyRateFromScale(scale);
+  const workUnitRate = parseWorkUnitRate(scale.workUnitRate);
+  const monthlyWage = (dutySalary + extras) * workUnitRate;
 
   return {
     ...scale,
+    workUnitRate: scale.workUnitRate?.trim()
+      ? scale.workUnitRate.trim()
+      : formatWorkUnitRate(workUnitRate),
     baseSalary: formatWageAmount(dutySalary),
     hourlyRate: hourlyRate !== undefined ? formatWageAmount(hourlyRate) : undefined,
-    calculatedMonthly: formatWageAmount(dutySalary + extras),
+    calculatedMonthly: formatWageAmount(monthlyWage),
   };
 }
 
@@ -578,6 +584,23 @@ export function formatWageAmount(value: number): string {
   const [intPart, decPart] = value.toFixed(2).split('.');
   const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   return `${grouped},${decPart}`;
+}
+
+export function formatWorkUnitRate(value: number): string {
+  const safe = Math.max(0, value);
+  if (Number.isInteger(safe)) return String(safe);
+  return safe
+    .toFixed(2)
+    .replace('.', ',')
+    .replace(/,?0+$/, '')
+    .replace(/,$/, '');
+}
+
+export function parseWorkUnitRate(value?: string): number {
+  if (!value?.trim()) return 1;
+  const normalized = value.replace(/\s/g, '').replace(',', '.');
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 1;
 }
 
 export function parseWageAmount(value?: string): number | null {
@@ -588,11 +611,13 @@ export function parseWageAmount(value?: string): number | null {
 }
 
 export function getEmployeeMonthlyWage(employee: StaffEmployee): number | null {
-  if (employee.wageScale?.baseSalary) {
-    return parseWageAmount(employee.wageScale.baseSalary);
-  }
   if (employee.wageScale?.calculatedMonthly) {
     return parseWageAmount(employee.wageScale.calculatedMonthly);
+  }
+  if (employee.wageScale?.baseSalary) {
+    const base = parseWageAmount(employee.wageScale.baseSalary);
+    if (base === null) return null;
+    return base * parseWorkUnitRate(employee.wageScale.workUnitRate);
   }
   return null;
 }
