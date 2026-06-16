@@ -1,12 +1,15 @@
 'use client';
 
 import { StaffAnalytics } from '@/lib/staff-analytics';
+import { formatAppDate } from '@/lib/intl-locale';
+import { resolveVacancyNotice } from '@/lib/vacancy-notice-defaults';
 import { VacancyNoticeInfo } from '@/types/organization-section';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
 import UserContentText from '@/components/UserContentText';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
+import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { printDocument } from '@/lib/print-document';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   analytics: StaffAnalytics;
@@ -15,12 +18,6 @@ type Props = {
   onNoticeChange?: (notice: VacancyNoticeInfo) => void;
 };
 
-const defaultNotice = (t: (key: string) => string): VacancyNoticeInfo => ({
-  intro: t('vacancyNoticeDefaultIntro'),
-  requirements: t('vacancyNoticeDefaultRequirements'),
-  publishedAt: new Date().toISOString().slice(0, 10),
-});
-
 export default function StaffVacancyNotice({
   analytics,
   notice,
@@ -28,8 +25,10 @@ export default function StaffVacancyNotice({
   onNoticeChange,
 }: Props) {
   const t = useTranslations();
+  const locale = useLocale();
+  const { organizationId, organizationName } = useOrganizationReportHeader();
   const vacantSlots = analytics.slots.filter((slot) => slot.vacant > 0);
-  const info: VacancyNoticeInfo = { ...defaultNotice(t), ...notice };
+  const info = resolveVacancyNotice(notice, t, organizationName, organizationId);
 
   function update(field: keyof VacancyNoticeInfo, value: string) {
     onNoticeChange?.({ ...info, [field]: value });
@@ -128,7 +127,13 @@ export default function StaffVacancyNotice({
             {info.publishedAt && (
               <p className="mt-2 text-xs">
                 {t('vacancyNoticeDate')}:{' '}
-                <span className="font-semibold">{info.publishedAt}</span>
+                <span className="font-semibold">
+                  {formatAppDate(info.publishedAt, locale, {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}
+                </span>
               </p>
             )}
           </div>

@@ -19,7 +19,7 @@ export const FOOD_SAFETY_CENTER_NAME =
 
 /** МДТМ Мактаб-кӯдакистони №1 — ноҳияи Ҷ. Расулов */
 export const KINDERGARTEN_SCHOOL_NAME =
-  'МУАССИСАИ ДАВЛАТИИ ТАЪЛИМИИ ТОМАКТАБИИ МАКТАБ- КӮДАКИСТОНИ №1 НОҲИЯИ ҶАББОР РАСУЛОВ';
+  'МУАССИСАИ ДАВЛАТИИ ТАЪЛИМИИ ТОМАКТАБИИ МАКТАБ-КӮДАКИСТОНИ №1 НОҲИЯИ ҶАББОР РАСУЛОВ';
 
 export function getOrganizationKind(organizationId?: string): OrganizationKind | null {
   if (!organizationId) return null;

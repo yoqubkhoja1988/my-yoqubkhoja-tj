@@ -1289,6 +1289,8 @@
   "vacancyNoticeContact": "For more information and document submission, contact:",
   "vacancyNoticeFooter": "This notice is prepared based on the staffing table and employee registry.",
   "vacancyNoticePrint": "Print",
-  "vacancyNoticeDefaultIntro": "According to the approved staffing table, the following vacant positions are available at the Food Safety Center.",
-  "vacancyNoticeDefaultRequirements": "Requirements: secondary vocational or higher education (as per position), relevant work experience, knowledge of Tajikistan food safety legislation."
+  "vacancyNoticeDefaultIntro": "According to the approved staffing table, the following vacant positions for hiring are offered at «{organization}».",
+  "vacancyNoticeDefaultRequirementsFoodSafety": "Requirements: secondary vocational or higher education (as per position), relevant work experience, knowledge of Tajikistan food safety legislation.",
+  "vacancyNoticeDefaultRequirementsKindergarten": "Requirements: secondary vocational or higher education (as per position), experience in education and upbringing, knowledge of Tajikistan preschool education legislation.",
+  "vacancyNoticeDefaultRequirementsGeneric": "Requirements: secondary vocational or higher education (as per position), relevant work experience, knowledge of applicable legislation of the Republic of Tajikistan.",
 }

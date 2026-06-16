@@ -1284,6 +1284,8 @@
   "vacancyNoticeContact": "Qo'shimcha ma'lumot va hujjatlar uchun murojaat qiling:",
   "vacancyNoticeFooter": "Ma'lumotnoma shtat jadvali va xodimlar ro'yxati asosida tayyorlangan.",
   "vacancyNoticePrint": "Chop etish",
-  "vacancyNoticeDefaultIntro": "Tasdiqlangan shtat jadvaliga muvofiq, Oziq-ovqat xavfsizligini ta'minlash markazida quyidagi bo'sh ish o'rinlari mavjud.",
-  "vacancyNoticeDefaultRequirements": "Talablar: o'rta kasbiy yoki oliy ma'lumot (lavozimga qarab), tegishli sohada ish tajribasi, TO oziq-ovqat xavfsizligi qonunchiligini bilish."
+  "vacancyNoticeDefaultIntro": "Tasdiqlangan shtat jadvaliga muvofiq, «{organization}»da quyidagi bo'sh ish o'rinlari uchun xodim qabul qilish taklif etiladi.",
+  "vacancyNoticeDefaultRequirementsFoodSafety": "Talablar: o'rta kasbiy yoki oliy ma'lumot (lavozimga qarab), tegishli sohada ish tajribasi, TO oziq-ovqat xavfsizligi qonunchiligini bilish.",
+  "vacancyNoticeDefaultRequirementsKindergarten": "Talablar: o'rta kasbiy yoki oliy ma'lumot (lavozimga qarab), ta'lim va tarbiya sohasida ish tajribasi, TO maktabgacha ta'lim qonunchiligini bilish.",
+  "vacancyNoticeDefaultRequirementsGeneric": "Talablar: o'rta kasbiy yoki oliy ma'lumot (lavozimga qarab), tegishli sohada ish tajribasi, TO amaldagi qonunchiligini bilish.",
 }
