@@ -72,6 +72,25 @@ export interface EmployeeWageScale {
 /** Кори асосӣ ё кори иловагӣ (совместительство) — тартиботи ҳисоби андоз фарқ мекунад */
 export type EmploymentWorkType = 'primary' | 'secondary';
 
+/** Давраи тахассус (3 сол) ё давраи такмили ихтисос (2 сол) */
+export type ProfessionalCycleKind = 'specialization' | 'qualification_upgrade';
+
+export interface EmployeeProfessionalCycleRecord {
+  /** Санаи охирини гузаронидани давра (YYYY-MM-DD) */
+  lastCompletedAt?: string;
+  /** Рақами шаҳодатнома / ҳуҷҷат */
+  certificateNo?: string;
+  /** Муассисаи таълимӣ (ИПП, маркази такмили ихтисос) */
+  provider?: string;
+  notes?: string;
+}
+
+/** Бақайдгирии давраҳои тахассус ва такмили ихтисос — соҳаи таълим ва тарбия */
+export interface EmployeeProfessionalDevelopment {
+  specializationCycle?: EmployeeProfessionalCycleRecord;
+  qualificationUpgradeCycle?: EmployeeProfessionalCycleRecord;
+}
+
 export interface StaffEmployee {
   id: string;
   fullName: string;
@@ -91,6 +110,7 @@ export interface StaffEmployee {
   birthYear?: string;
   status?: string;
   wageScale?: EmployeeWageScale;
+  professionalDevelopment?: EmployeeProfessionalDevelopment;
 }
 
 export interface VacancyNoticeInfo {

@@ -23,15 +23,25 @@ import {
   getPositionsForDepartment,
 } from '@/lib/staff-staffing-options';
 import PreschoolWageScaleFields from '@/components/PreschoolWageScaleFields';
+import StaffProfessionalDevelopmentFields, {
+  formatProfessionalCycleSummary,
+} from '@/components/StaffProfessionalDevelopmentFields';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
+import { formatAppDate } from '@/lib/intl-locale';
 import { calcIncomeTax } from '@/lib/finance-payroll-ledger';
+import {
+  emptyProfessionalDevelopment,
+  normalizeProfessionalDevelopment,
+  usesEducationProfessionalDevelopment,
+} from '@/lib/staff-professional-development';
 import {
   EmployeeWageScale,
   EmploymentWorkType,
+  EmployeeProfessionalDevelopment,
   OrganizationSectionContent,
   StaffEmployee,
 } from '@/types/organization-section';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 type EmployeeForm = {
@@ -51,6 +61,7 @@ type EmployeeForm = {
   birthYear: string;
   status: string;
   wageScale: EmployeeWageScale;
+  professionalDevelopment: EmployeeProfessionalDevelopment;
 };
 
 const emptyForm: EmployeeForm = {
@@ -70,6 +81,7 @@ const emptyForm: EmployeeForm = {
   birthYear: '',
   status: 'active',
   wageScale: emptyWageScale(),
+  professionalDevelopment: emptyProfessionalDevelopment(),
 };
 
 type Props = {
@@ -96,6 +108,7 @@ function toForm(employee: StaffEmployee): EmployeeForm {
     birthYear: employee.birthYear || '',
     status: employee.status || 'active',
     wageScale: employee.wageScale ?? emptyWageScale(),
+    professionalDevelopment: employee.professionalDevelopment ?? emptyProfessionalDevelopment(),
   };
 }
 
@@ -110,7 +123,12 @@ function toEmployee(form: EmployeeForm, organizationId: string, id?: string): St
 
   const optional: (keyof Omit<
     EmployeeForm,
-    'fullName' | 'position' | 'status' | 'wageScale' | 'employmentWorkType'
+    | 'fullName'
+    | 'position'
+    | 'status'
+    | 'wageScale'
+    | 'employmentWorkType'
+    | 'professionalDevelopment'
   >)[] = [
     'department',
     'phone',
@@ -134,6 +152,11 @@ function toEmployee(form: EmployeeForm, organizationId: string, id?: string): St
     employee.wageScale = calculateWageScale(form.wageScale, organizationId);
   }
 
+  const professionalDevelopment = normalizeProfessionalDevelopment(form.professionalDevelopment);
+  if (professionalDevelopment) {
+    employee.professionalDevelopment = professionalDevelopment;
+  }
+
   return employee;
 }
 
@@ -143,8 +166,10 @@ export default function StaffEmployeeRegistry({
   onUpdate,
 }: Props) {
   const t = useTranslations();
+  const locale = useLocale();
   const { canEdit } = useOrganizationAccess();
   const showWageScales = true;
+  const showProfessionalDevelopment = usesEducationProfessionalDevelopment(organizationId);
   const employees = content.employees ?? [];
   const analytics = useMemo(() => analyzeStaffing(content), [content]);
   const departments = useMemo(
@@ -337,11 +362,31 @@ export default function StaffEmployeeRegistry({
   }
 
   function handleExport() {
-    const rows = filteredEmployees.map((employee) => ({
-      ...employee,
+    const rows = filteredEmployees.map((employee, index) => ({
+      index: String(index + 1),
+      fullName: employee.fullName,
+      position: employee.position,
       employmentWorkType: employmentWorkTypeLabel(employee.employmentWorkType),
+      department: employee.department ?? '',
+      personnelNumber: employee.personnelNumber ?? '',
+      ris: employee.ris ?? '',
+      rma: employee.rma ?? '',
+      phone: employee.phone ?? '',
+      email: employee.email ?? '',
+      bankAccount: employee.bankAccount ?? '',
+      hiredAt: employee.hiredAt ?? '',
+      education: employee.education ?? '',
+      experience: employee.experience ?? '',
+      birthYear: employee.birthYear ?? '',
+      specializationCycle: showProfessionalDevelopment
+        ? cycleSummary(employee, 'specialization')
+        : '',
+      qualificationUpgradeCycle: showProfessionalDevelopment
+        ? cycleSummary(employee, 'qualification_upgrade')
+        : '',
       status: statusLabel(employee.status),
-    })) as StaffEmployee[];
+    }));
+
     const csv = exportEmployeesToCsv(rows, [
       { key: 'index', label: t('staffColNo') },
       { key: 'fullName', label: t('employeeFullName') },
@@ -358,6 +403,15 @@ export default function StaffEmployeeRegistry({
       { key: 'education', label: t('employeeEducation') },
       { key: 'experience', label: t('employeeExperience') },
       { key: 'birthYear', label: t('employeeBirthYear') },
+      ...(showProfessionalDevelopment
+        ? [
+            { key: 'specializationCycle' as const, label: t('employeeCyclePeriodSpecialization') },
+            {
+              key: 'qualificationUpgradeCycle' as const,
+              label: t('employeeCyclePeriodQualificationUpgrade'),
+            },
+          ]
+        : []),
       { key: 'status', label: t('employeeStatus') },
     ]);
     downloadCsv(`employees-${new Date().toISOString().slice(0, 10)}.csv`, csv);
@@ -389,6 +443,26 @@ export default function StaffEmployeeRegistry({
     if (base === null) return '—';
     const rate = parseWorkUnitRate(employee.wageScale?.workUnitRate);
     return formatWageAmount(base * rate);
+  }
+
+  function formatCycleDate(iso: string): string {
+    return formatAppDate(iso, locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+
+  function cycleSummary(
+    employee: StaffEmployee,
+    kind: 'specialization' | 'qualification_upgrade'
+  ): string {
+    return formatProfessionalCycleSummary(employee.professionalDevelopment, kind, formatCycleDate, {
+      missing: t('employeeCycleStatus_missing'),
+      validUntil: (date) => t('employeeCycleValidUntil', { date }),
+      dueSoon: (date) => t('employeeCycleDueSoon', { date }),
+      overdue: (date) => t('employeeCycleOverdue', { date }),
+    });
   }
 
   function handleDepartmentChange(department: string) {
@@ -519,6 +593,12 @@ export default function StaffEmployeeRegistry({
                 <th>{t('employeeEducation')}</th>
                 <th>{t('employeeExperience')}</th>
                 <th>{t('employeeBirthYear')}</th>
+                {showProfessionalDevelopment && (
+                  <>
+                    <th>{t('employeeCyclePeriodSpecialization')}</th>
+                    <th>{t('employeeCyclePeriodQualificationUpgrade')}</th>
+                  </>
+                )}
                 <th>{t('employeeStatus')}</th>
                 {canEdit && <th>{t('employeeActions')}</th>}
               </tr>
@@ -562,6 +642,16 @@ export default function StaffEmployeeRegistry({
                   <td>{employee.education || '—'}</td>
                   <td>{employee.experience || '—'}</td>
                   <td>{employee.birthYear || '—'}</td>
+                  {showProfessionalDevelopment && (
+                    <>
+                      <td className="min-w-[8rem] text-[10px]">
+                        {cycleSummary(employee, 'specialization')}
+                      </td>
+                      <td className="min-w-[8rem] text-[10px]">
+                        {cycleSummary(employee, 'qualification_upgrade')}
+                      </td>
+                    </>
+                  )}
                   <td>
                     <span className="inline-block rounded-full bg-[var(--bg-input)] px-2 py-0.5 text-[10px] font-semibold uppercase">
                       {statusLabel(employee.status)}
@@ -633,6 +723,37 @@ export default function StaffEmployeeRegistry({
                   : []),
                 ...(viewEmployee.wageScale?.group
                   ? [[t('wageScaleGroup'), t(`wageScaleGroup_${viewEmployee.wageScale.group}`)]]
+                  : []),
+                ...(showProfessionalDevelopment
+                  ? [
+                      [t('employeeCyclePeriodSpecialization'), cycleSummary(viewEmployee, 'specialization')],
+                      [
+                        t('employeeCyclePeriodQualificationUpgrade'),
+                        cycleSummary(viewEmployee, 'qualification_upgrade'),
+                      ],
+                      ...(viewEmployee.professionalDevelopment?.specializationCycle?.lastCompletedAt
+                        ? [
+                            [
+                              t('employeeCycleLastCompletedSpecialization'),
+                              formatCycleDate(
+                                viewEmployee.professionalDevelopment.specializationCycle.lastCompletedAt
+                              ),
+                            ],
+                          ]
+                        : []),
+                      ...(viewEmployee.professionalDevelopment?.qualificationUpgradeCycle
+                        ?.lastCompletedAt
+                        ? [
+                            [
+                              t('employeeCycleLastCompletedQualificationUpgrade'),
+                              formatCycleDate(
+                                viewEmployee.professionalDevelopment.qualificationUpgradeCycle
+                                  .lastCompletedAt
+                              ),
+                            ],
+                          ]
+                        : []),
+                    ]
                   : []),
               ].map(([label, value]) => (
                 <div key={String(label)}>
@@ -948,6 +1069,15 @@ export default function StaffEmployeeRegistry({
                   />
                 </div>
               </div>
+
+              {showProfessionalDevelopment && (
+                <StaffProfessionalDevelopmentFields
+                  value={form.professionalDevelopment}
+                  onChange={(professionalDevelopment) =>
+                    setForm({ ...form, professionalDevelopment })
+                  }
+                />
+              )}
 
               <div>
                 <label className="field-label">{t('employeeStatus')}</label>

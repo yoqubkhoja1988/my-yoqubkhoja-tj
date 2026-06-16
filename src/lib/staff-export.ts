@@ -1,13 +1,11 @@
-import { StaffEmployee } from '@/types/organization-section';
-
-type ExportColumn = {
-  key: keyof StaffEmployee | 'index';
+type ExportColumn<T extends Record<string, unknown>> = {
+  key: keyof T;
   label: string;
 };
 
-export function exportEmployeesToCsv(
-  employees: StaffEmployee[],
-  columns: ExportColumn[]
+export function exportEmployeesToCsv<T extends Record<string, unknown>>(
+  employees: T[],
+  columns: ExportColumn<T>[]
 ): string {
   const header = columns.map((column) => `"${column.label.replace(/"/g, '""')}"`).join(';');
   const rows = employees.map((employee, index) =>
