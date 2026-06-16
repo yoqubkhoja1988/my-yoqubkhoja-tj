@@ -5,8 +5,9 @@ import {
   type EducationLevel,
   type WageScaleQualificationLabels,
 } from '@/lib/preschool-wage-scales';
+import { parseEmployeeSchoolingLevel } from '@/lib/staff-schooling';
 import { generateNextPersonnelNumber } from '@/lib/staff-personnel-number';
-import { EmploymentWorkType, StaffEmployee } from '@/types/organization-section';
+import { EmploymentWorkType, EmployeeSchoolingLevel, StaffEmployee } from '@/types/organization-section';
 
 export type EmployeeImportField =
   | 'index'
@@ -21,7 +22,9 @@ export type EmployeeImportField =
   | 'email'
   | 'bankAccount'
   | 'hiredAt'
+  | 'schooling'
   | 'education'
+  | 'qualification'
   | 'experience'
   | 'birthYear'
   | 'specializationCycle'
@@ -45,6 +48,7 @@ export type EmployeeImportRow = {
   email?: string;
   bankAccount?: string;
   hiredAt?: string;
+  schooling?: EmployeeSchoolingLevel;
   education?: string;
   experience?: string;
   birthYear?: string;
@@ -76,7 +80,9 @@ const IMPORTABLE_FIELDS = new Set<EmployeeImportField>([
   'email',
   'bankAccount',
   'hiredAt',
+  'schooling',
   'education',
+  'qualification',
   'experience',
   'birthYear',
   'status',
@@ -89,7 +95,9 @@ const FIELD_ALIASES: Partial<Record<EmployeeImportField, string[]>> = {
   personnelNumber: ['кадр', 'табельный', 'personnel'],
   phone: ['тел', 'телефон', 'phone'],
   bankAccount: ['суратҳисоб', 'счет', 'iban', 'account'],
-  education: ['таҳсилот', 'тахассус', 'образование', 'qualification'],
+  schooling: ['таҳсилот', 'образование', 'education', 'ta\'lim'],
+  education: ['тахассус', 'квалификация', 'qualification'],
+  qualification: ['тахассус', 'дарача', 'категория', 'квалификация', 'qualification'],
   experience: ['таҷриба', 'стаж', 'experience'],
   birthYear: ['соли таваллуд', 'год рождения', 'birth year'],
 };
@@ -111,7 +119,8 @@ export function buildEmployeeImportColumns(
     { key: 'email', messageKey: 'employeeEmail' },
     { key: 'bankAccount', messageKey: 'employeeBankAccount' },
     { key: 'hiredAt', messageKey: 'employeeHiredAt' },
-    { key: 'education', messageKey: 'employeeEducation' },
+    { key: 'schooling', messageKey: 'employeeSchooling' },
+    { key: 'qualification', messageKey: 'employeeQualification' },
     { key: 'experience', messageKey: 'employeeExperience' },
     { key: 'birthYear', messageKey: 'employeeBirthYear' },
     ...(options.includeProfessionalDevelopment
@@ -354,6 +363,8 @@ function parseDataRows(
       continue;
     }
 
+    const qualification = values.qualification ?? values.education;
+
     rows.push({
       fullName,
       position,
@@ -368,7 +379,10 @@ function parseDataRows(
       email: values.email,
       bankAccount: values.bankAccount,
       hiredAt: values.hiredAt,
-      education: values.education,
+      schooling: values.schooling
+        ? parseEmployeeSchoolingLevel(values.schooling)
+        : undefined,
+      education: qualification,
       experience: values.experience,
       birthYear: values.birthYear,
       status: values.status ? parseEmployeeStatus(values.status, labels.status) : undefined,
@@ -482,7 +496,12 @@ function importRowToEmployee(
     wageScale,
   };
 
-  const optional: Array<keyof Omit<EmployeeImportRow, 'fullName' | 'position' | 'employmentWorkType' | 'status' | 'education'>> = [
+  const optional: Array<
+    keyof Omit<
+      EmployeeImportRow,
+      'fullName' | 'position' | 'employmentWorkType' | 'status' | 'education' | 'schooling'
+    >
+  > = [
     'department',
     'phone',
     'email',
@@ -502,6 +521,10 @@ function importRowToEmployee(
 
   if (educationLabel) {
     employee.education = educationLabel;
+  }
+
+  if (row.schooling) {
+    employee.schooling = row.schooling;
   }
 
   return employee;

@@ -72,6 +72,12 @@ export interface EmployeeWageScale {
 /** Кори асосӣ ё кори иловагӣ (совместительство) — тартиботи ҳисоби андоз фарқ мекунад */
 export type EmploymentWorkType = 'primary' | 'secondary';
 
+/** Сатҳи таҳсилоти корманд дар бақайдгирӣ */
+export type EmployeeSchoolingLevel =
+  | 'general_secondary'
+  | 'secondary_vocational'
+  | 'higher';
+
 /** Давраи тахассус (3 сол) ё давраи такмили ихтисос (2 сол) */
 export type ProfessionalCycleKind = 'specialization' | 'qualification_upgrade';
 
@@ -105,6 +111,8 @@ export interface StaffEmployee {
   rma?: string;
   personnelNumber?: string;
   hiredAt?: string;
+  /** Таҳсилот: миёнаи умумӣ, миёнаи касбӣ ё олӣ */
+  schooling?: EmployeeSchoolingLevel;
   education?: string;
   experience?: string;
   birthYear?: string;

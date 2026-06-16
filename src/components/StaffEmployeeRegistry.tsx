@@ -14,6 +14,10 @@ import {
   hasMissingPersonnelNumbers,
 } from '@/lib/staff-personnel-number';
 import {
+  inferSchoolingFromWageEducationLevel,
+  schoolingMessageKey,
+} from '@/lib/staff-schooling';
+import {
   buildEmployeeImportColumns,
   isEmployeeImportFile,
   mergeImportedEmployees,
@@ -39,6 +43,7 @@ import {
   extractStaffingOptions,
   getPositionsForDepartment,
 } from '@/lib/staff-staffing-options';
+import StaffEducationFields from '@/components/StaffEducationFields';
 import PreschoolWageScaleFields from '@/components/PreschoolWageScaleFields';
 import StaffProfessionalDevelopmentFields, {
   formatProfessionalCycleSummary,
@@ -55,6 +60,7 @@ import {
   EmployeeWageScale,
   EmploymentWorkType,
   EmployeeProfessionalDevelopment,
+  EmployeeSchoolingLevel,
   OrganizationSectionContent,
   StaffEmployee,
 } from '@/types/organization-section';
@@ -73,6 +79,7 @@ type EmployeeForm = {
   rma: string;
   personnelNumber: string;
   hiredAt: string;
+  schooling?: EmployeeSchoolingLevel;
   education: string;
   experience: string;
   birthYear: string;
@@ -120,6 +127,7 @@ function toForm(employee: StaffEmployee): EmployeeForm {
     rma: employee.rma || '',
     personnelNumber: employee.personnelNumber || '',
     hiredAt: employee.hiredAt || '',
+    schooling: employee.schooling,
     education: employee.education || '',
     experience: employee.experience || '',
     birthYear: employee.birthYear || '',
@@ -146,6 +154,7 @@ function toEmployee(form: EmployeeForm, organizationId: string, id?: string): St
     | 'wageScale'
     | 'employmentWorkType'
     | 'professionalDevelopment'
+    | 'schooling'
   >)[] = [
     'department',
     'phone',
@@ -163,6 +172,10 @@ function toEmployee(form: EmployeeForm, organizationId: string, id?: string): St
   for (const key of optional) {
     const value = form[key].trim();
     if (value) employee[key] = value;
+  }
+
+  if (form.schooling) {
+    employee.schooling = form.schooling;
   }
 
   if (form.wageScale?.group) {
@@ -304,6 +317,11 @@ export default function StaffEmployeeRegistry({
     );
   }
 
+  function employeeSchoolingLabel(schooling?: EmployeeSchoolingLevel): string {
+    if (!schooling) return '';
+    return t(schoolingMessageKey(schooling));
+  }
+
   function handlePositionChange(position: string) {
     setForm((current) => {
       if (!showWageScales) {
@@ -350,8 +368,16 @@ export default function StaffEmployeeRegistry({
       const education = showWageScales
         ? wageScaleEducationLabel(wageScale!)
         : employee.education || '';
+      const schooling =
+        employee.schooling ??
+        inferSchoolingFromWageEducationLevel(wageScale?.educationLevel);
       setEditingId(id);
-      setForm({ ...toForm(employee), wageScale: wageScale ?? emptyWageScale(organizationId), education });
+      setForm({
+        ...toForm(employee),
+        wageScale: wageScale ?? emptyWageScale(organizationId),
+        education,
+        schooling,
+      });
     } else {
       setEditingId(null);
       const wageScale = emptyWageScale(organizationId);
@@ -424,6 +450,11 @@ export default function StaffEmployeeRegistry({
     if (showWageScales && !educationLabel) {
       delete employee.education;
     }
+    if (form.schooling) {
+      employee.schooling = form.schooling;
+    } else if (editingId) {
+      delete employee.schooling;
+    }
     const nextEmployees = editingId
       ? employees.map((item) => (item.id === editingId ? employee : item))
       : [...employees, employee];
@@ -451,7 +482,8 @@ export default function StaffEmployeeRegistry({
       email: employee.email ?? '',
       bankAccount: employee.bankAccount ?? '',
       hiredAt: employee.hiredAt ?? '',
-      education: employeeQualificationLabel(employee),
+      schooling: employeeSchoolingLabel(employee.schooling),
+      qualification: employeeQualificationLabel(employee),
       experience: employee.experience ?? '',
       birthYear: employee.birthYear ?? '',
       specializationCycle: showProfessionalDevelopment
@@ -476,7 +508,8 @@ export default function StaffEmployeeRegistry({
       { key: 'email', label: t('employeeEmail') },
       { key: 'bankAccount', label: t('employeeBankAccount') },
       { key: 'hiredAt', label: t('employeeHiredAt') },
-      { key: 'education', label: t('employeeEducation') },
+      { key: 'schooling', label: t('employeeSchooling') },
+      { key: 'qualification', label: t('employeeQualification') },
       { key: 'experience', label: t('employeeExperience') },
       { key: 'birthYear', label: t('employeeBirthYear') },
       ...(showProfessionalDevelopment
@@ -797,7 +830,8 @@ export default function StaffEmployeeRegistry({
                 <th>{t('employeeEmail')}</th>
                 <th>{t('employeeBankAccount')}</th>
                 <th>{t('employeeHiredAt')}</th>
-                <th>{t('employeeEducation')}</th>
+                <th>{t('employeeSchooling')}</th>
+                <th>{t('employeeQualification')}</th>
                 <th>{t('employeeExperience')}</th>
                 <th>{t('employeeBirthYear')}</th>
                 {showProfessionalDevelopment && (
@@ -846,6 +880,7 @@ export default function StaffEmployeeRegistry({
                   <td>{employee.email || '—'}</td>
                   <td className="md:whitespace-nowrap font-mono text-xs">{employee.bankAccount || '—'}</td>
                   <td className="md:whitespace-nowrap">{employee.hiredAt || '—'}</td>
+                  <td>{employeeSchoolingLabel(employee.schooling) || '—'}</td>
                   <td>{employeeQualificationLabel(employee) || '—'}</td>
                   <td>{employee.experience || '—'}</td>
                   <td>{employee.birthYear || '—'}</td>
@@ -915,7 +950,8 @@ export default function StaffEmployeeRegistry({
                 [t('employeeEmail'), viewEmployee.email],
                 [t('employeeBankAccount'), viewEmployee.bankAccount],
                 [t('employeeHiredAt'), viewEmployee.hiredAt],
-                [t('employeeEducation'), employeeQualificationLabel(viewEmployee)],
+                [t('employeeSchooling'), employeeSchoolingLabel(viewEmployee.schooling)],
+                [t('employeeQualification'), employeeQualificationLabel(viewEmployee)],
                 [t('employeeExperience'), viewEmployee.experience],
                 [t('employeeBirthYear'), viewEmployee.birthYear],
                 [t('employeeStatus'), statusLabel(viewEmployee.status)],
@@ -1256,17 +1292,11 @@ export default function StaffEmployeeRegistry({
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                {!showWageScales && (
-                  <div>
-                    <label className="field-label">{t('employeeEducation')}</label>
-                    <input
-                      value={form.education}
-                      onChange={(e) => setForm({ ...form, education: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                )}
-                <div className={showWageScales ? 'sm:col-span-2' : ''}>
+                <StaffEducationFields
+                  value={form.schooling}
+                  onChange={(schooling) => setForm({ ...form, schooling })}
+                />
+                <div>
                   <label className="field-label">{t('employeeExperience')}</label>
                   <input
                     value={form.experience}
