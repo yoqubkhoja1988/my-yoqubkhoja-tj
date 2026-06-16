@@ -44,6 +44,29 @@ export function resolveEmploymentWorkType(
   return employee.employmentWorkType === 'secondary' ? 'secondary' : 'primary';
 }
 
+/** Normalize full name for grouping the same person across multiple position records. */
+export function normalizeEmployeeFullName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/**
+ * Group key for payroll ledger display rows.
+ * Multi-position employees get separate staff records (and tab numbers) — identity is by
+ * tax/bank id when present, otherwise normalized full name.
+ */
+export function payrollLedgerPersonGroupKey(employee: StaffEmployee): string {
+  const ris = employee.ris?.trim();
+  if (ris) return `ris:${ris.toLowerCase()}`;
+
+  const rma = employee.rma?.trim();
+  if (rma) return `rma:${rma.toLowerCase()}`;
+
+  const bankAccount = employee.bankAccount?.replace(/\D/g, '');
+  if (bankAccount) return `bank:${bankAccount}`;
+
+  return `name:${normalizeEmployeeFullName(employee.fullName)}`;
+}
+
 /** Кори асосӣ: (Ҳамагӣ − 1% − 156) × 12% */
 export function calcPrimaryIncomeTax(
   gross: number,

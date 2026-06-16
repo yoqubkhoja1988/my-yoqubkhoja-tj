@@ -7,6 +7,7 @@ import {
   formatLedgerAmount,
   hasStoredPayrollLedger,
   mergePayrollLedgerForMonth,
+  payrollLedgerPersonGroupKey,
   recalculatePayrollLedger,
   removePayrollLedger,
   resolveEmploymentWorkType,
@@ -155,12 +156,6 @@ export default function FinancePayrollLedgerPanel({
         totals: ReturnType<typeof calcEntryTotals>;
       };
 
-      function groupKey(employee: StaffEmployee) {
-        const personnel = (employee.personnelNumber ?? '').trim();
-        if (personnel) return `pn:${personnel}`;
-        return `name:${employee.fullName.trim().toLowerCase()}`;
-      }
-
       function sumEntryValues(entries: PayrollLedgerEntry[]): PayrollLedgerEntry {
         const total = {
           baseSalary: 0,
@@ -199,7 +194,7 @@ export default function FinancePayrollLedgerPanel({
       for (const sourceEntry of ledger.entries) {
         const employee = employeeMap.get(sourceEntry.employeeId);
         if (!employee) continue;
-        const key = groupKey(employee);
+        const key = payrollLedgerPersonGroupKey(employee);
         const existing = grouped.get(key);
         if (!existing) {
           grouped.set(key, {
