@@ -82,6 +82,13 @@ export default function UserRoomHome({
               <p className="text-[10px] text-[var(--text-muted)]">
                 {isAdmin ? t('userRoomRoleAdmin') : t('userRoomRoleUser')}
               </p>
+              {!isAdmin && permissions && (
+                <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+                  {permissions.organizationIds.length} {t('navOrganizations').toLowerCase()} ·{' '}
+                  {permissions.sectionSlugs.length} бахш
+                  {permissions.supervisionOnly ? ' · назорат' : ''}
+                </p>
+              )}
             </div>
           </div>
         </div>

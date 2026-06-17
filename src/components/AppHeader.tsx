@@ -1,7 +1,7 @@
 'use client';
 
 import { logoutAction } from '@/app/actions/auth';
-import { useSession } from 'next-auth/react';
+import { useAccessSession } from '@/contexts/user-permissions-context';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useTransition } from 'react';
@@ -18,7 +18,7 @@ export default function AppHeader() {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session } = useAccessSession();
   const isAdmin = isSiteAdmin(session);
   const { enabled: liveChatEnabled, openChat } = useLiveChat();
   const [isPending, startTransition] = useTransition();
