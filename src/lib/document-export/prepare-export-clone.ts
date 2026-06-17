@@ -11,21 +11,26 @@ function ensureExportStyles() {
   document.head.appendChild(exportStyleElement);
 }
 
+/** input/textarea/select → матн барои чоп ва экспорт */
+export function replaceFormControlsForPrint(root: HTMLElement) {
+  root.querySelectorAll('input, textarea, select').forEach((node) => {
+    const span = document.createElement('span');
+    if (node instanceof HTMLSelectElement) {
+      span.textContent = node.value || '—';
+    } else {
+      span.textContent = (node as HTMLInputElement | HTMLTextAreaElement).value || '—';
+    }
+    node.replaceWith(span);
+  });
+}
+
 /** Нусхаи ҳуҷҷат барои экспорт — бе матнҳои изофагӣ, қиматҳои input */
 export function prepareExportClone(element: HTMLElement): HTMLElement {
   const clone = element.cloneNode(true) as HTMLElement;
 
   clone.querySelectorAll('.print-supplement').forEach((node) => node.remove());
 
-  clone.querySelectorAll('input, textarea, select').forEach((node) => {
-    const span = document.createElement('span');
-    if (node instanceof HTMLSelectElement) {
-      span.textContent = node.options[node.selectedIndex]?.text ?? node.value;
-    } else {
-      span.textContent = (node as HTMLInputElement | HTMLTextAreaElement).value;
-    }
-    node.replaceWith(span);
-  });
+  replaceFormControlsForPrint(clone);
 
   clone.classList.add('export-render');
   clone.style.background = '#ffffff';

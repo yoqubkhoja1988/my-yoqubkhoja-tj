@@ -1109,6 +1109,7 @@ export default function EditableSectionContent({
       {section === 'staff' && activeStaffSection === 'staff-timesheet' && (
         <StaffTimesheetPanel
           organizationId={organizationId}
+          organization={organization}
           content={displayData}
           onUpdate={(updated) => setData(applyStaffCalculations(updated))}
         />

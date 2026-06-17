@@ -432,10 +432,34 @@ textarea::placeholder {
   }
 
   #print-root #staff-timesheet-document.print-active table {
-    font-size: 9px;
+    font-size: 7px;
+    width: 100%;
+    min-width: 0;
   }
 
-  #print-root #org-contract-print.print-active table,
+  #print-root #staff-timesheet-document.print-active th,
+  #print-root #staff-timesheet-document.print-active td {
+    padding: 1px 2px;
+    border: 1px solid #94a3b8 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  #print-root #staff-timesheet-document.print-active .bg-amber-50,
+  #print-root #staff-timesheet-document.print-active .bg-amber-100 {
+    background: #fef3c7 !important;
+  }
+
+  #print-root #staff-timesheet-document.print-active .bg-violet-50,
+  #print-root #staff-timesheet-document.print-active .bg-violet-100 {
+    background: #ede9fe !important;
+  }
+
+  #print-root #staff-timesheet-document.print-active .bg-slate-50 {
+    background: #f8fafc !important;
+  }
+
+  #print-root #finance-bank-payment-document.print-active table {
   #print-root #org-invoice-print.print-active table,
   #print-root #org-contract-registry-export.print-active table,
   #print-root #org-invoice-registry-export.print-active table,

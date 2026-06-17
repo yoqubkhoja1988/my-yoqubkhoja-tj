@@ -1,4 +1,5 @@
 import { resolvePrintOrientation } from '@/lib/document-export/print-orientation';
+import { replaceFormControlsForPrint } from '@/lib/document-export/prepare-export-clone';
 
 const PRINT_ROOT_ID = 'print-root';
 
@@ -19,6 +20,7 @@ export function printDocument(documentId: string) {
   printRoot.id = PRINT_ROOT_ID;
 
   const clone = element.cloneNode(true) as HTMLElement;
+  replaceFormControlsForPrint(clone);
   clone.classList.add('print-active');
   printRoot.appendChild(clone);
   document.body.appendChild(printRoot);

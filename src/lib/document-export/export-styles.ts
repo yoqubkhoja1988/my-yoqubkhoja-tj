@@ -154,7 +154,13 @@ export const EXPORT_DOCUMENT_CSS = `
 }
 
 #staff-timesheet-document.export-render table {
-  font-size: 9px !important;
+  font-size: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#staff-timesheet-document.export-render .sticky {
+  position: static !important;
 }
 
 #finance-bank-payment-document.export-render table {
