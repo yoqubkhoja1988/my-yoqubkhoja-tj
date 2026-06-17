@@ -243,3 +243,17 @@ export function countOrganizationsInSectorRegionGroup(
 ): number {
   return group.regions.reduce((sum, region) => sum + region.organizations.length, 0);
 }
+
+export function filterOrganizationSectorRegionGroups(
+  groups: OrganizationSectorRegionGroup[],
+  regionSortKey: string | 'all'
+): OrganizationSectorRegionGroup[] {
+  if (regionSortKey === 'all') return groups;
+
+  return groups
+    .map((group) => ({
+      ...group,
+      regions: group.regions.filter((item) => item.region.sortKey === regionSortKey),
+    }))
+    .filter((group) => group.regions.length > 0);
+}

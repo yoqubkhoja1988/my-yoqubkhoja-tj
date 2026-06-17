@@ -399,6 +399,7 @@
   "orgSectorFilterAll": "All sectors",
   "orgSectorCount": "{count} organizations",
   "orgRegionCount": "{count} organizations",
+  "orgRegionFilterAll": "All regions",
   "orgRegionProvince": "Province",
   "orgRegionCity": "City",
   "orgRegionDistrict": "District",

@@ -14,14 +14,19 @@ import {
   ORGANIZATION_SECTORS,
   OrganizationSectorGroupId,
   countOrganizationsInSectorRegionGroup,
+  filterOrganizationSectorRegionGroups,
   getOrganizationSectorMeta,
   groupOrganizationsBySectorAndRegion,
   inferOrganizationSector,
 } from '@/lib/organization-sectors';
-import { getOrganizationRegionLabelKey } from '@/lib/organization-regions';
+import {
+  collectOrganizationRegionOptions,
+  getOrganizationRegionDisplayLabel,
+} from '@/lib/organization-regions';
 import { Organization, OrganizationSectorId } from '@/types/organization';
 
 type SectorFilter = 'all' | OrganizationSectorGroupId;
+type RegionFilter = 'all' | string;
 
 type OrganizationForm = {
   sector: OrganizationSectorId | '';
@@ -123,6 +128,7 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
   const [saveError, setSaveError] = useState('');
   const [loadError, setLoadError] = useState('');
   const [activeSector, setActiveSector] = useState<SectorFilter>('all');
+  const [activeRegion, setActiveRegion] = useState<RegionFilter>('all');
 
   useEffect(() => {
     let cancelled = false;
@@ -168,10 +174,26 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
     [filtered]
   );
 
+  const regionFilters = useMemo(
+    () => collectOrganizationRegionOptions(filtered),
+    [filtered]
+  );
+
+  const regionFilteredGroups = useMemo(
+    () => filterOrganizationSectorRegionGroups(grouped, activeRegion),
+    [grouped, activeRegion]
+  );
+
   const visibleGroups = useMemo(() => {
-    if (activeSector === 'all') return grouped;
-    return grouped.filter((group) => group.id === activeSector);
-  }, [activeSector, grouped]);
+    if (activeSector === 'all') return regionFilteredGroups;
+    return regionFilteredGroups.filter((group) => group.id === activeSector);
+  }, [activeSector, regionFilteredGroups]);
+
+  useEffect(() => {
+    if (activeRegion !== 'all' && !regionFilters.some((item) => item.sortKey === activeRegion)) {
+      setActiveRegion('all');
+    }
+  }, [activeRegion, regionFilters]);
 
   const sectorFilters = useMemo(() => {
     const present = new Set(grouped.map((group) => group.id));
@@ -358,6 +380,36 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
               ))}
             </div>
           )}
+
+          {!loading && organizations.length > 0 && regionFilters.length > 1 && (
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setActiveRegion('all')}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  activeRegion === 'all'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20'
+                    : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                {t('orgRegionFilterAll')}
+              </button>
+              {regionFilters.map((region) => (
+                <button
+                  key={region.sortKey}
+                  type="button"
+                  onClick={() => setActiveRegion(region.sortKey)}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    activeRegion === region.sortKey
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20'
+                      : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {getOrganizationRegionDisplayLabel(region, t)} ({region.count})
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {loadError && !loading && (
@@ -420,8 +472,7 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
                         <h4 className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--text)]">
                           <span>📍</span>
                           <span>
-                            {regionGroup.region.label ||
-                              t(getOrganizationRegionLabelKey(regionGroup.region.kind))}
+                            {getOrganizationRegionDisplayLabel(regionGroup.region, t)}
                           </span>
                           <span className="text-xs font-normal text-[var(--text-muted)]">
                             ({t('orgRegionCount', { count: regionGroup.organizations.length })})

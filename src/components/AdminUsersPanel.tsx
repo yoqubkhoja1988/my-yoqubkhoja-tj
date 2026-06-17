@@ -12,10 +12,14 @@ import {
 } from '@/lib/staff-position-permissions';
 import {
   countOrganizationsInSectorRegionGroup,
+  filterOrganizationSectorRegionGroups,
   getOrganizationSectorMeta,
   groupOrganizationsBySectorAndRegion,
 } from '@/lib/organization-sectors';
-import { getOrganizationRegionLabelKey } from '@/lib/organization-regions';
+import {
+  collectOrganizationRegionOptions,
+  getOrganizationRegionDisplayLabel,
+} from '@/lib/organization-regions';
 import { AdminUsersOverview } from '@/lib/user-presence';
 import { Organization } from '@/types/organization';
 import { PublicUser, UserPermissions, UserStatus, normalizeUserPermissions } from '@/types/user';
@@ -188,6 +192,28 @@ function PermissionsEditor({
 
   const [staffPresets, setStaffPresets] = useState<OrganizationStaffPresets[]>([]);
   const [staffPresetsLoading, setStaffPresetsLoading] = useState(false);
+  const [activeRegion, setActiveRegion] = useState<string>('all');
+
+  const regionFilters = useMemo(
+    () => collectOrganizationRegionOptions(organizations),
+    [organizations]
+  );
+
+  const groupedOrganizations = useMemo(
+    () => groupOrganizationsBySectorAndRegion(organizations),
+    [organizations]
+  );
+
+  const visibleOrganizationGroups = useMemo(
+    () => filterOrganizationSectorRegionGroups(groupedOrganizations, activeRegion),
+    [groupedOrganizations, activeRegion]
+  );
+
+  useEffect(() => {
+    if (activeRegion !== 'all' && !regionFilters.some((item) => item.sortKey === activeRegion)) {
+      setActiveRegion('all');
+    }
+  }, [activeRegion, regionFilters]);
 
   useEffect(() => {
     if (permissions.organizationIds.length === 0) {
@@ -218,11 +244,6 @@ function PermissionsEditor({
       });
   }, [permissions.organizationIds]);
 
-  const groupedOrganizations = useMemo(
-    () => groupOrganizationsBySectorAndRegion(organizations),
-    [organizations]
-  );
-
   return (
     <>
       <label className="mb-4 flex items-center gap-2 text-sm">
@@ -241,11 +262,42 @@ function PermissionsEditor({
         <p className="mb-2 text-[10px] leading-relaxed text-[var(--text-muted)]">
           {t('adminUsersOrgGroupedHint')}
         </p>
+        {regionFilters.length > 1 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => setActiveRegion('all')}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold transition ${
+                activeRegion === 'all'
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+              }`}
+            >
+              {t('orgRegionFilterAll')}
+            </button>
+            {regionFilters.map((region) => (
+              <button
+                key={region.sortKey}
+                type="button"
+                onClick={() => setActiveRegion(region.sortKey)}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold transition ${
+                  activeRegion === region.sortKey
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text-muted)] hover:text-[var(--text)]'
+                }`}
+              >
+                {getOrganizationRegionDisplayLabel(region, t)} ({region.count})
+              </button>
+            ))}
+          </div>
+        )}
         <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-[var(--border)] p-3">
           {organizations.length === 0 ? (
             <p className="text-xs text-[var(--text-muted)]">{t('noOrganizations')}</p>
+          ) : visibleOrganizationGroups.length === 0 ? (
+            <p className="text-xs text-[var(--text-muted)]">{t('noResults')}</p>
           ) : (
-            groupedOrganizations.map((sectorGroup) => {
+            visibleOrganizationGroups.map((sectorGroup) => {
               const sectorMeta = getOrganizationSectorMeta(sectorGroup.id);
               if (!sectorMeta) return null;
 
@@ -265,9 +317,7 @@ function PermissionsEditor({
                     {sectorGroup.regions.map((regionGroup) => (
                       <div key={regionGroup.region.sortKey}>
                         <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
-                          📍{' '}
-                          {regionGroup.region.label ||
-                            t(getOrganizationRegionLabelKey(regionGroup.region.kind))}
+                          📍 {getOrganizationRegionDisplayLabel(regionGroup.region, t)}
                         </p>
                         <div className="space-y-1.5">
                           {regionGroup.organizations.map((org) => (

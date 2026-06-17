@@ -399,6 +399,7 @@
   "orgSectorFilterAll": "Barcha sohalar",
   "orgSectorCount": "{count} tashkilot",
   "orgRegionCount": "{count} tashkilot",
+  "orgRegionFilterAll": "Barcha mintaqalar",
   "orgRegionProvince": "Viloyat",
   "orgRegionCity": "Shahar",
   "orgRegionDistrict": "Tuman",

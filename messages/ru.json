@@ -398,6 +398,7 @@
   "orgSectorFilterAll": "Все отрасли",
   "orgSectorCount": "{count} организаций",
   "orgRegionCount": "{count} организаций",
+  "orgRegionFilterAll": "Все регионы",
   "orgRegionProvince": "Область",
   "orgRegionCity": "Город",
   "orgRegionDistrict": "Район",

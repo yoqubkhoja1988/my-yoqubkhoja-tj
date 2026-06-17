@@ -122,3 +122,34 @@ export function getOrganizationRegionLabelKey(kind: OrganizationRegionKind): str
   };
   return keys[kind];
 }
+
+export type OrganizationRegionOption = OrganizationRegion & {
+  count: number;
+};
+
+export function getOrganizationRegionDisplayLabel(
+  region: OrganizationRegion,
+  translate: (key: string) => string
+): string {
+  if (region.label.trim()) return region.label;
+  return translate(getOrganizationRegionLabelKey(region.kind));
+}
+
+/** Рӯйхати минтақаҳо аз рӯи ташкилотҳои дастрас */
+export function collectOrganizationRegionOptions(
+  organizations: Organization[]
+): OrganizationRegionOption[] {
+  const map = new Map<string, OrganizationRegionOption>();
+
+  for (const org of organizations) {
+    const region = resolveOrganizationRegion(org);
+    const existing = map.get(region.sortKey);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      map.set(region.sortKey, { ...region, count: 1 });
+    }
+  }
+
+  return [...map.values()].sort((left, right) => compareOrganizationRegions(left, right));
+}
