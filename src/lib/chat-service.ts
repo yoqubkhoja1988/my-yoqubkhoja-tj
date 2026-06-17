@@ -106,7 +106,14 @@ export async function processBotTurn(
   }
 
   const history = await getMessagesAfter(conversationId);
-  const reply = await getBotReply(userMessage, history, options);
+  const reply = await getBotReply(userMessage, history, {
+    ...options,
+    conversation: {
+      displayName: conversation.displayName,
+      userId: conversation.userId,
+      sourcePage: conversation.sourcePage,
+    },
+  });
 
   await addMessage({
     conversationId,

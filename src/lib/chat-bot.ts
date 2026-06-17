@@ -1,4 +1,4 @@
-import { ChatMessage } from '@/types/chat';
+import { ChatConversation, ChatMessage } from '@/types/chat';
 import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
 import { generateChatAIReply } from '@/lib/chat-ai';
 
@@ -40,7 +40,23 @@ const ESCALATION_PHRASES = [
 const KNOWLEDGE_BASE: KnowledgeEntry[] = [
   {
     id: 'welcome',
-    keywords: ['салом', 'ассалом', 'hello', 'hi', 'привет', 'даром', 'shumo'],
+    keywords: [
+      'салом',
+      'ассалом',
+      'hello',
+      'hi',
+      'привет',
+      'даром',
+      'shumo',
+      'алло',
+      'ало',
+      'allo',
+      'салам',
+      'salom',
+      'assalom',
+      'hey',
+      'эй',
+    ],
     reply:
       'Салом! 👋 Ман ёрдамчии зеҳни сунъии барнома ҳастам.\n\n' +
       'Ман дар бораи инҳо ҷавоб медиҳам:\n' +
@@ -353,7 +369,7 @@ function scoreEntry(text: string, entry: KnowledgeEntry): number {
   return score;
 }
 
-function findBestAnswer(text: string): KnowledgeEntry | null {
+function findBestAnswer(text: string, minScore = 1): KnowledgeEntry | null {
   let best: KnowledgeEntry | null = null;
   let bestScore = 0;
 
@@ -365,7 +381,28 @@ function findBestAnswer(text: string): KnowledgeEntry | null {
     }
   }
 
-  return bestScore >= 1 ? best : null;
+  return bestScore >= minScore ? best : null;
+}
+
+function rankKnowledgeEntries(text: string, limit: number): KnowledgeEntry[] {
+  const scored = KNOWLEDGE_BASE.map((entry) => ({
+    entry,
+    score: scoreEntry(text, entry),
+  }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, limit).map((item) => item.entry);
+}
+
+export function getRelevantKnowledgeSnippets(userMessage: string, limit = 3): string[] {
+  return rankKnowledgeEntries(normalizeText(userMessage), limit).map((entry) => entry.reply);
+}
+
+function isShortGreeting(text: string): boolean {
+  return /^(салом|ассалом|алло|ало|allo|hello|hi|привет|салам|salom|assalom|даром|hey|эй)([\s!?.]*)$/i.test(
+    text.trim()
+  );
 }
 
 function getReplyForQuickTopicId(quickTopicId: string): string | null {
@@ -400,6 +437,15 @@ function getKeywordBotReply(userMessage: string): BotReply {
 
 function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): string {
   const normalized = normalizeText(userMessage);
+  const trimmed = userMessage.trim();
+
+  if (isShortGreeting(trimmed)) {
+    return (
+      'Салом! 👋 Ман ёрдамчии Yoqubkhoja Hub ҳастам.\n\n' +
+      'Дар бораи вуруд, иҷозатҳо, ташкилотҳо, кадр, молия ё чат савол диҳед.'
+    );
+  }
+
   const direct = findBestAnswer(normalized);
   if (direct) {
     return direct.reply;
@@ -440,8 +486,8 @@ function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): s
 export function getWelcomeMessage(): string {
   return (
     'Салом! 👋 Ман **ёрдамчии зеҳни сунъӣ**-и Yoqubkhoja Hub ҳастам.\n\n' +
-    'Ба саволҳои шумо дар бораи истифодаи барнома ҷавоб медиҳам.\n' +
-    'Тугмаҳои **интихоби зуд**-ро пахш кунед ё саволро озодона нависед.\n\n' +
+    'Ман **ҳушёрам** — саҳифаи шуморо мебинам ва ҷавобро ба контексти кори шумо мувофиқ медиҳам.\n' +
+    'Саволро озодона нависед ё тугмаҳои **интихоби зуд**-ро пахш кунед.\n\n' +
     '🔒 Саволҳои оид ба сирри ташкилот ва маълумоти махфӣ ҷавоб дода намешаванд.\n' +
     'Барои маъмури зинда: **«📞 Дархост ба маъмур»**'
   );
@@ -455,9 +501,13 @@ export function shouldEscalateByKeyword(text: string): boolean {
 export async function getBotReply(
   userMessage: string,
   history: ChatMessage[],
-  options?: { quickTopicId?: string }
+  options?: {
+    quickTopicId?: string;
+    conversation?: Pick<ChatConversation, 'displayName' | 'userId' | 'sourcePage'>;
+  }
 ): Promise<BotReply> {
   const normalized = normalizeText(userMessage);
+  const trimmed = userMessage.trim();
 
   if (shouldEscalateByKeyword(normalized)) {
     return {
@@ -481,7 +531,34 @@ export async function getBotReply(
     return { body: getSecretRefusalMessage() };
   }
 
-  const aiReply = await generateChatAIReply({ userMessage, history });
+  if (isShortGreeting(trimmed)) {
+    const name = options?.conversation?.displayName?.trim();
+    const greeting =
+      name && name !== 'Меҳмон'
+        ? `Салом, ${name}! 👋`
+        : 'Салом! 👋';
+    const pageNote = options?.conversation?.sourcePage?.includes('/staff')
+      ? '\n\nМебинам, шумо дар бахши **кадр** ҳастед — дар бораи кормандон, штат ё ҳузур савол диҳед.'
+      : options?.conversation?.sourcePage?.includes('/finance')
+        ? '\n\nМебинам, шумо дар бахши **молия** ҳастед — дар бораи истифодаи бахш ё иҷозатҳо савол диҳед (маълумоти махфии молия ошкор намешавад).'
+        : '';
+    return {
+      body:
+        `${greeting} Ман ёрдамчии зеҳни сунъии Yoqubkhoja Hub ҳастам.${pageNote}\n\n` +
+        'Чӣ тавр кӯмак расонам? Саволро озодона нависед ё тугмаҳои **интихоби зуд**-ро пахш кунед.',
+    };
+  }
+
+  const strongMatch = findBestAnswer(normalized, 2.5);
+  if (strongMatch && normalized.length <= 80) {
+    return { body: strongMatch.reply };
+  }
+
+  const aiReply = await generateChatAIReply({
+    userMessage,
+    history,
+    conversation: options?.conversation,
+  });
   if (aiReply) {
     return { body: aiReply };
   }

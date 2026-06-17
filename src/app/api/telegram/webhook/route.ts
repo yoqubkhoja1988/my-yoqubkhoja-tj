@@ -96,6 +96,25 @@ export async function POST(request: NextRequest) {
   }
 
   if (!conversationId || !replyBody) {
+    if (text === '/reply' || text.startsWith('/reply ')) {
+      await sendTelegramMessageWithConfig(
+        String(chatId),
+        '❗ Формати дуруст:\n' +
+          '/reply CONVERSATION_ID матни ҷавоб\n\n' +
+          'Мисол:\n' +
+          '/reply 7ebe935d-f641-4ced-845d-00db545af5b0 Салом, чӣ тавр кӯмак расонам?\n\n' +
+          'Ё ба паёми огоҳӣ (бо #conv_...) **Reply** кунед ва матн нависед.',
+        config.botToken
+      );
+    } else if (!message?.reply_to_message?.text) {
+      await sendTelegramMessageWithConfig(
+        String(chatId),
+        'ℹ️ Барои ҷавоб ба чати сомона:\n' +
+          '1) Ба паёми огоҳӣ **Reply** кунед ва матн нависед\n' +
+          '2) Ё: /reply CONVERSATION_ID матн',
+        config.botToken
+      );
+    }
     return NextResponse.json({ ok: true });
   }
 
