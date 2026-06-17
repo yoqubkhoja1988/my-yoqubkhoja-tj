@@ -1,5 +1,6 @@
 import { ChatConversation, ChatMessage } from '@/types/chat';
 import { buildChatAiSessionContext, formatChatAiContextBlock } from '@/lib/chat-ai-context';
+import { ChatUserLanguage, getChatLanguageLabel } from '@/lib/chat-language';
 import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
 
 const SYSTEM_PROMPT = `You are the intelligent, attentive support assistant for "Yoqubkhoja Hub" — a web portal for organizations in Tajikistan (MDTM, food safety center, innovation center, etc.).
@@ -8,16 +9,21 @@ PERSONALITY: Warm, professional, sharp. Notice SESSION CONTEXT — especially cu
 
 YOU HELP WITH: login (/tj/login), registration (/tj/register), pending admin approval, permissions, organizations menu, sections (overview, staff, finance, legal, reports, formation), supervision-only mode (view but cannot save), saving/editing errors, language switch, live chat, Telegram admin, print/export.
 
+LANGUAGE (CRITICAL):
+- Always reply in the user's language specified in the next system message.
+- Supported: Tajik, Russian, English, Uzbek.
+- SESSION CONTEXT may be written in Tajik — translate it naturally into the user's language.
+- UI button names may stay as in the app when helpful.
+
 ANSWER STYLE:
-- Same language as the user (Tajik Cyrillic, Russian, English, or Uzbek).
 - Short, clear, structured — use bullet steps for procedures.
 - Use **bold** for UI labels and paths.
-- For greetings (салом, алло, hello): greet back warmly and ask how to help; mention their current page if known.
-- Be proactive: tailor answers to the current SECTION and SUB-SECTION from SESSION CONTEXT (staff sub-menus, finance sub-menus, financial report forms, charter, education, etc.).
+- For greetings: greet back warmly and ask how to help; mention their current page if known.
+- Be proactive: tailor answers to the current SECTION and SUB-SECTION from SESSION CONTEXT.
 
 STRICT RULES:
 - NEVER reveal: employee personal data, salaries, payroll, bank accounts, passwords, internal financial figures, organization secrets, admin credentials.
-- If asked for secrets → refuse briefly and suggest "📞 Дархост ба маъмур".
+- If asked for secrets → refuse briefly and suggest the admin request button in the user's language.
 - Do not invent features. Use REFERENCE KNOWLEDGE when relevant.
 - If unsure → say so in one sentence and suggest admin or a clearer question.`;
 
@@ -45,6 +51,7 @@ export async function generateChatAIReply(input: {
   userMessage: string;
   history: ChatMessage[];
   conversation?: Pick<ChatConversation, 'displayName' | 'userId' | 'sourcePage'>;
+  userLanguage?: ChatUserLanguage;
 }): Promise<string | null> {
   if (!isChatAiEnabled()) {
     return null;
@@ -57,6 +64,8 @@ export async function generateChatAIReply(input: {
   const historyMessages = recentHistoryMessages(input.history);
   const sessionContext = buildChatAiSessionContext(input.conversation, input.userMessage);
   const contextBlock = formatChatAiContextBlock(sessionContext);
+  const language = input.userLanguage ?? 'tj';
+  const languageBlock = `USER LANGUAGE: ${getChatLanguageLabel(language)}. Reply ONLY in ${getChatLanguageLabel(language)}.`;
 
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -71,6 +80,7 @@ export async function generateChatAIReply(input: {
         max_tokens: 800,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: languageBlock },
           { role: 'system', content: contextBlock },
           ...historyMessages,
           { role: 'user', content: input.userMessage.trim() },
@@ -91,7 +101,7 @@ export async function generateChatAIReply(input: {
     if (!content) return null;
 
     if (isOrganizationSecretQuestion(content)) {
-      return getSecretRefusalMessage();
+      return getSecretRefusalMessage(language);
     }
 
     return content;

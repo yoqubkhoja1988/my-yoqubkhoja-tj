@@ -1,7 +1,13 @@
 import { ChatConversation, ChatMessage } from '@/types/chat';
 import { getPageGreetingNote } from '@/lib/chat-ai-context';
 import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
-import { generateChatAIReply } from '@/lib/chat-ai';
+import { generateChatAIReply, isChatAiConfigured } from '@/lib/chat-ai';
+import {
+  ChatUserLanguage,
+  detectChatUserLanguage,
+  normalizeAppLocale,
+  shouldUseTajikKnowledgeBase,
+} from '@/lib/chat-language';
 
 export type BotReply = {
   body: string;
@@ -484,14 +490,35 @@ function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): s
   );
 }
 
-export function getWelcomeMessage(): string {
-  return (
-    'Салом! 👋 Ман **ёрдамчии зеҳни сунъӣ**-и Yoqubkhoja Hub ҳастам.\n\n' +
-    'Ман **ҳушёрам** — саҳифаи шуморо мебинам ва ҷавобро ба контексти кори шумо мувофиқ медиҳам.\n' +
-    'Саволро озодона нависед.\n\n' +
-    '🔒 Саволҳои оид ба сирри ташкилот ва маълумоти махфӣ ҷавоб дода намешаванд.\n' +
-    'Барои маъмури зинда: **«📞 Дархост ба маъмур»**'
-  );
+export function getWelcomeMessage(locale?: string): string {
+  const language = normalizeAppLocale(locale);
+  const messages: Record<ChatUserLanguage, string> = {
+    tj:
+      'Салом! 👋 Ман **ёрдамчии зеҳни сунъӣ**-и Yoqubkhoja Hub ҳастам.\n\n' +
+      'Ман **ҳушёрам** — саҳифаи шуморо мебинам ва ҷавобро ба контексти кори шумо мувофиқ медиҳам.\n' +
+      'Саволро озодона нависед.\n\n' +
+      '🔒 Саволҳои оид ба сирри ташкилот ва маълумоти махфӣ ҷавоб дода намешаванд.\n' +
+      'Барои маъмури зинда: **«📞 Дархост ба маъмур»**',
+    ru:
+      'Здравствуйте! 👋 Я **ИИ-помощник** Yoqubkhoja Hub.\n\n' +
+      'Я **учитываю контекст** — вижу вашу страницу и отвечаю по ситуации.\n' +
+      'Задайте вопрос свободно.\n\n' +
+      '🔒 Вопросы о секретах организации и конфиденциальных данных не раскрываются.\n' +
+      'Для живого администратора: **«📞 Запрос администратору»**',
+    en:
+      'Hello! 👋 I am the **AI assistant** for Yoqubkhoja Hub.\n\n' +
+      'I am **context-aware** — I see your current page and tailor my answers.\n' +
+      'Ask your question freely.\n\n' +
+      '🔒 Questions about organization secrets and confidential data are not answered.\n' +
+      'For a live admin: **«📞 Request admin»**',
+    uz:
+      'Salom! 👋 Men Yoqubkhoja Hub **sunʼiy intellekt yordamchisiman**.\n\n' +
+      'Men **kontekstni hisobga olaman** — sahifangizni koʻraman va javobni moslashtiraman.\n' +
+      'Savolingizni erkin yozing.\n\n' +
+      '🔒 Tashkilot siri va maxfiy maʼlumotlar haqidagi savollarga javob berilmaydi.\n' +
+      'Jonli administrator uchun: **«📞 Administratorga soʻrov»**',
+  };
+  return messages[language];
 }
 
 export function shouldEscalateByKeyword(text: string): boolean {
@@ -504,16 +531,25 @@ export async function getBotReply(
   history: ChatMessage[],
   options?: {
     quickTopicId?: string;
+    locale?: string;
     conversation?: Pick<ChatConversation, 'displayName' | 'userId' | 'sourcePage'>;
   }
 ): Promise<BotReply> {
   const normalized = normalizeText(userMessage);
   const trimmed = userMessage.trim();
+  const userLanguage = detectChatUserLanguage(userMessage, options?.locale);
+
+  const aiReply = async () =>
+    generateChatAIReply({
+      userMessage,
+      history,
+      conversation: options?.conversation,
+      userLanguage,
+    });
 
   if (shouldEscalateByKeyword(normalized)) {
     return {
-      body:
-        'Хуб, ман маъмури сомонаро даъват мекунам. Лутфан, каме интизор шавед — ба шумо дар Telegram ё дар ҳамин чат ҷавоб медиҳанд.',
+      body: getEscalationMessage(userLanguage),
       escalate: true,
     };
   }
@@ -521,18 +557,30 @@ export async function getBotReply(
   if (isQuickTopicMessage(userMessage, options?.quickTopicId)) {
     if (options?.quickTopicId) {
       const quickReply = getReplyForQuickTopicId(options.quickTopicId);
-      if (quickReply) {
+      if (quickReply && shouldUseTajikKnowledgeBase(userLanguage)) {
         return { body: quickReply };
       }
     }
-    return getKeywordBotReply(userMessage);
+    if (shouldUseTajikKnowledgeBase(userLanguage)) {
+      return getKeywordBotReply(userMessage);
+    }
+    const reply = await aiReply();
+    if (reply) return { body: reply };
+    return { body: generateSmartLocalReply(userMessage, history) };
   }
 
   if (isOrganizationSecretQuestion(userMessage)) {
-    return { body: getSecretRefusalMessage() };
+    return { body: getSecretRefusalMessage(userLanguage) };
   }
 
   if (isShortGreeting(trimmed)) {
+    if (isChatAiConfigured()) {
+      const reply = await aiReply();
+      if (reply) return { body: reply };
+    }
+    if (!shouldUseTajikKnowledgeBase(userLanguage)) {
+      return { body: getLocalizedGreeting(userLanguage, options?.conversation) };
+    }
     const name = options?.conversation?.displayName?.trim();
     const greeting =
       name && name !== 'Меҳмон'
@@ -546,21 +594,53 @@ export async function getBotReply(
     };
   }
 
-  const strongMatch = findBestAnswer(normalized, 2.5);
-  if (strongMatch && normalized.length <= 80) {
-    return { body: strongMatch.reply };
+  if (shouldUseTajikKnowledgeBase(userLanguage)) {
+    const strongMatch = findBestAnswer(normalized, 2.5);
+    if (strongMatch && normalized.length <= 80) {
+      return { body: strongMatch.reply };
+    }
   }
 
-  const aiReply = await generateChatAIReply({
-    userMessage,
-    history,
-    conversation: options?.conversation,
-  });
-  if (aiReply) {
-    return { body: aiReply };
+  const reply = await aiReply();
+  if (reply) {
+    return { body: reply };
   }
 
   return { body: generateSmartLocalReply(userMessage, history) };
+}
+
+function getEscalationMessage(language: ChatUserLanguage): string {
+  const messages: Record<ChatUserLanguage, string> = {
+    tj: 'Хуб, ман маъмури сомонаро даъват мекунам. Лутфан, каме интизор шавед — ба шумо дар Telegram ё дар ҳамин чат ҷавоб медиҳанд.',
+    ru: 'Хорошо, я приглашаю администратора сайта. Пожалуйста, подождите — вам ответят в Telegram или в этом чате.',
+    en: 'Okay, I am requesting a site administrator. Please wait — you will get a reply in Telegram or in this chat.',
+    uz: 'Yaxshi, men sayt administratorini chaqiryapman. Iltimos, biroz kuting — Telegram yoki shu chatda javob olasiz.',
+  };
+  return messages[language];
+}
+
+function getLocalizedGreeting(
+  language: ChatUserLanguage,
+  conversation?: Pick<ChatConversation, 'displayName' | 'sourcePage'>
+): string {
+  const name = conversation?.displayName?.trim();
+  const hasName = name && name !== 'Меҳмон';
+
+  const greetings: Record<ChatUserLanguage, string> = {
+    tj: hasName ? `Салом, ${name}! 👋` : 'Салом! 👋',
+    ru: hasName ? `Здравствуйте, ${name}! 👋` : 'Здравствуйте! 👋',
+    en: hasName ? `Hello, ${name}! 👋` : 'Hello! 👋',
+    uz: hasName ? `Salom, ${name}! 👋` : 'Salom! 👋',
+  };
+
+  const prompts: Record<ChatUserLanguage, string> = {
+    tj: 'Чӣ тавр кӯмак расонам? Саволро озодона нависед.',
+    ru: 'Чем могу помочь? Напишите ваш вопрос.',
+    en: 'How can I help? Ask your question freely.',
+    uz: 'Qanday yordam bera olaman? Savolingizni erkin yozing.',
+  };
+
+  return `${greetings[language]} ${prompts[language]}`;
 }
 
 export function getQuickTopicMessage(label: string): string | null {

@@ -49,6 +49,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     accessToken?: string;
     quickTopicId?: string;
     sourcePage?: string;
+    locale?: string;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       body: message,
       quickTopicId: body.quickTopicId,
       sourcePage: normalizeSourcePage(body.sourcePage),
+      locale: body.locale?.trim() || undefined,
     });
     return NextResponse.json({
       conversationId: id,

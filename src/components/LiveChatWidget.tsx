@@ -3,7 +3,7 @@
 import { ChatMessage, ChatConversationStatus } from '@/types/chat';
 import { useLiveChat } from '@/contexts/live-chat-context';
 import { useSession } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import ChatTypingIndicator from '@/components/ChatTypingIndicator';
 import ChatGuestIntroForm, { GuestProfile } from '@/components/ChatGuestIntroForm';
@@ -104,6 +104,7 @@ function messageBubbleClass(sender: ChatMessage['sender']): string {
 
 export default function LiveChatWidget() {
   const t = useTranslations();
+  const locale = useLocale();
   const { data: session, status: sessionStatus } = useSession();
   const { enabled, open, openChat, closeChat } = useLiveChat();
   const [loading, setLoading] = useState(false);
@@ -202,6 +203,7 @@ export default function LiveChatWidget() {
         guestEmail: profile?.email || undefined,
         guestPhone: profile?.phone || undefined,
         sourcePage: getSourcePage(),
+        locale,
       }),
     });
 
@@ -226,7 +228,7 @@ export default function LiveChatWidget() {
     setChatStatus(data.status);
     setMessages(data.messages);
     setView('chat');
-  }, [session?.user?.id, session?.user?.name, sessionStatus]);
+  }, [session?.user?.id, session?.user?.name, sessionStatus, locale]);
 
   const pollMessages = useCallback(async (forceFullSync = false) => {
     if (!conversationId || !accessToken) return;
@@ -535,6 +537,7 @@ export default function LiveChatWidget() {
           accessToken,
           guestToken,
           sourcePage: getSourcePage(),
+          locale,
         }),
       });
 

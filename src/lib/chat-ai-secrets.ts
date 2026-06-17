@@ -1,3 +1,5 @@
+import { ChatUserLanguage } from '@/lib/chat-language';
+
 const SECRET_TOPIC_PATTERNS: RegExp[] = [
   /музд|маош|salary|wage|нафақа|иловапул|пардохт.*корманд/i,
   /ҳисоб.*бонк|bank\s*account|р\/сч|расчётн|счёт.*бонк/i,
@@ -41,12 +43,33 @@ export function isOrganizationSecretQuestion(message: string): boolean {
   return SECRET_TOPIC_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
-export function getSecretRefusalMessage(): string {
-  return (
+const SECRET_REFUSAL_BY_LANG: Record<ChatUserLanguage, string> = {
+  tj:
     '🔒 **Ман ин саволро ҷавоб дода наметавонам**\n\n' +
     'Саволҳои оид ба **сирри ташкилот**, маълумоти **шахсии кормандон**, ' +
     '**музд**, **ҳисоби бонкӣ**, **парол** ё **маълумоти молиявии дохилӣ** ' +
     'танҳо барои маъмури расмӣ дастрасанд.\n\n' +
-    'Лутфан, барои ин намуди дархост **«📞 Дархост ба маъмур»**-ро пахш кунед.'
-  );
+    'Лутфан, барои ин намуди дархост **«📞 Дархост ба маъмур»**-ро пахш кунед.',
+  ru:
+    '🔒 **Я не могу ответить на этот вопрос**\n\n' +
+    'Вопросы о **секретах организации**, **персональных данных сотрудников**, ' +
+    '**зарплате**, **банковских счетах**, **паролях** или **внутренней финансовой информации** ' +
+    'доступны только официальному администратору.\n\n' +
+    'Нажмите **«📞 Запрос администратору»** в чате.',
+  en:
+    '🔒 **I cannot answer this question**\n\n' +
+    'Questions about **organization secrets**, **employee personal data**, ' +
+    '**salaries**, **bank accounts**, **passwords**, or **internal financial data** ' +
+    'are only available to an official administrator.\n\n' +
+    'Please use **«📞 Request admin»** in the chat.',
+  uz:
+    '🔒 **Men bu savolga javob bera olmayman**\n\n' +
+    '**Tashkilot siri**, **xodimlarning shaxsiy maʼlumotlari**, ' +
+    '**maosh**, **bank hisoblari**, **parol** yoki **ichki moliyaviy maʼlumotlar** ' +
+    'haqidagi savollar faqat rasmiy administrator uchun.\n\n' +
+    'Chatda **«📞 Administratorga soʻrov»** tugmasini bosing.',
+};
+
+export function getSecretRefusalMessage(language: ChatUserLanguage = 'tj'): string {
+  return SECRET_REFUSAL_BY_LANG[language];
 }

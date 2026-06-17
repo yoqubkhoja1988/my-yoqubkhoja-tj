@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       guestEmail?: string;
       guestPhone?: string;
       sourcePage?: string;
+      locale?: string;
     };
 
     const access = getChatAccessContext(session, body.guestToken);
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       await addMessage({
         conversationId: created.id,
         sender: 'bot',
-        body: getWelcomeMessage(),
+        body: getWelcomeMessage(body.locale),
       });
 
       return NextResponse.json({
