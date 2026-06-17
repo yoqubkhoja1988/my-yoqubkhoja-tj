@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { getAuthSession } from '@/lib/auth-session';
 import OrganizationDetailContent from '@/components/OrganizationDetailContent';
 import {
   DEFAULT_FINANCIAL_REPORTS_CONTENT,
@@ -22,7 +22,7 @@ export default async function OrganizationSectionPage({
   params: Promise<{ locale: string; id: string; section: string }>;
 }) {
   const { id, section } = await params;
-  const session = await auth();
+  const session = await getAuthSession();
 
   const organization = (await readOrganizationsFile()).find((item) => item.id === id);
   if (!organization) {

@@ -7,7 +7,7 @@ import { initializeOrganizations } from '@/lib/organizations';
 import { canAccessOrganization, canAccessOrganizations, canAccessProjects } from '@/lib/user-access';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { Organization } from '@/types/organization';
-import { useSession } from 'next-auth/react';
+import { useAccessSession, useUserPermissionsState } from '@/contexts/user-permissions-context';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -21,14 +21,15 @@ export default function UserRoomHome({
   isAdmin?: boolean;
 }) {
   const t = useTranslations();
-  const { data: session } = useSession();
+  const { data: session } = useAccessSession();
+  const { permissions } = useUserPermissionsState();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
 
   useEffect(() => {
     void initializeOrganizations().then((data) => {
       setOrganizations(data);
     });
-  }, []);
+  }, [permissions, session?.user?.id]);
 
   const visibleOrganizations = useMemo(() => {
     if (!session) return [];

@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { getAuthSession } from '@/lib/auth-session';
 import DashboardContent from '@/components/DashboardContent';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { canAccessOrganizations, canAccessProjects } from '@/lib/user-access';
@@ -10,7 +10,7 @@ export default async function DashboardPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await auth();
+  const session = await getAuthSession();
 
   const isAdmin = isSiteAdmin(session);
   const projects = canAccessProjects(session);

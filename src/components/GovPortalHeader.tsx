@@ -8,7 +8,7 @@ import {
   canAccessProjects,
 } from '@/lib/user-access';
 import { isSiteAdmin } from '@/lib/is-admin';
-import { useSession } from 'next-auth/react';
+import { useAccessSession } from '@/contexts/user-permissions-context';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
 import LangSwitcher from './LangSwitcher';
@@ -27,7 +27,7 @@ export default function GovPortalHeader() {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session } = useAccessSession();
   const isAdmin = isSiteAdmin(session);
   const { enabled: liveChatEnabled, openChat } = useLiveChat();
   const [isPending, startTransition] = useTransition();

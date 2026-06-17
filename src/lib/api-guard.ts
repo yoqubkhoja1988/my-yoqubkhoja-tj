@@ -1,10 +1,10 @@
-import { auth } from '@/auth';
+import { getAuthSession } from '@/lib/auth-session';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { NextResponse } from 'next/server';
 import { Session } from 'next-auth';
 
 export async function requireSession(): Promise<Session | NextResponse> {
-  const session = await auth();
+  const session = await getAuthSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

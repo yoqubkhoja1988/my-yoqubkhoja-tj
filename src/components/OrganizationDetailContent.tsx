@@ -17,7 +17,7 @@ import { OrganizationAccessProvider } from '@/contexts/organization-access-conte
 import { OrganizationReportHeaderProvider } from '@/contexts/organization-report-header-context';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
-import { useSession } from 'next-auth/react';
+import { useAccessSession } from '@/contexts/user-permissions-context';
 import { useTranslations, useLocale } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import EditableSectionContent from './EditableSectionContent';
@@ -151,7 +151,7 @@ export default function OrganizationDetailContent({
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
-  const { data: session } = useSession();
+  const { data: session } = useAccessSession();
   const displayOrgName = useMemo(
     () => resolveOrganizationReportName(orgInfoContent?.reportHeader, organization.name, locale),
     [orgInfoContent?.reportHeader, organization.name, locale]

@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { getAuthSession } from '@/lib/auth-session';
 import { getActivityDirections } from '@/lib/activity-directions';
 import { readOrganizationsFile } from '@/lib/organizations-store';
 import {
@@ -14,7 +14,7 @@ export default async function OrganizationIndexPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
-  const session = await auth();
+  const session = await getAuthSession();
 
   const organization = (await readOrganizationsFile()).find((item) => item.id === id);
   if (!organization || !canAccessOrganization(session, id)) {

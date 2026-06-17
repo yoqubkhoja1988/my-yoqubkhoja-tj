@@ -59,6 +59,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!storedUser || storedUser.status !== 'approved') {
           token.permissions = undefined;
         } else {
+          token.role = 'user';
+          token.permissions = normalizeUserPermissions(storedUser.permissions);
+        }
+      } else if (token.sub && token.sub !== 'admin') {
+        const storedUser = await findUserById(token.sub);
+        if (storedUser?.status === 'approved') {
+          token.role = 'user';
           token.permissions = normalizeUserPermissions(storedUser.permissions);
         }
       }
