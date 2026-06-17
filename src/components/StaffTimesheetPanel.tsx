@@ -36,7 +36,7 @@ import { printDocument } from '@/lib/print-document';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent, StaffTimesheet } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Props = {
   organizationId: string;
@@ -69,7 +69,7 @@ function TimesheetMarkCell({
           value={mark}
           onChange={(e) => onChange(e.target.value)}
           disabled={saving}
-          className="w-9 rounded border border-[var(--border)] bg-[var(--bg-input)] px-0.5 py-1 text-center text-[10px] md:inline-block"
+          className="w-9 rounded border border-slate-300 bg-white px-0.5 py-1 text-center text-[10px] text-slate-900 shadow-sm"
           aria-label={`${employeeName} ${day}`}
         >
           <option value="" />
@@ -112,6 +112,7 @@ export default function StaffTimesheetPanel({
   const [editing, setEditing] = useState(
     () => !hasStoredTimesheet(content.timesheets, month)
   );
+  const previousMonthRef = useRef(month);
 
   const daysInMonth = useMemo(() => getDaysInMonth(month), [month]);
   const dayNumbers = useMemo(
@@ -153,9 +154,14 @@ export default function StaffTimesheetPanel({
     const filled = applyDefaultMarks(merged, month);
     const stored = hasStoredTimesheet(content.timesheets, month);
     setSheet(filled);
-    setEditing(!stored);
     setDirty(!stored && JSON.stringify(merged) !== JSON.stringify(filled));
   }, [content.timesheets, content.employees, month]);
+
+  useEffect(() => {
+    if (previousMonthRef.current === month) return;
+    previousMonthRef.current = month;
+    setEditing(!hasStoredTimesheet(content.timesheets, month));
+  }, [month, content.timesheets]);
 
   function updateDay(employeeId: string, day: number, mark: string) {
     const dayKey = String(day);
