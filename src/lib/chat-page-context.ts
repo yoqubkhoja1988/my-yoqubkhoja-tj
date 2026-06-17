@@ -7,6 +7,7 @@ type SectionEntry = {
   title: string;
   hint: string;
   greeting: string;
+  howTo?: string;
 };
 
 const SENSITIVE_NOTE =
@@ -275,6 +276,14 @@ const STAFF_SUB_SECTIONS: Record<string, SectionEntry> = {
     title: 'Басти вазифаҳо',
     hint: 'Ҷадвали штат, вазифаҳо, шуъбаҳо — илова, таҳрир, импорт.',
     greeting: 'Мебинам, шумо дар **басти вазифаҳо** ҳастед.',
+    howTo:
+      '📋 **Чӣ тавр басти вазифаҳоро пур кунам?**\n\n' +
+      '1. Зерменюи **Басти вазифаҳо**-ро интихоб кунед\n' +
+      '2. Шуъба/вазифаро **илова** кунед\n' +
+      '3. Шумораи ҷойҳо ва дараҷаи вазифаро муайян кунед\n' +
+      '4. **Захира** кунед\n\n' +
+      '💡 Импорт аз Excel/CSV мумкин аст.\n' +
+      '⚠️ Бе басти вазифаҳо бақайдгирии кормандон душвор мешавад.',
   },
   'staff-vacancy': {
     title: 'Холигиҳо',
@@ -285,11 +294,27 @@ const STAFF_SUB_SECTIONS: Record<string, SectionEntry> = {
     title: 'Бақайдгирии кормандон',
     hint: 'Реестри кормандон — бақайдгирӣ, таҳрир, импорт (бе ошкор кардани PII).',
     greeting: 'Мебинам, шумо дар **бақайдгирии кормандон** ҳастед.',
+    howTo:
+      '📋 **Чӣ тавр кормандро ба қайд мегирам?**\n\n' +
+      '1. Шумо дар **Бақайдгирии кормандон** ҳастед ✓\n' +
+      '2. Аввал **Басти вазифаҳо**-ро пур кунед (вазифа ва шуъба бояд мавҷуд бошанд)\n' +
+      '3. Тугмаи **иловаи корманд**-ро пахш кунед\n' +
+      '4. **Ному насаб**, вазифа, шуъба, телефон, санаи қабулро нависед\n' +
+      '5. Майдонҳои иловагиро пур кунед (агар лозим бошад)\n' +
+      '6. **Захира** кунед\n\n' +
+      '💡 Импорт аз **Excel/CSV** низ мумкин аст.\n' +
+      '⚠️ Агар тугмаи «Захира» намебинед — шумо дар режими **«танҳо назорат»** ҳастед ё иҷозат надоред.',
   },
   'staff-timesheet': {
     title: 'Ҷадвали ҳузур',
     hint: 'Ҷадвали ҳузур — пур кардан, чоп, захира.',
     greeting: 'Мебинам, шумо дар **ҷадвали ҳузур** ҳастед.',
+    howTo:
+      '📋 **Чӣ тавр ҷадвали ҳузурро пур кунам?**\n\n' +
+      '1. Зерменюи **Ҷадвали ҳузур**-ро кушоед\n' +
+      '2. Моҳ ва кормандонро интихоб кунед\n' +
+      '3. Рӯзҳои ҳузур/ғоибатро қайд кунед\n' +
+      '4. **Захира** ва **чоп** кунед',
   },
 };
 
@@ -495,6 +520,35 @@ export function resolveChatPageContext(sourcePage?: string | null): ChatPageCont
     pageHint,
     greetingNote,
   };
+}
+
+export function isProceduralQuestion(message: string): boolean {
+  const text = message.trim().toLowerCase();
+  return /(чӣ\s*тавр|чӣ\s*гуна|читавр|читав|how\s+to|how\s+do|how\s+can|qanday|қандай|как\s+(мне|войти|сделать|выполнить|добавить)|инҷо\s*чӣ|иҷро\s*кун|кундам|кунем|ба\s*қайд|бақайдгир)/i.test(
+    text
+  );
+}
+
+export function getPageHowToGuide(sourcePage?: string | null): string | null {
+  if (!sourcePage?.trim()) return null;
+
+  const { hash, orgSection } = parseSourcePage(sourcePage.trim());
+  if (!orgSection) return null;
+
+  if (orgSection === 'staff' && hash && STAFF_SUB_SECTIONS[hash]?.howTo) {
+    return STAFF_SUB_SECTIONS[hash].howTo!;
+  }
+  if (orgSection === 'finance' && hash && FINANCE_SUB_SECTIONS[hash]?.howTo) {
+    return FINANCE_SUB_SECTIONS[hash].howTo!;
+  }
+  if (ORG_SECTIONS[orgSection]?.howTo) {
+    return ORG_SECTIONS[orgSection].howTo!;
+  }
+
+  if (hash) return null;
+
+  const section = lookupOrgSection(orgSection);
+  return `📌 **${section.title}**\n\n${section.hint}`;
 }
 
 /** Validate section slugs stay in sync with app menus (dev-time sanity). */

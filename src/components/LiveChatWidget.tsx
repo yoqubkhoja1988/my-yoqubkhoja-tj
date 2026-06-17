@@ -757,6 +757,9 @@ export default function LiveChatWidget() {
             {peerTyping.admin && (
               <ChatTypingIndicator label={t('liveChatTypingAdmin')} />
             )}
+            {sending && chatStatus === 'bot' && (
+              <ChatTypingIndicator label={`${t('liveChatBot')} — ${t('liveChatLoading')}`} />
+            )}
             <div ref={messagesEndRef} />
           </div>
 

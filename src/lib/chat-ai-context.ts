@@ -1,6 +1,6 @@
 import { ChatConversation } from '@/types/chat';
 import { getRelevantKnowledgeSnippets } from '@/lib/chat-bot';
-import { resolveChatPageContext } from '@/lib/chat-page-context';
+import { resolveChatPageContext, getPageHowToGuide, isProceduralQuestion } from '@/lib/chat-page-context';
 
 export type ChatAiSessionContext = {
   displayName: string;
@@ -10,6 +10,7 @@ export type ChatAiSessionContext = {
   subSectionTitle: string | null;
   pageHint: string | null;
   greetingNote: string;
+  howToGuide: string | null;
   knowledgeSnippets: string[];
 };
 
@@ -21,6 +22,9 @@ export function buildChatAiSessionContext(
   const isLoggedIn = Boolean(conversation?.userId);
   const sourcePage = conversation?.sourcePage ?? null;
   const page = resolveChatPageContext(sourcePage);
+  const howToGuide = isProceduralQuestion(userMessage)
+    ? getPageHowToGuide(sourcePage)
+    : null;
 
   return {
     displayName,
@@ -30,6 +34,7 @@ export function buildChatAiSessionContext(
     subSectionTitle: page.subSectionTitle,
     pageHint: page.pageHint,
     greetingNote: page.greetingNote,
+    howToGuide,
     knowledgeSnippets: getRelevantKnowledgeSnippets(userMessage, 3),
   };
 }
@@ -58,6 +63,10 @@ export function formatChatAiContextBlock(context: ChatAiSessionContext): string 
   }
   if (context.pageHint) {
     lines.push(`Page guidance: ${context.pageHint}`);
+  }
+  if (context.howToGuide) {
+    lines.push('', '--- HOW-TO GUIDE (use as steps; translate to user language) ---');
+    lines.push(context.howToGuide.replace(/\n/g, ' '));
   }
 
   if (context.knowledgeSnippets.length > 0) {
