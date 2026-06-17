@@ -6,6 +6,10 @@ export interface UserPermissions {
   organizationManager?: boolean;
   /** Танҳо назорат: ҳама бахшҳо намоиш дода мешавад, тағйирот мамнуъ */
   supervisionOnly?: boolean;
+  /** Вазифа аз басти вазифаҳо (барои намоиш ва навсозӣ) */
+  assignedStaffPosition?: string;
+  assignedStaffDepartment?: string;
+  assignedStaffRole?: string;
   organizationIds: string[];
   sectionSlugs: string[];
 }
@@ -39,6 +43,12 @@ export function normalizeUserPermissions(value: unknown): UserPermissions {
     canAccessProjects: raw.canAccessProjects ?? DEFAULT_USER_PERMISSIONS.canAccessProjects,
     organizationManager: raw.organizationManager ?? false,
     supervisionOnly: raw.supervisionOnly ?? false,
+    assignedStaffPosition:
+      typeof raw.assignedStaffPosition === 'string' ? raw.assignedStaffPosition.trim() : undefined,
+    assignedStaffDepartment:
+      typeof raw.assignedStaffDepartment === 'string' ? raw.assignedStaffDepartment.trim() : undefined,
+    assignedStaffRole:
+      typeof raw.assignedStaffRole === 'string' ? raw.assignedStaffRole.trim() : undefined,
     organizationIds: Array.isArray(raw.organizationIds) ? raw.organizationIds : [],
     sectionSlugs:
       Array.isArray(raw.sectionSlugs) && raw.sectionSlugs.length > 0

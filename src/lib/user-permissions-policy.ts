@@ -25,6 +25,9 @@ export function finalizeUserPermissions(permissions: UserPermissions): UserPermi
     canAccessProjects: normalized.canAccessProjects,
     organizationManager,
     supervisionOnly: organizationManager ? false : normalized.supervisionOnly === true,
+    assignedStaffPosition: normalized.assignedStaffPosition,
+    assignedStaffDepartment: normalized.assignedStaffDepartment,
+    assignedStaffRole: normalized.assignedStaffRole,
     organizationIds: [...new Set(normalized.organizationIds)],
     sectionSlugs: organizationManager ? [...ALL_SECTION_SLUGS] : sectionSlugs,
   };

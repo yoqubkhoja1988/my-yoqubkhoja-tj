@@ -6,6 +6,10 @@ import {
   getOrganizationManagerPresetPermissions,
   isInflatedSectionAccess,
 } from '@/lib/user-permissions-policy';
+import {
+  OrganizationStaffPresets,
+  getPermissionsForPosition,
+} from '@/lib/staff-position-permissions';
 import { AdminUsersOverview } from '@/lib/user-presence';
 import { Organization } from '@/types/organization';
 import { PublicUser, UserPermissions, UserStatus, normalizeUserPermissions } from '@/types/user';
@@ -144,22 +148,69 @@ function PermissionsEditor({
   }
 
   function applyAccountantPreset() {
+    onChange({
+      ...getAccountantPresetPermissions({
+        canAccessProjects: permissions.canAccessProjects,
+        organizationIds: permissions.organizationIds,
+      }),
+      assignedStaffPosition: undefined,
+      assignedStaffDepartment: undefined,
+      assignedStaffRole: undefined,
+    });
+  }
+
+  function applyOrganizationManagerPreset() {
+    onChange({
+      ...getOrganizationManagerPresetPermissions({
+        canAccessProjects: permissions.canAccessProjects,
+        organizationIds: permissions.organizationIds,
+      }),
+      assignedStaffPosition: undefined,
+      assignedStaffDepartment: undefined,
+      assignedStaffRole: undefined,
+    });
+  }
+
+  function applyPositionPreset(position: string, department: string) {
     onChange(
-      getAccountantPresetPermissions({
+      getPermissionsForPosition(position, department, {
         canAccessProjects: permissions.canAccessProjects,
         organizationIds: permissions.organizationIds,
       })
     );
   }
 
-  function applyOrganizationManagerPreset() {
-    onChange(
-      getOrganizationManagerPresetPermissions({
-        canAccessProjects: permissions.canAccessProjects,
-        organizationIds: permissions.organizationIds,
+  const [staffPresets, setStaffPresets] = useState<OrganizationStaffPresets[]>([]);
+  const [staffPresetsLoading, setStaffPresetsLoading] = useState(false);
+
+  useEffect(() => {
+    if (permissions.organizationIds.length === 0) {
+      setStaffPresets([]);
+      return;
+    }
+
+    const params = new URLSearchParams();
+    for (const id of permissions.organizationIds) {
+      params.append('organizationIds', id);
+    }
+
+    setStaffPresetsLoading(true);
+    void fetch(`/api/admin/staff-positions?${params.toString()}`, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('load');
+        const data = (await response.json()) as { organizations?: OrganizationStaffPresets[] };
+        setStaffPresets(data.organizations ?? []);
       })
-    );
-  }
+      .catch(() => {
+        setStaffPresets([]);
+      })
+      .finally(() => {
+        setStaffPresetsLoading(false);
+      });
+  }, [permissions.organizationIds]);
 
   return (
     <>
@@ -212,6 +263,66 @@ function PermissionsEditor({
             📊 {t('adminUsersAccountantPreset')}
           </button>
         </div>
+        {permissions.assignedStaffPosition && (
+          <p className="mb-3 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs text-sky-100">
+            {t('adminUsersAssignedStaffPosition', {
+              position: permissions.assignedStaffPosition,
+              department: permissions.assignedStaffDepartment ?? '—',
+            })}
+          </p>
+        )}
+        {staffPresetsLoading && (
+          <p className="mb-3 text-xs text-[var(--text-muted)]">{t('adminUsersStaffPresetsLoading')}</p>
+        )}
+        {!staffPresetsLoading && permissions.organizationIds.length === 0 && (
+          <p className="mb-3 rounded-lg border border-[var(--border)] bg-[var(--bg-input)]/40 px-3 py-2 text-xs text-[var(--text-muted)]">
+            {t('adminUsersStaffPresetsSelectOrg')}
+          </p>
+        )}
+        {!staffPresetsLoading &&
+          permissions.organizationIds.length > 0 &&
+          staffPresets.length === 0 && (
+            <p className="mb-3 rounded-lg border border-[var(--border)] bg-[var(--bg-input)]/40 px-3 py-2 text-xs text-[var(--text-muted)]">
+              {t('adminUsersStaffPresetsEmpty')}
+            </p>
+          )}
+        {!staffPresetsLoading && staffPresets.length > 0 && (
+          <div className="mb-4 space-y-3 rounded-lg border border-[var(--border)] p-3">
+            <p className="text-xs font-bold text-[var(--text)]">{t('adminUsersStaffPositionPresets')}</p>
+            <p className="text-[10px] leading-relaxed text-[var(--text-muted)]">
+              {t('adminUsersStaffPositionPresetsHint')}
+            </p>
+            {staffPresets.map((org) => (
+              <div key={org.organizationId} className="space-y-2">
+                <p className="text-[11px] font-semibold text-[var(--accent)]">{org.organizationName}</p>
+                {[...new Map(org.presets.map((p) => [p.department, p.department])).keys()].map((department) => {
+                  const items = org.presets.filter((item) => item.department === department);
+                  return (
+                    <div key={`${org.organizationId}-${department}`}>
+                      <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--text-muted)]">
+                        {department}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {items.map((item) => (
+                          <button
+                            key={`${org.organizationId}-${department}-${item.position}`}
+                            type="button"
+                            className="rounded-md border border-[var(--border)] bg-[var(--bg-input)] px-2 py-1 text-left text-[10px] hover:border-[var(--accent)]"
+                            onClick={() => applyPositionPreset(item.position, item.department)}
+                            title={t(item.roleLabelKey)}
+                          >
+                            <span className="block font-semibold">{item.position}</span>
+                            <span className="text-[var(--text-muted)]">{t(item.roleLabelKey)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
         {permissions.organizationManager && (
           <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
             {t('adminUsersManagerPresetActive')}
@@ -256,27 +367,37 @@ function PermissionsEditor({
           </button>
 
           {permissions.supervisionOnly ? (
-            <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-100/90">
+            <p className="mb-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-100/90">
               {t('adminUsersSupervisionSectionsNote')}
             </p>
           ) : permissions.organizationManager ? (
-            <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-100/90">
+            <p className="mb-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-100/90">
               {t('adminUsersManagerSectionsNote')}
             </p>
-          ) : (
-            <div className="max-h-48 grid gap-2 overflow-y-auto sm:grid-cols-2">
-              {ALL_SECTION_SLUGS.map((slug) => (
-                <label key={slug} className="flex items-start gap-2 text-sm">
+          ) : null}
+          <div className="max-h-64 grid gap-2 overflow-y-auto sm:grid-cols-2">
+            {ALL_SECTION_SLUGS.map((slug) => {
+              const fullAccess =
+                permissions.organizationManager || permissions.supervisionOnly;
+              const checked = fullAccess || permissions.sectionSlugs.includes(slug);
+              return (
+                <label
+                  key={slug}
+                  className={`flex items-start gap-2 text-sm ${
+                    fullAccess ? 'opacity-80' : ''
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    checked={permissions.sectionSlugs.includes(slug)}
+                    checked={checked}
+                    disabled={fullAccess}
                     onChange={() => toggleSection(slug)}
                   />
                   <span>{SECTION_LABEL_KEYS[slug] ? t(SECTION_LABEL_KEYS[slug]) : slug}</span>
                 </label>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </div>
     </>
