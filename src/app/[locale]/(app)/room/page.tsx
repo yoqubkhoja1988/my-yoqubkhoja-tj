@@ -3,6 +3,8 @@ import UserRoomHome from '@/components/UserRoomHome';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { canAccessOrganizations, canAccessProjects } from '@/lib/user-access';
 
+export const dynamic = 'force-dynamic';
+
 export default async function UserRoomPage() {
   const session = await getAuthSession();
 

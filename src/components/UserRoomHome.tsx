@@ -9,7 +9,18 @@ import { isSiteAdmin } from '@/lib/is-admin';
 import { Organization } from '@/types/organization';
 import { useAccessSession, useUserPermissionsState } from '@/contexts/user-permissions-context';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+
+const SECTION_LABEL_KEYS: Record<string, string> = {
+  overview: 'actOverview',
+  'org-info': 'actOrgInfo',
+  staff: 'actStaff',
+  finance: 'actFinance',
+  legal: 'actLegal',
+  laws: 'actLaws',
+  'government-decisions': 'actGovernmentDecisions',
+  'official-documents': 'actOfficialDocuments',
+};
 
 export default function UserRoomHome({
   canAccessProjects: showProjects,
@@ -22,14 +33,21 @@ export default function UserRoomHome({
 }) {
   const t = useTranslations();
   const { data: session } = useAccessSession();
-  const { permissions } = useUserPermissionsState();
+  const { permissions, permissionsUpdatedAt, loading: permissionsLoading, refresh } =
+    useUserPermissionsState();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [isRefreshing, startRefresh] = useTransition();
 
   useEffect(() => {
     void initializeOrganizations().then((data) => {
       setOrganizations(data);
     });
   }, [permissions, session?.user?.id]);
+
+  const accessibleOrganizations = useMemo(() => {
+    if (!permissions) return [];
+    return organizations.filter((org) => permissions.organizationIds.includes(org.id));
+  }, [organizations, permissions]);
 
   const visibleOrganizations = useMemo(() => {
     if (!session) return [];
@@ -83,11 +101,44 @@ export default function UserRoomHome({
                 {isAdmin ? t('userRoomRoleAdmin') : t('userRoomRoleUser')}
               </p>
               {!isAdmin && permissions && (
-                <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-                  {permissions.organizationIds.length} {t('navOrganizations').toLowerCase()} ·{' '}
-                  {permissions.sectionSlugs.length} бахш
-                  {permissions.supervisionOnly ? ' · назорат' : ''}
-                </p>
+                <div className="mt-1 space-y-1 text-[10px] text-[var(--text-muted)]">
+                  <p>
+                    {permissions.organizationIds.length} {t('navOrganizations').toLowerCase()} ·{' '}
+                    {permissions.sectionSlugs.length} бахш
+                    {permissions.supervisionOnly ? ' · назорат' : ''}
+                  </p>
+                  {accessibleOrganizations.length > 0 && (
+                    <p className="leading-relaxed">
+                      {accessibleOrganizations.map((org) => org.name).join(' · ')}
+                    </p>
+                  )}
+                  {!permissions.supervisionOnly && permissions.sectionSlugs.length > 0 && (
+                    <p className="leading-relaxed">
+                      {permissions.sectionSlugs
+                        .slice(0, 6)
+                        .map((slug) =>
+                          SECTION_LABEL_KEYS[slug] ? t(SECTION_LABEL_KEYS[slug]) : slug
+                        )
+                        .join(' · ')}
+                      {permissions.sectionSlugs.length > 6 ? ' …' : ''}
+                    </p>
+                  )}
+                  {permissionsUpdatedAt && (
+                    <p className="font-mono text-[9px] opacity-80">
+                      {new Date(permissionsUpdatedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              )}
+              {!isAdmin && (
+                <button
+                  type="button"
+                  className="mt-2 text-[10px] font-semibold text-[var(--accent)] hover:underline disabled:opacity-60"
+                  disabled={permissionsLoading || isRefreshing}
+                  onClick={() => startRefresh(() => refresh())}
+                >
+                  {permissionsLoading || isRefreshing ? '…' : '↻ Навсозии дастрасӣ'}
+                </button>
               )}
             </div>
           </div>

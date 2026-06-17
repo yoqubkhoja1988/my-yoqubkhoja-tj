@@ -4,6 +4,7 @@ import { isSiteAdmin } from '@/lib/is-admin';
 import { UserPermissions } from '@/types/user';
 import { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
+import { useRouter } from '@/i18n/navigation';
 import {
   createContext,
   useCallback,
@@ -17,12 +18,14 @@ import {
 
 type PermissionsState = {
   permissions: UserPermissions | null;
+  permissionsUpdatedAt: string | null;
   loading: boolean;
   refresh: () => Promise<void>;
 };
 
 const UserPermissionsContext = createContext<PermissionsState>({
   permissions: null,
+  permissionsUpdatedAt: null,
   loading: true,
   refresh: async () => {},
 });
@@ -38,44 +41,89 @@ function mergeSessionPermissions(session: Session, permissions: UserPermissions)
   };
 }
 
+function permissionsFingerprint(permissions: UserPermissions | null): string {
+  if (!permissions) return '';
+  return JSON.stringify(permissions);
+}
+
 export function UserPermissionsProvider({ children }: { children: ReactNode }) {
   const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+  const [permissionsUpdatedAt, setPermissionsUpdatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const permissionsRef = useRef<UserPermissions | null>(null);
+  const permissionsUpdatedAtRef = useRef<string | null>(null);
+  const userIdRef = useRef<string | null>(null);
   permissionsRef.current = permissions;
+  permissionsUpdatedAtRef.current = permissionsUpdatedAt;
+  userIdRef.current = session?.user?.id ?? null;
 
   const refresh = useCallback(async () => {
-    if (status !== 'authenticated' || !session) {
+    if (status !== 'authenticated' || !session?.user?.id) {
       setPermissions(null);
+      setPermissionsUpdatedAt(null);
       setLoading(false);
       return;
     }
 
     if (isSiteAdmin(session)) {
       setPermissions(null);
+      setPermissionsUpdatedAt(null);
       setLoading(false);
       return;
     }
 
     try {
-      await update();
       const response = await fetch(`/api/auth/permissions?t=${Date.now()}`, {
-        credentials: 'same-origin',
+        credentials: 'include',
         cache: 'no-store',
+        headers: {
+          Pragma: 'no-cache',
+          'Cache-Control': 'no-cache',
+        },
       });
+
       if (!response.ok) {
-        setPermissions(session.user?.permissions ?? permissionsRef.current);
+        if (permissionsRef.current === null) {
+          setPermissions(session.user?.permissions ?? null);
+        }
         return;
       }
-      const data = (await response.json()) as { permissions?: UserPermissions | null };
-      setPermissions(data.permissions ?? null);
+
+      const data = (await response.json()) as {
+        permissions?: UserPermissions | null;
+        updatedAt?: string | null;
+      };
+
+      const nextPermissions = data.permissions ?? null;
+      const nextUpdatedAt = data.updatedAt ?? null;
+      const changed =
+        permissionsFingerprint(permissionsRef.current) !== permissionsFingerprint(nextPermissions) ||
+        permissionsUpdatedAtRef.current !== nextUpdatedAt;
+
+      setPermissions(nextPermissions);
+      setPermissionsUpdatedAt(nextUpdatedAt);
+
+      if (nextPermissions) {
+        try {
+          await update({ permissions: nextPermissions });
+        } catch {
+          // JWT sync is optional; API permissions remain the source of truth.
+        }
+      }
+
+      if (changed) {
+        router.refresh();
+      }
     } catch {
-      setPermissions(session.user?.permissions ?? permissionsRef.current);
+      if (permissionsRef.current === null) {
+        setPermissions(session.user?.permissions ?? null);
+      }
     } finally {
       setLoading(false);
     }
-  }, [session, status, update]);
+  }, [router, session, status, update]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -99,7 +147,7 @@ export function UserPermissionsProvider({ children }: { children: ReactNode }) {
     document.addEventListener('visibilitychange', onVisibility);
     const interval = window.setInterval(() => {
       void refresh();
-    }, 15_000);
+    }, 5_000);
 
     return () => {
       window.removeEventListener('focus', onFocus);
@@ -111,10 +159,11 @@ export function UserPermissionsProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       permissions,
+      permissionsUpdatedAt,
       loading,
       refresh,
     }),
-    [permissions, loading, refresh]
+    [permissions, permissionsUpdatedAt, loading, refresh]
   );
 
   return (

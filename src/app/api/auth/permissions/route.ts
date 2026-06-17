@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
-import { attachFreshUserPermissions } from '@/lib/auth-session';
 import { isSiteAdmin } from '@/lib/is-admin';
+import { findUserById } from '@/lib/users-store';
+import { normalizeUserPermissions } from '@/types/user';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -18,11 +19,27 @@ export async function GET() {
     );
   }
 
-  const fresh = await attachFreshUserPermissions(session);
+  const userId = session.user?.id;
+  if (!userId) {
+    return NextResponse.json(
+      { permissions: null, userId: null, updatedAt: null },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
+  }
+
+  const storedUser = await findUserById(userId);
+  if (!storedUser || storedUser.status !== 'approved') {
+    return NextResponse.json(
+      { permissions: null, userId, updatedAt: storedUser?.updatedAt ?? null },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
+  }
+
   return NextResponse.json(
     {
-      permissions: fresh?.user?.permissions ?? null,
-      userId: fresh?.user?.id ?? null,
+      permissions: normalizeUserPermissions(storedUser.permissions),
+      userId,
+      updatedAt: storedUser.updatedAt ?? storedUser.createdAt,
     },
     { headers: { 'Cache-Control': 'no-store, max-age=0' } }
   );

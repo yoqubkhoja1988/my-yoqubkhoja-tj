@@ -44,13 +44,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: { strategy: 'jwt' },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = user.role;
         token.permissions = user.permissions;
         if (user.id) {
           token.sub = user.id;
         }
+        return token;
+      }
+
+      if (
+        trigger === 'update' &&
+        session &&
+        'permissions' in session &&
+        session.permissions
+      ) {
+        token.role = 'user';
+        token.permissions = normalizeUserPermissions(session.permissions);
         return token;
       }
 
