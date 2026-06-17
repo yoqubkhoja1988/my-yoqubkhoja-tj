@@ -3,6 +3,7 @@ import { EXCEL_COLORS, styleExcelCell } from '@/lib/document-export/excel-styles
 import {
   countWorkedDays,
   countWorkedHours,
+  formatTimesheetWeekday,
   getDaysInMonth,
   resolveTimesheetMark,
 } from '@/lib/staff-timesheet';
@@ -29,11 +30,12 @@ export async function downloadTimesheetExcel(options: {
   employees: StaffEmployee[];
   month: string;
   monthLabel: string;
+  locale: string;
   normWorkingDays: number;
   labels: TimesheetExportLabels;
   legendLines: string[];
 }) {
-  const { sheet, employees, month, monthLabel, labels, legendLines } = options;
+  const { sheet, employees, month, monthLabel, locale, labels, legendLines } = options;
   const daysInMonth = getDaysInMonth(month);
   const dayNumbers = Array.from({ length: daysInMonth }, (_, index) => index + 1);
 
@@ -80,7 +82,9 @@ export async function downloadTimesheetExcel(options: {
     labels.no,
     labels.employee,
     labels.personnelNumber,
-    ...dayNumbers.map(String),
+    ...dayNumbers.map(
+      (day) => `${day}\n${formatTimesheetWeekday(month, day, locale)}`
+    ),
     labels.totalDays,
     labels.totalHours,
   ];
@@ -94,7 +98,7 @@ export async function downloadTimesheetExcel(options: {
       wrap: true,
     });
   });
-  worksheet.getRow(headerRow).height = 24;
+  worksheet.getRow(headerRow).height = 28;
 
   employees.forEach((employee, employeeIndex) => {
     const rowNumber = headerRow + 1 + employeeIndex;

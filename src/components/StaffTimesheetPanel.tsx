@@ -17,6 +17,7 @@ import {
   currentMonthKey,
   applyDefaultMarks,
   formatMonthLabel,
+  formatTimesheetWeekday,
   getDaysInMonth,
   getTransferredRestDaysList,
   hasStoredTimesheet,
@@ -239,6 +240,7 @@ export default function StaffTimesheetPanel({
       employees,
       month,
       monthLabel,
+      locale,
       normWorkingDays,
       labels: {
         title: t('timesheetDocumentTitle'),
@@ -476,7 +478,10 @@ export default function StaffTimesheetPanel({
                                   : ''
                           }`}
                         >
-                          {day}
+                          <span className="block font-semibold leading-none">{day}</span>
+                          <span className="mt-0.5 block text-[8px] font-normal leading-none text-slate-600">
+                            {formatTimesheetWeekday(month, day, locale)}
+                          </span>
                         </th>
                       );
                     })}

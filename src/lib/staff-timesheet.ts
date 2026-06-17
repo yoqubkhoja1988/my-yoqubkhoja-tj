@@ -97,6 +97,12 @@ export function formatMonthLabel(monthKey: string, locale: string): string {
   }).format(date);
 }
 
+export function formatTimesheetWeekday(monthKey: string, day: number, locale: string): string {
+  const [year, month] = monthKey.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return new Intl.DateTimeFormat(toIntlLocale(locale), { weekday: 'short' }).format(date);
+}
+
 export function getDaysInMonth(monthKey: string): number {
   const [year, month] = monthKey.split('-').map(Number);
   return new Date(year, month, 0).getDate();
