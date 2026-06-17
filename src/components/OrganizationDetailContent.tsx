@@ -9,16 +9,19 @@ import {
   groupActivityDirections,
 } from '@/lib/activity-directions';
 import {
+  canAccessOrganization,
+  canAccessOrganizationSection,
   canEditOrganizationSection,
   filterDirectionsForSession,
   isSupervisionOnlyUser,
 } from '@/lib/user-access';
 import { OrganizationAccessProvider } from '@/contexts/organization-access-context';
 import { OrganizationReportHeaderProvider } from '@/contexts/organization-report-header-context';
+import { useAccessSession, useUserPermissionsState } from '@/contexts/user-permissions-context';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent } from '@/types/organization-section';
-import { useAccessSession } from '@/contexts/user-permissions-context';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import EditableSectionContent from './EditableSectionContent';
 
@@ -151,7 +154,9 @@ export default function OrganizationDetailContent({
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const router = useRouter();
   const { data: session } = useAccessSession();
+  const { refresh, permissionsUpdatedAt } = useUserPermissionsState();
   const displayOrgName = useMemo(
     () => resolveOrganizationReportName(orgInfoContent?.reportHeader, organization.name, locale),
     [orgInfoContent?.reportHeader, organization.name, locale]
@@ -165,6 +170,32 @@ export default function OrganizationDetailContent({
   );
   const grouped = groupActivityDirections(directions);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    if (!canAccessOrganization(session, organization.id)) {
+      router.replace('/room');
+      return;
+    }
+
+    if (!canAccessOrganizationSection(session, organization.id, activeSection)) {
+      const allowed = filterDirectionsForSession(
+        session,
+        getActivityDirections(organization.id)
+      );
+      const fallback = allowed[0]?.slug;
+      if (fallback && fallback !== activeSection) {
+        router.replace(`/organizations/${organization.id}/${fallback}`);
+      } else if (!fallback) {
+        router.replace('/room');
+      }
+    }
+  }, [activeSection, organization.id, permissionsUpdatedAt, router, session]);
 
   useEffect(() => {
     try {

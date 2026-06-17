@@ -134,7 +134,6 @@ function PermissionsEditor({
     onChange({
       ...permissions,
       supervisionOnly: checked,
-      ...(checked ? { sectionSlugs: [...ALL_SECTION_SLUGS] } : {}),
     });
   }
 

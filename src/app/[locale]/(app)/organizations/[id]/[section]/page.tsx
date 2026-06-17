@@ -16,6 +16,8 @@ import { readOrganizationsFile } from '@/lib/organizations-store';
 import { canAccessOrganizationSection } from '@/lib/user-access';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default async function OrganizationSectionPage({
   params,
 }: {
