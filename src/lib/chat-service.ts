@@ -97,7 +97,8 @@ export async function escalateConversation(conversationId: string): Promise<{
 
 export async function processBotTurn(
   conversationId: string,
-  userMessage: string
+  userMessage: string,
+  options?: { quickTopicId?: string }
 ): Promise<ChatMessage[]> {
   const conversation = await findConversationById(conversationId);
   if (!conversation || conversation.status !== 'bot') {
@@ -105,7 +106,7 @@ export async function processBotTurn(
   }
 
   const history = await getMessagesAfter(conversationId);
-  const reply = getBotReply(userMessage, history);
+  const reply = await getBotReply(userMessage, history, options);
 
   await addMessage({
     conversationId,
@@ -123,6 +124,7 @@ export async function processBotTurn(
 export async function sendUserMessage(input: {
   conversationId: string;
   body: string;
+  quickTopicId?: string;
 }): Promise<{ conversation: ChatConversation; messages: ChatMessage[] }> {
   const conversation = await findConversationById(input.conversationId);
   if (!conversation) {
@@ -140,7 +142,9 @@ export async function sendUserMessage(input: {
   });
 
   if (conversation.status === 'bot') {
-    await processBotTurn(input.conversationId, input.body);
+    await processBotTurn(input.conversationId, input.body, {
+      quickTopicId: input.quickTopicId,
+    });
   } else if (conversation.status === 'human') {
     await notifyAdminNewUserMessage(conversation, userMessage);
   }

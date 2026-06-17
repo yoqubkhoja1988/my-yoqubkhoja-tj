@@ -1,4 +1,6 @@
 import { ChatMessage } from '@/types/chat';
+import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
+import { generateChatAIReply } from '@/lib/chat-ai';
 
 export type BotReply = {
   body: string;
@@ -18,7 +20,6 @@ type KnowledgeEntry = {
   priority?: number;
 };
 
-/** Явные просьбы связаться с живым админом */
 const ESCALATION_PHRASES = [
   'маъмури сомона',
   'ба маъмур',
@@ -41,14 +42,13 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     id: 'welcome',
     keywords: ['салом', 'ассалом', 'hello', 'hi', 'привет', 'даром', 'shumo'],
     reply:
-      'Салом! 👋 Ман ёрдамчии барнома ҳастам.\n\n' +
-      'Ман дар бораи инҳо фавран ҷавоб медиҳам:\n' +
+      'Салом! 👋 Ман ёрдамчии зеҳни сунъии барнома ҳастам.\n\n' +
+      'Ман дар бораи инҳо ҷавоб медиҳам:\n' +
       '• вуруд ва сабти ном\n' +
       '• ташкилотҳо ва бахшҳо\n' +
-      '• кадр, молия, ҳисобот\n' +
-      '• режими «танҳо назорат»\n' +
+      '• иҷозатҳо ва режими назорат\n' +
       '• чат ва Telegram\n\n' +
-      'Саволро нависед ё яке аз тугмаҳои зеринро пахш кунед.',
+      'Саволро нависед ё тугмаҳои интихоби зудро пахш кунед.',
     priority: 1,
   },
   {
@@ -137,7 +137,6 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       'denied',
       'намеояд',
       'наме бинam',
-      'наме бинam',
     ],
     reply:
       '🔐 **Иҷозатҳо**\n\n' +
@@ -146,7 +145,7 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       '• кадом **бахшҳо** дастрасанд\n' +
       '• оё **лоиҳаҳо** дастрасанд\n' +
       '• режими **«Танҳо назорат»** ё иҷрои пурра\n\n' +
-      'Агар ташкилот ё бахше намебинед — ба маъмур муроҷиат кунед.',
+      'Пас аз тағйири иҷозатҳо саҳифаро нав кунед — дастрасии нав намоиш дода мешавад.',
     priority: 3,
   },
   {
@@ -194,9 +193,6 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       '1. Дар меню **«Ташкилотҳо»**-ро пахш кунед\n' +
       '2. Ташкилоти иҷозатдодашударо интихоб кунед\n' +
       '3. Аз менюи чап бахши лозимро кушоед\n\n' +
-      'Ду ташкилоти асосӣ:\n' +
-      '• **МДТМ / кӯдаkiston** — бахшҳои таълиму тарбия\n' +
-      '• **Маркази бехатарии озуқаворӣ** — бахшҳои фаъолият\n\n' +
       'Агар ташкилотро намебинед — маъмур иҷозат дода накардааст.',
     priority: 3,
   },
@@ -218,11 +214,7 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     reply:
       '📂 **Бахшҳо**\n\n' +
       'Дар саҳифаи ташкилот аз менюи чап бахшро интихоб кунед:\n' +
-      '• **Умумӣ** — маълумоти асосӣ\n' +
-      '• **Кормандон ва кадрҳо** — штат, музд\n' +
-      '• **Молия** — молиявӣ ва пардохт\n' +
-      '• **Ҳисобот** — ҳисоботҳои ташкилот\n' +
-      '• **Хабарҳо**, **Суратнигор**, **Видео** ва дигарон\n\n' +
+      '• **Умумӣ**, **Кадр**, **Молия**, **Ҳисобот** ва дигарон\n\n' +
       'Танҳо бахшҳои иҷозатдодашуда намоиш дода мешаванд.',
     priority: 2,
   },
@@ -233,20 +225,18 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       'корманд',
       'staff',
       'штат',
-      'музд',
-      'маош',
-      'salary',
-      'wage',
       'кормандон',
       'вазифа',
       'деража',
+      'чӣ тавр кадр',
+      'чӣ гуна кадр',
     ],
     reply:
       '👥 **Кормандон ва кадрҳо**\n\n' +
       '1. Ташкилотро кушоед\n' +
       '2. Бахши **«Кормандон ва кадрҳо»**-ро интихоб кунед\n' +
-      '3. Ҷадвали штат, вазифаҳо ва муздро бинед\n\n' +
-      'Дар режими «танҳо назорат» тағйир додан мамнуъ аст.',
+      '3. Ҷадвали штат ва вазифаҳоро бинед\n\n' +
+      'Маълумоти шахсии кормандон ё музди онҳо махфӣ аст — ман наметавонам ошкор кунам.',
     priority: 3,
   },
   {
@@ -263,115 +253,41 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       'бюджет',
       'budget',
       'хароҷот',
+      'чӣ тавр молия',
     ],
     reply:
       '💰 **Молия ва муҳосибот**\n\n' +
       '1. Ташкилот → **«Муҳосибот ва молия»**\n' +
-      '2. Маълумоти молиявӣ, пардохтҳо ва ҳисоботро бинед\n' +
+      '2. Маълумоти молиявӣ ва ҳисоботро бинед (агар иҷозат дошта бошед)\n' +
       '3. Барои захира — иҷозати иҷро лозим (на «танҳо назорат»)\n\n' +
-      'Имзо: **Директор** (кӯдаkiston) ё **Сардор** (марказ).',
+      'Маълумоти молиявии дохилии ташкилот махфӣ аст.',
     priority: 3,
   },
   {
     id: 'language',
-    keywords: [
-      'забон',
-      'language',
-      'lang',
-      'русӣ',
-      'англисӣ',
-      'тоҷикӣ',
-      'ӯзбекӣ',
-      'uz',
-      'ru',
-      'en',
-      'tj',
-    ],
+    keywords: ['забон', 'language', 'lang', 'русӣ', 'англисӣ', 'тоҷикӣ', 'ӯзбекӣ', 'uz', 'ru', 'en', 'tj'],
     reply:
-      '🌐 **Забон**\n\n' +
-      'Дар болои саҳифа **«Забон»**-ро пахш кунед.\n' +
-      'Дастрас: тоҷикӣ, русӣ, англисӣ, ӯзбекӣ.',
+      '🌐 **Забон**\n\nДар болои саҳифа **«Забон»**-ро пахш кунед. Дастрас: тоҷикӣ, русӣ, англисӣ, ӯзбекӣ.',
     priority: 2,
   },
   {
     id: 'logout',
     keywords: ['баромад', 'logout', 'sign out', 'хориҷ', 'баромадан'],
-    reply:
-      '🚪 **Баромад**\n\n' +
-      'Дар болои саҳифа тугмаи **«Баромад»**-ро пахш кунед.',
+    reply: '🚪 **Баромад**\n\nДар болои саҳифа тугмаи **«Баромад»**-ро пахш кунед.',
     priority: 2,
   },
   {
     id: 'dashboard',
-    keywords: ['лоиҳа', 'project', 'dashboard', 'dashboard', 'панел', 'асосӣ'],
+    keywords: ['лоиҳа', 'project', 'dashboard', 'панел', 'асосӣ'],
     reply:
-      '📂 **Лоиҳаҳо (Dashboard)**\n\n' +
-      'Пас аз вуруд ба **«Лоиҳаҳо»** меравед.\n' +
-      'Ин бахш барои корбарони бо иҷозати лоиҳа дастрас аст.\n' +
-      'Маъмури сомона: идоракунии корбарон, чат, маълумот.',
+      '📂 **Лоиҳаҳо (Dashboard)**\n\nПас аз вуруд ба **«Лоиҳаҳо»** меравед — барои корбарони бо иҷозати лоиҳа.',
     priority: 2,
   },
   {
     id: 'chat',
-    keywords: [
-      'чат',
-      'chat',
-      'лайв',
-      'live',
-      'бот',
-      'bot',
-      'telegram',
-      'телеграм',
-      'телеграмм',
-      'паём',
-      'message',
-      'yoqubkhoja_bot',
-    ],
+    keywords: ['чат', 'chat', 'лайв', 'live', 'бот', 'bot', 'telegram', 'телеграм', 'yoqubkhoja_bot'],
     reply:
-      '💬 **Чати зинда**\n\n' +
-      '• Тугмаи **«💬 Чат»** дар гӯшaи рост ё дар header\n' +
-      '• Аввал бо бот суҳбат кунед\n' +
-      '• Барои маъмур: **«📞 Дархост ба маъмур»**\n' +
-      '• Маъмури Telegram: **@YOQUBKHOJA_BOT**',
-    priority: 2,
-  },
-  {
-    id: 'kindergarten',
-    keywords: [
-      'кӯдаkiston',
-      'кудakiston',
-      'tomaktab',
-      'томакtab',
-      'мдтм',
-      'таълим',
-      'тарбия',
-      'tarbiagiranda',
-      'тарbiяgiranda',
-      'директор',
-    ],
-    reply:
-      '🏫 **МДТМ / кӯдаkiston**\n\n' +
-      'Бахшҳо: оиннома, барномаҳои таълим, кадр, молия, гурӯҳҳои синну солӣ, тарбиягирандагон, тиб, ғизо, заминаи моддӣ.\n' +
-      'Имзои расмӣ: **Директор**.',
-    priority: 2,
-  },
-  {
-    id: 'food-center',
-    keywords: [
-      'бехатарии озуқаворӣ',
-      'озуқаворӣ',
-      'ветеринар',
-      'veterinary',
-      'фитосанитар',
-      'phytosanitary',
-      'лиценз',
-      'licensing',
-      'сардор',
-    ],
-    reply:
-      '🏛 **Маркази бехатарии озуқаворӣ**\n\n' +
-      'Бахшҳо: фаъолият, ветеринария, фитосанитария, ҳимояи растаниҳо, хабарҳо, кадр, молия.\n' +
-      'Имзои расмӣ: **Сардор**.',
+      '💬 **Чати зинда**\n\n• Тугмаи **«💬 Чат»** дар header\n• Аввал бо ёрдамчии зеҳни сунъӣ\n• Барои маъмур: **«📞 Дархост ба маъмур»**',
     priority: 2,
   },
   {
@@ -382,56 +298,24 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       'how to',
       'how do',
       'истифода',
-      'кор кардан',
-      'корист',
-      'инструк',
-      'роҳнамо',
       'роҳнамо',
       'кумак',
       'кӯмак',
-      'комак',
       'help',
-      'ёрм',
       'ёрӣ',
-      'савол',
       'what is',
       'чист',
-      'чист?',
     ],
     reply:
-      '📖 **Роҳнамои умумии барнома**\n\n' +
-      '1. **Сабти ном** → интизори иҷозат\n' +
-      '2. **Вуруд** → менюи асосӣ\n' +
-      '3. **Ташкилотҳо** → бахши лозим\n' +
-      '4. Маълумотро **бинед** ё (агар иҷозат бошад) **тағир диҳед**\n' +
-      '5. **Чат** — барои савол ба бот ё маъмур\n\n' +
-      'Саволро дақиқтар нависед (масалан: «чӣ тавр ворид шавам?», «кадр», «молия»).',
+      '📖 **Роҳнамои умумӣ**\n\n' +
+      '1. Сабти ном → интизори иҷозат\n2. Вуруд → меню\n3. Ташкилотҳо → бахш\n4. Чат — барои савол',
     priority: 1,
   },
   {
     id: 'edit-save',
-    keywords: [
-      'захира',
-      'save',
-      'нигоҳ',
-      'таҳрир',
-      'edit',
-      'илова',
-      'add',
-      'нест',
-      'delete',
-      'намефиристад',
-      'хato',
-      'хатo',
-      'error',
-    ],
+    keywords: ['захира', 'save', 'таҳрир', 'edit', 'намефиристад', 'хато', 'error'],
     reply:
-      '💾 **Захира ва таҳрир**\n\n' +
-      'Агар тугмаи захира намебинед:\n' +
-      '• Шумо дар режими **«Танҳо назорат»** ҳастед\n' +
-      '• Ба ин бахш **иҷозат** надоред\n' +
-      '• Танҳо **маъмур** ё корбари бо иҷозати иҷро метавонад тағир диҳад\n\n' +
-      'Барои иҷозат — «Дархост ба маъмур».',
+      '💾 **Захира ва таҳрир**\n\nАгар тугмаи захира намебинед — шумо «танҳо назорат» ҳастед ё иҷозат надоред. Ба маъмур муроҷиат кунед.',
     priority: 2,
   },
 ];
@@ -484,11 +368,81 @@ function findBestAnswer(text: string): KnowledgeEntry | null {
   return bestScore >= 1 ? best : null;
 }
 
+function getReplyForQuickTopicId(quickTopicId: string): string | null {
+  const entry = KNOWLEDGE_BASE.find((item) => item.id === quickTopicId);
+  return entry?.reply ?? null;
+}
+
+export function isQuickTopicMessage(message: string, quickTopicId?: string): boolean {
+  if (quickTopicId) return true;
+  const normalized = normalizeText(message);
+  return QUICK_TOPICS.some((topic) => normalizeText(topic.message) === normalized);
+}
+
+function getKeywordBotReply(userMessage: string): BotReply {
+  const normalized = normalizeText(userMessage);
+  const quickTopic = QUICK_TOPICS.find((topic) => normalizeText(topic.message) === normalized);
+  if (quickTopic) {
+    const byId = findBestAnswer(normalizeText(quickTopic.id)) ?? findBestAnswer(normalized);
+    if (byId) return { body: byId.reply };
+  }
+
+  const match = findBestAnswer(normalized);
+  if (match) {
+    return { body: match.reply };
+  }
+
+  return {
+    body:
+      'Интихоби зудро интихоб кардед. Агар ҷавоб кофӣ набуд, саволро равшантар нависед ё **«📞 Дархост ба маъмур»**-ро пахш кунед.',
+  };
+}
+
+function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): string {
+  const normalized = normalizeText(userMessage);
+  const direct = findBestAnswer(normalized);
+  if (direct) {
+    return direct.reply;
+  }
+
+  const lastBot = [...history].reverse().find((message) => message.sender === 'bot');
+  if (lastBot && normalized.length <= 30) {
+    const context = normalizeText(lastBot.body);
+    if (/бале|ҳа|yes|не|no|нафаҳмидам|фаҳмидам|боз|yana/i.test(normalized)) {
+      if (context.includes('вуруд') || context.includes('login')) {
+        return 'Дар бораи вуруд: /tj/login — номи вуруд ва рамз. Ҳисоби нави сабтшуда бояд аз ҷониби маъмур тасдиқ шавад.';
+      }
+      if (context.includes('иҷозат') || context.includes('доступ')) {
+        return 'Дар бораи иҷозатҳо: маъмур ташкилот ва бахшҳоро муайян мекунад. Пас аз тағйир саҳифаро нав кунед.';
+      }
+    }
+  }
+
+  const isQuestion =
+    normalized.includes('?') ||
+    /^(чӣ|что|how|what|why|when|where|куҷо|кай|чаро|nima|qanday)\b/.test(normalized);
+
+  if (isQuestion) {
+    return (
+      '🤖 **Ёрдамчии зеҳни сунъӣ**\n\n' +
+      'Ман саволи шуморо гирифтам. Лутфан, каме равшантар нависед — мисол:\n' +
+      '• «Чӣ тавр ворид шавам?»\n' +
+      '• «Иҷозатҳо чӣ гуна дода мешаванд?»\n\n' +
+      'Ё **«📞 Дархост ба маъмур»**-ро пахш кунед.'
+    );
+  }
+
+  return (
+    'Ман инҷо ҳастам, то дар истифодаи барнома кӯмак расонам. Саволро нависед ё тугмаҳои интихоби зудро пахш кунед.'
+  );
+}
+
 export function getWelcomeMessage(): string {
   return (
-    'Салом! 👋 Ман ёрдамчии **барнома** ҳастам — ба саволҳои шумо дар бораи истифода **фавран** ҷавоб медиҳам.\n\n' +
-    'Тугмаҳои зеринро пахш кунед ё савол нависед:\n' +
-    '• вуруд, сабт, ташкилот, кадр, молия\n\n' +
+    'Салом! 👋 Ман **ёрдамчии зеҳни сунъӣ**-и Yoqubkhoja Hub ҳастам.\n\n' +
+    'Ба саволҳои шумо дар бораи истифодаи барнома ҷавоб медиҳам.\n' +
+    'Тугмаҳои **интихоби зуд**-ро пахш кунед ё саволро озодона нависед.\n\n' +
+    '🔒 Саволҳои оид ба сирри ташкилот ва маълумоти махфӣ ҷавоб дода намешаванд.\n' +
     'Барои маъмури зинда: **«📞 Дархост ба маъмур»**'
   );
 }
@@ -498,7 +452,11 @@ export function shouldEscalateByKeyword(text: string): boolean {
   return ESCALATION_PHRASES.some((phrase) => normalized.includes(phrase));
 }
 
-export function getBotReply(userMessage: string, history: ChatMessage[]): BotReply {
+export async function getBotReply(
+  userMessage: string,
+  history: ChatMessage[],
+  options?: { quickTopicId?: string }
+): Promise<BotReply> {
   const normalized = normalizeText(userMessage);
 
   if (shouldEscalateByKeyword(normalized)) {
@@ -509,33 +467,26 @@ export function getBotReply(userMessage: string, history: ChatMessage[]): BotRep
     };
   }
 
-  const match = findBestAnswer(normalized);
-  if (match) {
-    return { body: match.reply };
+  if (isQuickTopicMessage(userMessage, options?.quickTopicId)) {
+    if (options?.quickTopicId) {
+      const quickReply = getReplyForQuickTopicId(options.quickTopicId);
+      if (quickReply) {
+        return { body: quickReply };
+      }
+    }
+    return getKeywordBotReply(userMessage);
   }
 
-  const isQuestion =
-    normalized.includes('?') ||
-    /^(чӣ|что|how|what|why|when|where|куҷо|кай|чаро|чӣ гуна|чӣ тавр)\b/.test(normalized);
-
-  if (isQuestion) {
-    return {
-      body:
-        '🤔 Ба ин савол ҷавобi дақиқ дар база нест.\n\n' +
-        'Лутфан, яке аз инҳо нависед:\n' +
-        '• «чӣ тавр ворид шавам?»\n' +
-        '• «ташкилот» ё «кадр» ё «молия»\n' +
-        '• «иҷозат» ё «танҳо назорат»\n\n' +
-        'Ё тугмаи **«📞 Дархост ба маъмур»**-ро пахш кунед.',
-    };
+  if (isOrganizationSecretQuestion(userMessage)) {
+    return { body: getSecretRefusalMessage() };
   }
 
-  return {
-    body:
-      'Саволро равшантар нависед — ман фавран ҷавоб медиҳам.\n\n' +
-      'Мисол: «чӣ тавр ворид шавам?», «кадр», «молия», «ташкилот», «иҷозат».\n\n' +
-      'Ё яке аз тугмаҳои зеринро пахш кунед.',
-  };
+  const aiReply = await generateChatAIReply({ userMessage, history });
+  if (aiReply) {
+    return { body: aiReply };
+  }
+
+  return { body: generateSmartLocalReply(userMessage, history) };
 }
 
 export function getQuickTopicMessage(label: string): string | null {

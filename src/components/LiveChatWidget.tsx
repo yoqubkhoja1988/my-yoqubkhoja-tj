@@ -488,7 +488,7 @@ export default function LiveChatWidget() {
     prevUserIdRef.current = userId;
   }, [open, prepareConversation, resetConversationState, session?.user?.id]);
 
-  async function postMessage(text: string) {
+  async function postMessage(text: string, quickTopicId?: string) {
     if (!text || !conversationId || !accessToken || sending) return;
 
     setSending(true);
@@ -504,6 +504,7 @@ export default function LiveChatWidget() {
           message: text,
           accessToken,
           guestToken,
+          ...(quickTopicId ? { quickTopicId } : {}),
         }),
       });
 
@@ -577,8 +578,8 @@ export default function LiveChatWidget() {
     await postMessage(text);
   }
 
-  async function sendQuickTopic(message: string) {
-    await postMessage(message);
+  async function sendQuickTopic(message: string, quickTopicId: string) {
+    await postMessage(message, quickTopicId);
   }
 
   async function requestAdmin() {
@@ -743,7 +744,7 @@ export default function LiveChatWidget() {
                     key={topic.id}
                     type="button"
                     disabled={sending || !conversationId}
-                    onClick={() => void sendQuickTopic(topic.message)}
+                    onClick={() => void sendQuickTopic(topic.message, topic.id)}
                     className="rounded-full border border-[var(--border)] bg-[var(--bg-input)] px-2 py-1 text-[10px] font-semibold text-[var(--text-muted)] hover:border-[var(--accent)]/50 hover:text-[var(--text)] disabled:opacity-50"
                   >
                     {topic.label}

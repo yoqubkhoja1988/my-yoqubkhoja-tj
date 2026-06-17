@@ -42,7 +42,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const session = await auth();
   const { id } = await context.params;
 
-  let body: { message?: string; guestToken?: string; accessToken?: string };
+  let body: { message?: string; guestToken?: string; accessToken?: string; quickTopicId?: string };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -65,7 +65,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const result = await sendUserMessage({ conversationId: id, body: message });
+    const result = await sendUserMessage({
+      conversationId: id,
+      body: message,
+      quickTopicId: body.quickTopicId,
+    });
     return NextResponse.json({
       conversationId: id,
       status: result.conversation.status,
