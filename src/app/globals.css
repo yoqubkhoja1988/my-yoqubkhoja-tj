@@ -459,7 +459,7 @@ textarea::placeholder {
     background: #f8fafc !important;
   }
 
-  #print-root #finance-bank-payment-document.print-active table {
+  #print-root #org-contract-print.print-active table,
   #print-root #org-invoice-print.print-active table,
   #print-root #org-contract-registry-export.print-active table,
   #print-root #org-invoice-registry-export.print-active table,
