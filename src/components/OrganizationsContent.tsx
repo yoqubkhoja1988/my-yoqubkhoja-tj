@@ -13,10 +13,12 @@ import {
 import {
   ORGANIZATION_SECTORS,
   OrganizationSectorGroupId,
+  countOrganizationsInSectorRegionGroup,
   getOrganizationSectorMeta,
-  groupOrganizationsBySector,
+  groupOrganizationsBySectorAndRegion,
   inferOrganizationSector,
 } from '@/lib/organization-sectors';
+import { getOrganizationRegionLabelKey } from '@/lib/organization-regions';
 import { Organization, OrganizationSectorId } from '@/types/organization';
 
 type SectorFilter = 'all' | OrganizationSectorGroupId;
@@ -155,12 +157,16 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
           org.description.toLowerCase().includes(q) ||
           org.rma?.includes(q) ||
           org.address?.toLowerCase().includes(q) ||
+          org.taxDistrict?.toLowerCase().includes(q) ||
           org.director?.toLowerCase().includes(q)
       )
       .sort((a, b) => a.name.localeCompare(b.name, 'tg'));
   }, [organizations, search]);
 
-  const grouped = useMemo(() => groupOrganizationsBySector(filtered), [filtered]);
+  const grouped = useMemo(
+    () => groupOrganizationsBySectorAndRegion(filtered),
+    [filtered]
+  );
 
   const visibleGroups = useMemo(() => {
     if (activeSector === 'all') return grouped;
@@ -176,13 +182,16 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
     }[] = ORGANIZATION_SECTORS.filter((sector) => present.has(sector.id)).map((sector) => ({
       id: sector.id,
       labelKey: sector.labelKey,
-      count: grouped.find((group) => group.id === sector.id)?.organizations.length ?? 0,
+      count: countOrganizationsInSectorRegionGroup(
+        grouped.find((group) => group.id === sector.id)!
+      ),
     }));
     if (present.has('uncategorized')) {
+      const uncategorized = grouped.find((group) => group.id === 'uncategorized');
       items.push({
         id: 'uncategorized',
         labelKey: 'orgSectorUncategorized',
-        count: grouped.find((group) => group.id === 'uncategorized')?.organizations.length ?? 0,
+        count: uncategorized ? countOrganizationsInSectorRegionGroup(uncategorized) : 0,
       });
     }
     return items;
@@ -395,77 +404,104 @@ export default function OrganizationsContent({ canManage = false }: { canManage?
                         </p>
                       </div>
                       <span className="rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-semibold text-[var(--accent)]">
-                        {t('orgSectorCount', { count: group.organizations.length })}
+                        {t('orgSectorCount', {
+                          count: countOrganizationsInSectorRegionGroup(group),
+                        })}
                       </span>
                     </div>
                   </header>
 
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {group.organizations.map((org) => {
-                      const sectorId = inferOrganizationSector(org);
-                      const sectorMeta = getOrganizationSectorMeta(sectorId);
+                  <div className="space-y-5">
+                    {group.regions.map((regionGroup) => (
+                      <div
+                        key={regionGroup.region.sortKey}
+                        className="rounded-lg border border-[var(--border)]/70 bg-[var(--bg-input)]/20 p-3 md:p-4"
+                      >
+                        <h4 className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                          <span>📍</span>
+                          <span>
+                            {regionGroup.region.label ||
+                              t(getOrganizationRegionLabelKey(regionGroup.region.kind))}
+                          </span>
+                          <span className="text-xs font-normal text-[var(--text-muted)]">
+                            ({t('orgRegionCount', { count: regionGroup.organizations.length })})
+                          </span>
+                        </h4>
 
-                      return (
-                        <article
-                          key={org.id}
-                          className="glass-card glass-card-hover flex flex-col p-4"
-                        >
-                          <div className="mb-3 flex items-start justify-between gap-2">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)]/20 to-emerald-500/10 text-lg">
-                              {sectorMeta?.icon ?? '🏛️'}
-                            </div>
-                            {org.rma && (
-                              <span className="rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
-                                {org.rma}
-                              </span>
-                            )}
-                          </div>
+                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                          {regionGroup.organizations.map((org) => {
+                            const sectorId = inferOrganizationSector(org);
+                            const sectorMeta = getOrganizationSectorMeta(sectorId);
 
-                          <Link
-                            href={`/organizations/${org.id}/overview`}
-                            className="text-sm font-bold leading-snug transition hover:text-[var(--accent)]"
-                          >
-                            {org.name}
-                          </Link>
+                            return (
+                              <article
+                                key={org.id}
+                                className="glass-card glass-card-hover flex flex-col p-4"
+                              >
+                                <div className="mb-3 flex items-start justify-between gap-2">
+                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)]/20 to-emerald-500/10 text-lg">
+                                    {sectorMeta?.icon ?? '🏛️'}
+                                  </div>
+                                  {org.rma && (
+                                    <span className="rounded-lg bg-[var(--bg-input)] px-2.5 py-1 font-mono text-xs text-[var(--text-muted)]">
+                                      {org.rma}
+                                    </span>
+                                  )}
+                                </div>
 
-                          {sectorMeta && (
-                            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
-                              {t(sectorMeta.labelKey)}
-                            </p>
-                          )}
-
-                          {(org.address || org.director) && (
-                            <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
-                              {[org.address, org.director].filter(Boolean).join(' · ')}
-                            </p>
-                          )}
-
-                          <div className="mt-auto flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-3">
-                            <Link href={`/organizations/${org.id}`} className="btn-primary px-3 py-1.5 text-xs">
-                              {t('orgOpen')}
-                            </Link>
-                            {canManage && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => openModal(org.id)}
-                                  className="btn-secondary px-3 py-1.5 text-xs"
+                                <Link
+                                  href={`/organizations/${org.id}/overview`}
+                                  className="text-sm font-bold leading-snug transition hover:text-[var(--accent)]"
                                 >
-                                  {t('editOrganization')}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete(org.id)}
-                                  className="btn-danger"
-                                >
-                                  {t('deleteOrganization')}
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </article>
-                      );
-                    })}
+                                  {org.name}
+                                </Link>
+
+                                {sectorMeta && (
+                                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+                                    {t(sectorMeta.labelKey)}
+                                  </p>
+                                )}
+
+                                {(org.taxDistrict || org.address || org.director) && (
+                                  <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
+                                    {[org.taxDistrict, org.address, org.director]
+                                      .filter(Boolean)
+                                      .join(' · ')}
+                                  </p>
+                                )}
+
+                                <div className="mt-auto flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-3">
+                                  <Link
+                                    href={`/organizations/${org.id}`}
+                                    className="btn-primary px-3 py-1.5 text-xs"
+                                  >
+                                    {t('orgOpen')}
+                                  </Link>
+                                  {canManage && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => openModal(org.id)}
+                                        className="btn-secondary px-3 py-1.5 text-xs"
+                                      >
+                                        {t('editOrganization')}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDelete(org.id)}
+                                        className="btn-danger"
+                                      >
+                                        {t('deleteOrganization')}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </article>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </section>
               );

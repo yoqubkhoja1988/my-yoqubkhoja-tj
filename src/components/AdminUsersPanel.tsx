@@ -10,11 +10,17 @@ import {
   OrganizationStaffPresets,
   getPermissionsForPosition,
 } from '@/lib/staff-position-permissions';
+import {
+  countOrganizationsInSectorRegionGroup,
+  getOrganizationSectorMeta,
+  groupOrganizationsBySectorAndRegion,
+} from '@/lib/organization-sectors';
+import { getOrganizationRegionLabelKey } from '@/lib/organization-regions';
 import { AdminUsersOverview } from '@/lib/user-presence';
 import { Organization } from '@/types/organization';
 import { PublicUser, UserPermissions, UserStatus, normalizeUserPermissions } from '@/types/user';
 import { useTranslations } from 'next-intl';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 const SECTION_LABEL_KEYS: Record<string, string> = {
   overview: 'actOverview',
@@ -212,6 +218,11 @@ function PermissionsEditor({
       });
   }, [permissions.organizationIds]);
 
+  const groupedOrganizations = useMemo(
+    () => groupOrganizationsBySectorAndRegion(organizations),
+    [organizations]
+  );
+
   return (
     <>
       <label className="mb-4 flex items-center gap-2 text-sm">
@@ -227,20 +238,65 @@ function PermissionsEditor({
 
       <div className="mb-4">
         <h4 className="mb-2 text-sm font-bold">{t('adminUsersPickOrganizations')}</h4>
-        <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-[var(--border)] p-3">
+        <p className="mb-2 text-[10px] leading-relaxed text-[var(--text-muted)]">
+          {t('adminUsersOrgGroupedHint')}
+        </p>
+        <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-[var(--border)] p-3">
           {organizations.length === 0 ? (
             <p className="text-xs text-[var(--text-muted)]">{t('noOrganizations')}</p>
           ) : (
-            organizations.map((org) => (
-              <label key={org.id} className="flex items-start gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={permissions.organizationIds.includes(org.id)}
-                  onChange={() => toggleOrg(org.id)}
-                />
-                <span>{org.name}</span>
-              </label>
-            ))
+            groupedOrganizations.map((sectorGroup) => {
+              const sectorMeta = getOrganizationSectorMeta(sectorGroup.id);
+              if (!sectorMeta) return null;
+
+              return (
+                <section
+                  key={sectorGroup.id}
+                  className="rounded-lg border border-[var(--border)]/70 bg-[var(--bg-input)]/20 p-2.5"
+                >
+                  <p className="mb-2 text-xs font-bold text-[var(--text)]">
+                    <span className="mr-1">{sectorMeta.icon}</span>
+                    {t(sectorMeta.labelKey)}
+                    <span className="ml-1 font-normal text-[var(--text-muted)]">
+                      ({countOrganizationsInSectorRegionGroup(sectorGroup)})
+                    </span>
+                  </p>
+                  <div className="space-y-2">
+                    {sectorGroup.regions.map((regionGroup) => (
+                      <div key={regionGroup.region.sortKey}>
+                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+                          📍{' '}
+                          {regionGroup.region.label ||
+                            t(getOrganizationRegionLabelKey(regionGroup.region.kind))}
+                        </p>
+                        <div className="space-y-1.5">
+                          {regionGroup.organizations.map((org) => (
+                            <label
+                              key={org.id}
+                              className="flex items-start gap-2 rounded-md px-1 py-0.5 text-sm hover:bg-[var(--bg-input)]/60"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={permissions.organizationIds.includes(org.id)}
+                                onChange={() => toggleOrg(org.id)}
+                              />
+                              <span>
+                                <span className="block leading-snug">{org.name}</span>
+                                {org.taxDistrict && org.taxDistrict !== regionGroup.region.label && (
+                                  <span className="text-[10px] text-[var(--text-muted)]">
+                                    {org.taxDistrict}
+                                  </span>
+                                )}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })
           )}
         </div>
       </div>

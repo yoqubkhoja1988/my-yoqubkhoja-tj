@@ -1,4 +1,9 @@
 import { Organization, OrganizationSectorId } from '@/types/organization';
+import {
+  OrganizationRegion,
+  compareOrganizationRegions,
+  resolveOrganizationRegion,
+} from '@/lib/organization-regions';
 
 /** Соҳаҳои гуруҳбандии ташкилотҳо мувофиқи сохтори иқтисодии Ҷумҳурии Тоҷикистон */
 export const ORGANIZATION_SECTORS = [
@@ -152,6 +157,16 @@ export type OrganizationSectorGroup = {
   organizations: Organization[];
 };
 
+export type OrganizationRegionGroup = {
+  region: OrganizationRegion;
+  organizations: Organization[];
+};
+
+export type OrganizationSectorRegionGroup = {
+  id: OrganizationSectorGroupId;
+  regions: OrganizationRegionGroup[];
+};
+
 export function groupOrganizationsBySector(organizations: Organization[]): OrganizationSectorGroup[] {
   const buckets = new Map<OrganizationSectorGroupId, Organization[]>();
 
@@ -173,4 +188,58 @@ export function groupOrganizationsBySector(organizations: Organization[]): Organ
       organizations: (buckets.get(id) ?? []).sort((a, b) => a.name.localeCompare(b.name, 'tg')),
     }))
     .filter((group) => group.organizations.length > 0);
+}
+
+export function groupOrganizationsBySectorAndRegion(
+  organizations: Organization[]
+): OrganizationSectorRegionGroup[] {
+  const sectorBuckets = new Map<
+    OrganizationSectorGroupId,
+    Map<string, OrganizationRegionGroup>
+  >();
+
+  for (const org of organizations) {
+    const sectorId = inferOrganizationSector(org);
+    const region = resolveOrganizationRegion(org);
+    const sectorMap = sectorBuckets.get(sectorId) ?? new Map<string, OrganizationRegionGroup>();
+    const existing = sectorMap.get(region.sortKey);
+
+    if (existing) {
+      existing.organizations.push(org);
+    } else {
+      sectorMap.set(region.sortKey, { region, organizations: [org] });
+    }
+
+    sectorBuckets.set(sectorId, sectorMap);
+  }
+
+  const orderedIds: OrganizationSectorGroupId[] = [
+    ...ORGANIZATION_SECTORS.map((sector) => sector.id),
+    'uncategorized',
+  ];
+
+  return orderedIds
+    .map((id) => {
+      const sectorMap = sectorBuckets.get(id);
+      if (!sectorMap) return null;
+
+      const regions = [...sectorMap.values()]
+        .map((group) => ({
+          region: group.region,
+          organizations: group.organizations.sort((a, b) =>
+            a.name.localeCompare(b.name, 'tg')
+          ),
+        }))
+        .sort((left, right) => compareOrganizationRegions(left.region, right.region));
+
+      if (regions.length === 0) return null;
+      return { id, regions };
+    })
+    .filter((group): group is OrganizationSectorRegionGroup => group !== null);
+}
+
+export function countOrganizationsInSectorRegionGroup(
+  group: OrganizationSectorRegionGroup
+): number {
+  return group.regions.reduce((sum, region) => sum + region.organizations.length, 0);
 }
