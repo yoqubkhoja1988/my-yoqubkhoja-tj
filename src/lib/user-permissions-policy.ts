@@ -19,17 +19,19 @@ export const ACCOUNTANT_SECTION_SLUGS = [
 export function finalizeUserPermissions(permissions: UserPermissions): UserPermissions {
   const normalized = normalizeUserPermissions(permissions);
   const sectionSlugs = [...new Set(normalized.sectionSlugs)];
+  const organizationManager = normalized.organizationManager === true;
 
   return {
     canAccessProjects: normalized.canAccessProjects,
-    supervisionOnly: normalized.supervisionOnly === true,
+    organizationManager,
+    supervisionOnly: organizationManager ? false : normalized.supervisionOnly === true,
     organizationIds: [...new Set(normalized.organizationIds)],
-    sectionSlugs,
+    sectionSlugs: organizationManager ? [...ALL_SECTION_SLUGS] : sectionSlugs,
   };
 }
 
 export function isInflatedSectionAccess(permissions: UserPermissions): boolean {
-  if (permissions.supervisionOnly) return false;
+  if (permissions.supervisionOnly || permissions.organizationManager) return false;
   const unique = new Set(permissions.sectionSlugs);
   return unique.size >= ALL_SECTION_SLUGS.length - 3;
 }
@@ -40,7 +42,20 @@ export function getAccountantPresetPermissions(
   return finalizeUserPermissions({
     ...DEFAULT_USER_PERMISSIONS,
     ...base,
+    organizationManager: false,
     supervisionOnly: false,
     sectionSlugs: [...ACCOUNTANT_SECTION_SLUGS],
+  });
+}
+
+export function getOrganizationManagerPresetPermissions(
+  base: Pick<UserPermissions, 'canAccessProjects' | 'organizationIds'>
+): UserPermissions {
+  return finalizeUserPermissions({
+    ...DEFAULT_USER_PERMISSIONS,
+    ...base,
+    organizationManager: true,
+    supervisionOnly: false,
+    sectionSlugs: [...ALL_SECTION_SLUGS],
   });
 }

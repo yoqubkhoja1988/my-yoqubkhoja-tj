@@ -2,6 +2,8 @@ export type UserStatus = 'pending' | 'approved' | 'denied';
 
 export interface UserPermissions {
   canAccessProjects: boolean;
+  /** Маъмури ташкилот: ҳамаи бахшҳо ва таҳрир дар доираи ташкилот */
+  organizationManager?: boolean;
   /** Танҳо назорат: ҳама бахшҳо намоиш дода мешавад, тағйирот мамнуъ */
   supervisionOnly?: boolean;
   organizationIds: string[];
@@ -35,6 +37,7 @@ export function normalizeUserPermissions(value: unknown): UserPermissions {
 
   return {
     canAccessProjects: raw.canAccessProjects ?? DEFAULT_USER_PERMISSIONS.canAccessProjects,
+    organizationManager: raw.organizationManager ?? false,
     supervisionOnly: raw.supervisionOnly ?? false,
     organizationIds: Array.isArray(raw.organizationIds) ? raw.organizationIds : [],
     sectionSlugs:

@@ -3,6 +3,7 @@
 import { ALL_SECTION_SLUGS } from '@/lib/activity-directions';
 import {
   getAccountantPresetPermissions,
+  getOrganizationManagerPresetPermissions,
   isInflatedSectionAccess,
 } from '@/lib/user-permissions-policy';
 import { AdminUsersOverview } from '@/lib/user-presence';
@@ -138,12 +139,22 @@ function PermissionsEditor({
     onChange({
       ...permissions,
       supervisionOnly: checked,
+      organizationManager: false,
     });
   }
 
   function applyAccountantPreset() {
     onChange(
       getAccountantPresetPermissions({
+        canAccessProjects: permissions.canAccessProjects,
+        organizationIds: permissions.organizationIds,
+      })
+    );
+  }
+
+  function applyOrganizationManagerPreset() {
+    onChange(
+      getOrganizationManagerPresetPermissions({
         canAccessProjects: permissions.canAccessProjects,
         organizationIds: permissions.organizationIds,
       })
@@ -189,11 +200,23 @@ function PermissionsEditor({
           <button
             type="button"
             className="btn-secondary text-xs"
+            onClick={applyOrganizationManagerPreset}
+          >
+            🏛 {t('adminUsersManagerPreset')}
+          </button>
+          <button
+            type="button"
+            className="btn-secondary text-xs"
             onClick={applyAccountantPreset}
           >
             📊 {t('adminUsersAccountantPreset')}
           </button>
         </div>
+        {permissions.organizationManager && (
+          <p className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+            {t('adminUsersManagerPresetActive')}
+          </p>
+        )}
         {isInflatedSectionAccess(permissions) && (
           <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
             {t('adminUsersInflatedSectionsWarning')}
@@ -235,6 +258,10 @@ function PermissionsEditor({
           {permissions.supervisionOnly ? (
             <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-100/90">
               {t('adminUsersSupervisionSectionsNote')}
+            </p>
+          ) : permissions.organizationManager ? (
+            <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-100/90">
+              {t('adminUsersManagerSectionsNote')}
             </p>
           ) : (
             <div className="max-h-48 grid gap-2 overflow-y-auto sm:grid-cols-2">
@@ -568,9 +595,11 @@ export default function AdminUsersPanel() {
                   </td>
                   <td>{user.permissions.organizationIds.length}</td>
                   <td>
-                    {user.permissions.supervisionOnly
-                      ? t('adminUsersSupervisionOnlyShort')
-                      : user.permissions.sectionSlugs.length}
+                    {user.permissions.organizationManager
+                      ? t('adminUsersManagerPresetShort')
+                      : user.permissions.supervisionOnly
+                        ? t('adminUsersSupervisionOnlyShort')
+                        : user.permissions.sectionSlugs.length}
                   </td>
                   <td>
                     <div className="flex flex-wrap gap-1">

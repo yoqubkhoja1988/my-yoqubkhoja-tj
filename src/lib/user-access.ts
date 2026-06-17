@@ -25,11 +25,19 @@ function hasOrganizationAccess(session: Session | null | undefined): boolean {
   return (session.user.permissions?.organizationIds.length ?? 0) > 0;
 }
 
+export function isOrganizationManager(session: Session | null | undefined): boolean {
+  if (!session?.user || isSiteAdmin(session)) return false;
+  return session.user.permissions?.organizationManager === true;
+}
+
 function getGrantedSectionSlugs(session: Session | null | undefined): Set<string> {
   const permissions = session?.user?.permissions;
   if (!permissions) return new Set();
 
-  if (permissions.supervisionOnly && permissions.organizationIds.length > 0) {
+  if (
+    (permissions.organizationManager || permissions.supervisionOnly) &&
+    permissions.organizationIds.length > 0
+  ) {
     return new Set(ALL_SECTION_SLUGS);
   }
 
@@ -87,6 +95,9 @@ export function canEditOrganizationSection(
   if (!session?.user) return false;
   if (isSiteAdmin(session)) return true;
   if (isSupervisionOnlyUser(session)) return false;
+  if (isOrganizationManager(session)) {
+    return canAccessOrganizationSection(session, organizationId, sectionSlug);
+  }
   if (!isOrgUserEditableSection(sectionSlug)) return false;
   return canAccessOrganizationSection(session, organizationId, sectionSlug);
 }
@@ -146,6 +157,9 @@ export function filterDirectionsForSession(
   directions: ActivityDirection[]
 ): ActivityDirection[] {
   if (isSiteAdmin(session)) return directions;
+  if (isOrganizationManager(session) || isSupervisionOnlyUser(session)) {
+    return directions;
+  }
   const granted = getGrantedSectionSlugs(session);
   return directions.filter((direction) => granted.has(direction.slug));
 }

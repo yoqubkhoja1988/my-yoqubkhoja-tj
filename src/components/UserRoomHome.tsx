@@ -106,6 +106,7 @@ export default function UserRoomHome({
                     {permissions.organizationIds.length} {t('navOrganizations').toLowerCase()} ·{' '}
                     {permissions.sectionSlugs.length} бахш
                     {permissions.supervisionOnly ? ' · назорат' : ''}
+                  {permissions.organizationManager ? ' · маъмур' : ''}
                   </p>
                   {accessibleOrganizations.length > 0 && (
                     <p className="leading-relaxed">
