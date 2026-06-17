@@ -11,6 +11,9 @@ import { normalizeSourcePage } from '@/lib/chat-visitor';
 import { getTypingStatus } from '@/lib/chat-typing';
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {

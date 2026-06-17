@@ -2,7 +2,7 @@ import { ChatConversation, ChatMessage } from '@/types/chat';
 import { getPageGreetingNote } from '@/lib/chat-ai-context';
 import { getPageHowToGuide, isProceduralQuestion } from '@/lib/chat-page-context';
 import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
-import { generateChatAIReply, isChatAiConfigured } from '@/lib/chat-ai';
+import { generateChatAIReply, getLastChatAiError, isChatAiConfigured } from '@/lib/chat-ai';
 import {
   ChatUserLanguage,
   detectChatUserLanguage,
@@ -171,6 +171,32 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       '• режими **«Танҳо назорат»** ё иҷрои пурра\n\n' +
       'Пас аз тағйири иҷозатҳо саҳифаро нав кунед — дастрасии нав намоиш дода мешавад.',
     priority: 3,
+  },
+  {
+    id: 'permissions-refresh',
+    keywords: [
+      'нав кардам',
+      'навсозӣ',
+      'refresh',
+      'тағирот нашуд',
+      'тағирот нест',
+      'намешавад',
+      'намеояд',
+      'ҳеҷ тағирот',
+      'дастрасӣ нашуд',
+      'нав намешавад',
+      'ctrl f5',
+    ],
+    reply:
+      '🔐 **Иҷозатҳо нав намешаванд?**\n\n' +
+      '1. **Ctrl+F5** — навсозии пурраи браузер\n' +
+      '2. Ба **утоқи шахсӣ** (/room) равед → тугмаи **«↻ Навсозии дастрасӣ»**\n' +
+      '3. **15–20 сония** интизор шавед (иҷозатҳо аз база мехонда мешаванд)\n' +
+      '4. Боварӣ ҳосил кунед, ки маъмур дар панели админ **«Захира»** кардааст\n' +
+      '5. Барои **муҳосиб**: тугмаи **«📊 Дастурҳои муҳосиб»** — на ҳамаи бахшҳо\n' +
+      '6. Барои **маъмур**: **«🏛 Дастурҳои маъмур»** — иҷозати пурра\n\n' +
+      'Агар ҳанӯз намешавад — **«📞 Дархост ба маъмур»**-ро пахш кунед.',
+    priority: 5,
   },
   {
     id: 'full-execution',
@@ -470,11 +496,28 @@ function getKeywordBotReply(userMessage: string): BotReply {
   };
 }
 
+function isPermissionRefreshComplaint(text: string): boolean {
+  const normalized = normalizeText(text);
+  return (
+    /нав кардам|refresh|ctrl\s*f5|навсозӣ/.test(normalized) &&
+    /тағирот|намешавад|намеояд|нашуд|не\s*работает|not\s*work/i.test(normalized)
+  );
+}
+
 function getAiUnavailableMessage(language: ChatUserLanguage): string {
+  const lastError = getLastChatAiError();
+  const billingHint =
+    lastError === 'http_401' || lastError === 'http_403'
+      ? '\n\n🔑 Калиди OpenAI нодуруст ё боздошта шудааст — маъмури сомона бояд `OPENAI_API_KEY`-и нав гузорад.'
+      : lastError === 'http_429'
+        ? '\n\n⏳ Лимити OpenAI — каме баъдтар такрор кунед.'
+        : '';
+
   const messages: Record<ChatUserLanguage, string> = {
     tj:
-      '⚠️ **Ёрдамчии зеҳни сунъӣ ҳоло дастрас нест** (OpenAI танзим нашудааст ё муваққатан хато дорад).\n\n' +
-      'Ман ҳанӯз бо роҳнамои маҳаллӣ кӯмак мерасонам. Барои ҷавоби дақиқ **«📞 Дархост ба маъмур»**-ро пахш кунед.',
+      '⚠️ **Ёрдамчии зеҳни сунъӣ ҳоло ҷавоби пурра дода наметавонад** (хатои OpenAI ё муваққатан бе иртибот).' +
+      billingHint +
+      '\n\nМан ҳанӯз бо **роҳнамои маҳаллӣ** кӯмак мерасонам. Барои ҷавоби дақиқ **«📞 Дархост ба маъмур»**-ро пахш кунед.',
     ru:
       '⚠️ **ИИ-помощник сейчас недоступен** (OpenAI не настроен или временная ошибка).\n\n' +
       'Я отвечаю по локальной справке. Для точного ответа нажмите **«📞 Запрос администратору»**.',
@@ -644,6 +687,11 @@ export async function getBotReply(
 
   if (isOrganizationSecretQuestion(userMessage)) {
     return { body: getSecretRefusalMessage(userLanguage) };
+  }
+
+  if (isPermissionRefreshComplaint(userMessage)) {
+    const entry = KNOWLEDGE_BASE.find((item) => item.id === 'permissions-refresh');
+    if (entry) return { body: entry.reply };
   }
 
   if (isProceduralQuestion(userMessage)) {

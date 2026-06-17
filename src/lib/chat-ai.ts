@@ -27,10 +27,58 @@ STRICT RULES:
 - Do not invent features. Use REFERENCE KNOWLEDGE when relevant.
 - If unsure → say so in one sentence and suggest admin or a clearer question.`;
 
+let lastChatAiError: string | null = null;
+
+export function getLastChatAiError(): string | null {
+  return lastChatAiError;
+}
+
 function isChatAiEnabled(): boolean {
   const flag = process.env.CHAT_AI_ENABLED?.trim().toLowerCase();
   if (flag === 'false' || flag === '0' || flag === 'off') return false;
   return Boolean(process.env.OPENAI_API_KEY?.trim());
+}
+
+export async function probeChatAi(): Promise<{ ok: boolean; error: string | null }> {
+  if (!isChatAiEnabled()) {
+    return { ok: false, error: 'missing_api_key' };
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY!.trim();
+  const model = process.env.OPENAI_CHAT_MODEL?.trim() || 'gpt-4o-mini';
+  const baseUrl = process.env.OPENAI_BASE_URL?.trim() || 'https://api.openai.com/v1';
+
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 8,
+        messages: [{ role: 'user', content: 'ping' }],
+      }),
+      signal: AbortSignal.timeout(12_000),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => '');
+      const error = `http_${response.status}`;
+      lastChatAiError = error;
+      console.error('[chat-ai] probe failed', response.status, errorBody.slice(0, 200));
+      return { ok: false, error };
+    }
+
+    lastChatAiError = null;
+    return { ok: true, error: null };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'network_error';
+    lastChatAiError = message;
+    console.error('[chat-ai] probe failed', error);
+    return { ok: false, error: message };
+  }
 }
 
 function recentHistoryMessages(
@@ -91,6 +139,7 @@ export async function generateChatAIReply(input: {
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
+      lastChatAiError = `http_${response.status}`;
       console.error('[chat-ai] OpenAI error', response.status, errorBody.slice(0, 300));
       return null;
     }
@@ -100,7 +149,12 @@ export async function generateChatAIReply(input: {
     };
 
     const content = payload.choices?.[0]?.message?.content?.trim();
-    if (!content) return null;
+    if (!content) {
+      lastChatAiError = 'empty_response';
+      return null;
+    }
+
+    lastChatAiError = null;
 
     if (isOrganizationSecretQuestion(content)) {
       return getSecretRefusalMessage(language);
@@ -108,6 +162,7 @@ export async function generateChatAIReply(input: {
 
     return content;
   } catch (error) {
+    lastChatAiError = error instanceof Error ? error.message : 'network_error';
     console.error('[chat-ai] request failed', error);
     return null;
   }
