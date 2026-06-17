@@ -8,7 +8,7 @@ import { ReactNode } from 'react';
 
 export default function SessionProvider({ children }: { children: ReactNode }) {
   return (
-    <NextAuthSessionProvider>
+    <NextAuthSessionProvider refetchInterval={60} refetchOnWindowFocus>
       <LiveChatProvider>
         <UserPresenceTracker />
         <LiveChatWidget />

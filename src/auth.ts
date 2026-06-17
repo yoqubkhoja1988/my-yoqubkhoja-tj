@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { verifyAdminCredentials } from '@/lib/admin-credentials';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { verifyPassword } from '@/lib/password-hash';
-import { findUserByUsername } from '@/lib/users-store';
+import { findUserByUsername, findUserById } from '@/lib/users-store';
 import { normalizeUserPermissions } from '@/types/user';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -44,14 +44,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: { strategy: 'jwt' },
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
         token.permissions = user.permissions;
         if (user.id) {
           token.sub = user.id;
         }
+        return token;
       }
+
+      if (token.role === 'user' && token.sub) {
+        const storedUser = await findUserById(token.sub);
+        if (!storedUser || storedUser.status !== 'approved') {
+          token.permissions = undefined;
+        } else {
+          token.permissions = normalizeUserPermissions(storedUser.permissions);
+        }
+      }
+
       return token;
     },
     session({ session, token }) {

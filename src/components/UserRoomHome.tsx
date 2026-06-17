@@ -4,7 +4,7 @@ import LegalDocumentsHub from '@/components/LegalDocumentsHub';
 import InnovationCenterBuilding from '@/components/InnovationCenterBuilding';
 import { Link } from '@/i18n/navigation';
 import { initializeOrganizations } from '@/lib/organizations';
-import { canAccessOrganization } from '@/lib/user-access';
+import { canAccessOrganization, canAccessOrganizations, canAccessProjects } from '@/lib/user-access';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { Organization } from '@/types/organization';
 import { useSession } from 'next-auth/react';
@@ -36,8 +36,13 @@ export default function UserRoomHome({
     return organizations.filter((org) => canAccessOrganization(session, org.id));
   }, [organizations, session]);
 
+  const showProjectsEffective = session ? canAccessProjects(session) : (showProjects ?? false);
+  const showOrganizationsEffective = session
+    ? canAccessOrganizations(session)
+    : (showOrganizations ?? false);
+
   const quickLinks = [
-    ...(showProjects
+    ...(showProjectsEffective
       ? [
           {
             href: '/dashboard' as const,
@@ -47,7 +52,7 @@ export default function UserRoomHome({
           },
         ]
       : []),
-    ...(showOrganizations
+    ...(showOrganizationsEffective
       ? [
           {
             href: '/organizations' as const,
@@ -106,7 +111,7 @@ export default function UserRoomHome({
         </section>
       )}
 
-      {showOrganizations && visibleOrganizations.length > 0 && (
+      {showOrganizationsEffective && visibleOrganizations.length > 0 && (
         <section className="mb-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--text-muted)]">
@@ -135,13 +140,13 @@ export default function UserRoomHome({
         </section>
       )}
 
-      {!showProjects && !showOrganizations && (
+      {!showProjectsEffective && !showOrganizationsEffective && (
         <section className="gov-content-panel mb-5">
           <p className="text-sm text-[var(--text-muted)]">{t('userRoomNoAccessHint')}</p>
         </section>
       )}
 
-      {!isAdmin && showProjects && (
+      {!isAdmin && showProjectsEffective && (
         <section className="mb-5">
           <InnovationCenterBuilding />
         </section>
