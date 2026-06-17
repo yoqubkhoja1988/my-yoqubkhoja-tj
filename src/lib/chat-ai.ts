@@ -90,6 +90,8 @@ export async function generateChatAIReply(input: {
     });
 
     if (!response.ok) {
+      const errorBody = await response.text().catch(() => '');
+      console.error('[chat-ai] OpenAI error', response.status, errorBody.slice(0, 300));
       return null;
     }
 
@@ -105,7 +107,8 @@ export async function generateChatAIReply(input: {
     }
 
     return content;
-  } catch {
+  } catch (error) {
+    console.error('[chat-ai] request failed', error);
     return null;
   }
 }

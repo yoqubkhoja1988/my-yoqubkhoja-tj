@@ -1,5 +1,6 @@
 import { ChatConversation, ChatMessage } from '@/types/chat';
 import { getPageGreetingNote } from '@/lib/chat-ai-context';
+import { getPageHowToGuide, isProceduralQuestion } from '@/lib/chat-page-context';
 import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
 import { generateChatAIReply, isChatAiConfigured } from '@/lib/chat-ai';
 import {
@@ -172,6 +173,30 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     priority: 3,
   },
   {
+    id: 'full-execution',
+    keywords: [
+      'иҷрои пурра',
+      'иҷро пурра',
+      'пурра иҷро',
+      'ijroi purra',
+      'full execution',
+      'маъмури ташкилот',
+      'organization manager',
+      'деструои пурра',
+      'иҷозати пурра',
+      'ҳамаи бахш',
+    ],
+    reply:
+      '✅ **Иҷрои пурра**\n\n' +
+      'Дар ин режим корбар:\n' +
+      '• **ҳамаи бахшҳои ташкилот**-ро мебинад\n' +
+      '• метавонад **таҳрир** ва **захира** кунад (агар маъмури ташкилот таъин шуда бошад)\n\n' +
+      'Маъмури сомона инро дар панели админ → **«🏛 Дастурҳои маъмур»** муайян мекунад.\n\n' +
+      'Барои муҳосиб — **«📊 Дастурҳои муҳосиб»** (танҳо молия ва кадр).\n\n' +
+      'Пас аз тағйир: **Ctrl+F5** ё тугмаи «↻ Навсозии дастрасӣ» дар утоқи шахсӣ.',
+    priority: 4,
+  },
+  {
     id: 'supervision',
     keywords: [
       'назорат',
@@ -253,6 +278,9 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       'деража',
       'чӣ тавр кадр',
       'чӣ гуна кадр',
+      'бақайдгир',
+      'қайдгири',
+      'реестр',
     ],
     reply:
       '👥 **Кормандон ва кадрҳо**\n\n' +
@@ -442,9 +470,34 @@ function getKeywordBotReply(userMessage: string): BotReply {
   };
 }
 
+function getAiUnavailableMessage(language: ChatUserLanguage): string {
+  const messages: Record<ChatUserLanguage, string> = {
+    tj:
+      '⚠️ **Ёрдамчии зеҳни сунъӣ ҳоло дастрас нест** (OpenAI танзим нашудааст ё муваққатан хато дорад).\n\n' +
+      'Ман ҳанӯз бо роҳнамои маҳаллӣ кӯмак мерасонам. Барои ҷавоби дақиқ **«📞 Дархост ба маъмур»**-ро пахш кунед.',
+    ru:
+      '⚠️ **ИИ-помощник сейчас недоступен** (OpenAI не настроен или временная ошибка).\n\n' +
+      'Я отвечаю по локальной справке. Для точного ответа нажмите **«📞 Запрос администратору»**.',
+    en:
+      '⚠️ **The AI assistant is currently unavailable** (OpenAI is not configured or there is a temporary error).\n\n' +
+      'I can still help with local guides. For a precise answer, press **«📞 Request admin»**.',
+    uz:
+      '⚠️ **Sunʼiy intellekt yordamchisi hozir mavjud emas** (OpenAI sozlanmagan yoki vaqtinchalik xato).\n\n' +
+      'Mahalliy qoʻllanma boʻyicha yordam bera olaman. Aniq javob uchun **«📞 Administratorga soʻrov»** tugmasini bosing.',
+  };
+  return messages[language];
+}
+
 function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): string {
   const normalized = normalizeText(userMessage);
   const trimmed = userMessage.trim();
+
+  if (
+    /иҷрои?\s*пурра|ijroi\s*purra|full\s*execution|иҷозати\s*пурра/.test(normalized)
+  ) {
+    const entry = KNOWLEDGE_BASE.find((item) => item.id === 'full-execution');
+    if (entry) return entry.reply;
+  }
 
   if (isShortGreeting(trimmed)) {
     return (
@@ -459,14 +512,22 @@ function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): s
   }
 
   const lastBot = [...history].reverse().find((message) => message.sender === 'bot');
-  if (lastBot && normalized.length <= 30) {
+  if (lastBot && normalized.length <= 40) {
     const context = normalizeText(lastBot.body);
-    if (/бале|ҳа|yes|не|no|нафаҳмидам|фаҳмидам|боз|yana/i.test(normalized)) {
+    if (/бале|ҳа|yes|не|no|нафаҳмидам|фаҳмидам|боз|yana|пурра|иҷро/i.test(normalized)) {
+      if (context.includes('иҷозат') || context.includes('доступ') || context.includes('назорат')) {
+        const full = KNOWLEDGE_BASE.find((item) => item.id === 'full-execution');
+        if (/пурра|иҷро/i.test(normalized) && full) {
+          return full.reply;
+        }
+        if (/назорат|supervision/i.test(normalized)) {
+          const supervision = KNOWLEDGE_BASE.find((item) => item.id === 'supervision');
+          if (supervision) return supervision.reply;
+        }
+        return 'Дар бораи иҷозатҳо: маъмур ташкилот ва бахшҳоро муайян мекунад. Пас аз тағйир саҳифаро нав кунед (Ctrl+F5).';
+      }
       if (context.includes('вуруд') || context.includes('login')) {
         return 'Дар бораи вуруд: /tj/login — номи вуруд ва рамз. Ҳисоби нави сабтшуда бояд аз ҷониби маъмур тасдиқ шавад.';
-      }
-      if (context.includes('иҷозат') || context.includes('доступ')) {
-        return 'Дар бораи иҷозатҳо: маъмур ташкилот ва бахшҳоро муайян мекунад. Пас аз тағйир саҳифаро нав кунед.';
       }
     }
   }
@@ -518,7 +579,19 @@ export function getWelcomeMessage(locale?: string): string {
       '🔒 Tashkilot siri va maxfiy maʼlumotlar haqidagi savollarga javob berilmaydi.\n' +
       'Jonli administrator uchun: **«📞 Administratorga soʻrov»**',
   };
-  return messages[language];
+
+  const localModeNotes: Record<ChatUserLanguage, string> = {
+    tj: '\n\nℹ️ Ҳозир **роҳнамои маҳаллӣ** фаъол аст — барои ҷавобҳои пурраи ЗС, маъмури сомона бояд OpenAI-ро танзим кунад.',
+    ru: '\n\nℹ️ Сейчас активен **локальный режим** — для полных ответов ИИ администратору нужно настроить OpenAI.',
+    en: '\n\nℹ️ **Local guide mode** is active — a site admin must configure OpenAI for full AI answers.',
+    uz: '\n\nℹ️ Hozir **mahalliy qoʻllanma** rejimi faol — toʻliq SI javoblari uchun OpenAI sozlashi kerak.',
+  };
+
+  const base = messages[language];
+  if (!isChatAiConfigured()) {
+    return `${base}${localModeNotes[language]}`;
+  }
+  return base;
 }
 
 export function shouldEscalateByKeyword(text: string): boolean {
@@ -573,6 +646,17 @@ export async function getBotReply(
     return { body: getSecretRefusalMessage(userLanguage) };
   }
 
+  if (isProceduralQuestion(userMessage)) {
+    const howTo = getPageHowToGuide(options?.conversation?.sourcePage);
+    if (howTo && shouldUseTajikKnowledgeBase(userLanguage)) {
+      return { body: howTo };
+    }
+    if (isChatAiConfigured()) {
+      const reply = await aiReply();
+      if (reply) return { body: reply };
+    }
+  }
+
   if (isShortGreeting(trimmed)) {
     if (isChatAiConfigured()) {
       const reply = await aiReply();
@@ -594,16 +678,23 @@ export async function getBotReply(
     };
   }
 
-  if (shouldUseTajikKnowledgeBase(userLanguage)) {
+  if (shouldUseTajikKnowledgeBase(userLanguage) && !isProceduralQuestion(userMessage)) {
     const strongMatch = findBestAnswer(normalized, 2.5);
     if (strongMatch && normalized.length <= 80) {
       return { body: strongMatch.reply };
     }
   }
 
-  const reply = await aiReply();
-  if (reply) {
-    return { body: reply };
+  if (isChatAiConfigured()) {
+    const reply = await aiReply();
+    if (reply) {
+      return { body: reply };
+    }
+    const local = generateSmartLocalReply(userMessage, history);
+    if (local !== 'Ман инҷо ҳастам, то дар истифодаи барнома кӯмак расонам. Саволро озодона нависед.') {
+      return { body: local };
+    }
+    return { body: getAiUnavailableMessage(userLanguage) };
   }
 
   return { body: generateSmartLocalReply(userMessage, history) };
