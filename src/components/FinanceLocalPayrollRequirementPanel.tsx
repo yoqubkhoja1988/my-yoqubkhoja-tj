@@ -9,6 +9,7 @@ import {
   resolveLocalPayrollRequirementMonth,
 } from '@/lib/finance-local-payroll-requirement';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import {
   downloadLocalPayrollRequirementExcel,
   localPayrollRequirementFileName,
@@ -540,20 +541,17 @@ export default function FinanceLocalPayrollRequirementPanel({
               </table>
             </div>
 
-            <div className="mt-8 grid gap-6 text-xs md:grid-cols-2">
-              <div>
-                <p>
-                  {directorSignatureLabel}: <strong>{documentData.directorName || '—'}</strong>
-                </p>
-                <p className="mt-6 text-[var(--text-muted)]">(имзо)</p>
-              </div>
-              <div>
-                <p>
-                  {accountantSignatureLabel}: <strong>{documentData.accountantName || '—'}</strong>
-                </p>
-                <p className="mt-6 text-[var(--text-muted)]">(имзо)</p>
-              </div>
-            </div>
+            <OrganizationDocumentSignatureFooter
+              director={{
+                label: directorSignatureLabel,
+                name: documentData.directorName || organization?.director,
+              }}
+              accountant={{
+                label: accountantSignatureLabel,
+                name: documentData.accountantName || organization?.chiefAccountant,
+              }}
+              sealLabel={t('payrollLedgerSeal')}
+            />
           </div>
         </div>
       )}

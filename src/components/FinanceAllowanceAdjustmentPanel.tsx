@@ -20,6 +20,7 @@ import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import { getEducationLevelsForOrganization } from '@/lib/preschool-wage-scales';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
@@ -950,20 +951,14 @@ export default function FinanceAllowanceAdjustmentPanel({
             </table>
           )}
           <p>{t('allowanceDocumentClosing')}</p>
-          <div className="mt-10 grid grid-cols-2 gap-8 text-sm">
-            <div>
-              <p className="font-semibold">{directorSignatureLabel}</p>
-              <p className="mt-8 border-t border-black/30 pt-1">
-                {organization?.director || '________________'}
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold">{accountantSignatureLabel}</p>
-              <p className="mt-8 border-t border-black/30 pt-1">
-                {organization?.chiefAccountant || '________________'}
-              </p>
-            </div>
-          </div>
+          <OrganizationDocumentSignatureFooter
+            director={{ label: directorSignatureLabel, name: organization?.director }}
+            accountant={{
+              label: accountantSignatureLabel,
+              name: organization?.chiefAccountant,
+            }}
+            sealLabel={t('payrollLedgerSeal')}
+          />
         </div>
       </div>
     </section>

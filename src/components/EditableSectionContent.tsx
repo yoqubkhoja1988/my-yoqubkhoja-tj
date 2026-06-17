@@ -616,6 +616,8 @@ export default function EditableSectionContent({
           analytics={staffAnalytics}
           vacancyNotice={editing && draft ? draft.vacancyNotice : view.vacancyNotice}
           editing={editing}
+          organization={organization}
+          staffContent={liveStaffContent}
           onNoticeChange={(notice: VacancyNoticeInfo) => {
             if (!draft) return;
             setDraft({ ...draft, vacancyNotice: notice });
@@ -624,7 +626,12 @@ export default function EditableSectionContent({
       )}
 
       {section === 'formation-report' && (
-        <StaffFormationReportPanel analytics={staffAnalytics} />
+        <StaffFormationReportPanel
+          analytics={staffAnalytics}
+          organizationId={organizationId}
+          organization={organization}
+          staffContent={liveStaffContent}
+        />
       )}
 
       {section === ORG_INFO_SECTION_SLUG && (
@@ -959,6 +966,9 @@ export default function EditableSectionContent({
           canEdit={canEdit}
           editing={editing && !!draft}
           disabled={saving}
+          organizationId={organizationId}
+          organization={organization}
+          staffContent={liveStaffContent}
           onCharterChange={
             editing && draft
               ? (charterDocument) => setDraft({ ...draft, charterDocument })

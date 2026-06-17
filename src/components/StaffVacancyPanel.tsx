@@ -1,7 +1,8 @@
 'use client';
 
 import { StaffAnalytics } from '@/lib/staff-analytics';
-import { VacancyNoticeInfo } from '@/types/organization-section';
+import { VacancyNoticeInfo, OrganizationSectionContent } from '@/types/organization-section';
+import { Organization } from '@/types/organization';
 import { useTranslations } from 'next-intl';
 import StaffVacancyNotice from './StaffVacancyNotice';
 
@@ -10,6 +11,8 @@ type Props = {
   analytics: StaffAnalytics;
   vacancyNotice?: VacancyNoticeInfo;
   editing?: boolean;
+  organization?: Organization;
+  staffContent?: OrganizationSectionContent | null;
   onNoticeChange?: (notice: VacancyNoticeInfo) => void;
 };
 
@@ -18,6 +21,8 @@ export default function StaffVacancyPanel({
   analytics,
   vacancyNotice,
   editing,
+  organization,
+  staffContent,
   onNoticeChange,
 }: Props) {
   const t = useTranslations();
@@ -73,6 +78,8 @@ export default function StaffVacancyPanel({
         analytics={analytics}
         notice={vacancyNotice}
         editing={editing}
+        organization={organization}
+        staffContent={staffContent}
         onNoticeChange={onNoticeChange}
       />
     </section>

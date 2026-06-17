@@ -1,20 +1,37 @@
 'use client';
 
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import { resolveOrganizationDocumentSignatures } from '@/lib/organization-document-signatures';
 import { formatAppDate } from '@/lib/intl-locale';
 import { printDocument } from '@/lib/print-document';
 import { StaffAnalytics } from '@/lib/staff-analytics';
+import { Organization } from '@/types/organization';
+import { OrganizationSectionContent } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 type Props = {
   analytics: StaffAnalytics | null;
+  organizationId?: string;
+  organization?: Organization;
+  staffContent?: OrganizationSectionContent | null;
 };
 
-export default function StaffFormationReportPanel({ analytics }: Props) {
+export default function StaffFormationReportPanel({
+  analytics,
+  organizationId,
+  organization,
+  staffContent,
+}: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const signatures = resolveOrganizationDocumentSignatures(t, {
+    organizationId,
+    organization,
+    staffContent,
+  });
 
   const reportDate = formatAppDate(new Date(), locale, {
     day: 'numeric',
@@ -177,6 +194,12 @@ export default function StaffFormationReportPanel({ analytics }: Props) {
             </table>
           </div>
         </footer>
+
+        <OrganizationDocumentSignatureFooter
+          director={signatures.director}
+          accountant={signatures.accountant}
+          sealLabel={signatures.sealLabel}
+        />
       </article>
     </div>
   );

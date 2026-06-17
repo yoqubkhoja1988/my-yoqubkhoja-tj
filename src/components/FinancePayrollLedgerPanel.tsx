@@ -19,6 +19,7 @@ import {
   updateOrganizationSection,
 } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import { formatAppDate } from '@/lib/intl-locale';
@@ -693,24 +694,14 @@ export default function FinancePayrollLedgerPanel({
             </p>
           </div>
 
-          <div className="mt-10 grid gap-8 text-xs text-slate-700 md:grid-cols-3">
-            <div>
-              <p className="font-semibold">{directorSignatureLabel}</p>
-              <p className="mt-6 border-t border-slate-400 pt-1">
-                {organization?.director || '________________'}
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold">{accountantSignatureLabel}</p>
-              <p className="mt-6 border-t border-slate-400 pt-1">
-                {organization?.chiefAccountant || '________________'}
-              </p>
-            </div>
-            <div className="flex flex-col items-center">
-              <p className="font-semibold">{t('payrollLedgerSeal')}</p>
-              <div className="mt-4 flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-slate-300" />
-            </div>
-          </div>
+          <OrganizationDocumentSignatureFooter
+            director={{ label: directorSignatureLabel, name: organization?.director }}
+            accountant={{
+              label: accountantSignatureLabel,
+              name: organization?.chiefAccountant,
+            }}
+            sealLabel={t('payrollLedgerSeal')}
+          />
         </div>
         </div>
       )}

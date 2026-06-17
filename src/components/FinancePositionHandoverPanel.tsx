@@ -21,6 +21,7 @@ import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import { formatAmount } from '@/lib/staff-table-calc';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
@@ -752,33 +753,25 @@ export default function FinancePositionHandoverPanel({
               {t('positionHandoverClosing')}
             </p>
 
-            <div className="grid gap-8 text-xs text-slate-700 md:grid-cols-2">
-              <div>
-                <p className="font-semibold">{t('positionHandoverFrom')}</p>
-                <p className="mt-6 border-t border-slate-400 pt-1">
-                  {fromEmployee?.fullName ??
-                    (fromVacant ? `${fromVacant.position} (${t('staffVacant')})` : '________________')}
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold">{t('positionHandoverTo')}</p>
-                <p className="mt-6 border-t border-slate-400 pt-1">
-                  {toEmployee?.fullName ?? '________________'}
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold">{directorSignatureLabel}</p>
-                <p className="mt-6 border-t border-slate-400 pt-1">
-                  {organization?.director || '________________'}
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold">{accountantSignatureLabel}</p>
-                <p className="mt-6 border-t border-slate-400 pt-1">
-                  {organization?.chiefAccountant || '________________'}
-                </p>
-              </div>
-            </div>
+            <OrganizationDocumentSignatureFooter
+              director={{ label: directorSignatureLabel, name: organization?.director }}
+              accountant={{
+                label: accountantSignatureLabel,
+                name: organization?.chiefAccountant,
+              }}
+              sealLabel={t('payrollLedgerSeal')}
+              leadingRows={[
+                [
+                  {
+                    label: t('positionHandoverFrom'),
+                    name:
+                      fromEmployee?.fullName ??
+                      (fromVacant ? `${fromVacant.position} (${t('staffVacant')})` : undefined),
+                  },
+                  { label: t('positionHandoverTo'), name: toEmployee?.fullName },
+                ],
+              ]}
+            />
           </div>
         </>
       )}

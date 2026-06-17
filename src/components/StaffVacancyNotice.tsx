@@ -3,11 +3,14 @@
 import { StaffAnalytics } from '@/lib/staff-analytics';
 import { formatAppDate } from '@/lib/intl-locale';
 import { resolveVacancyNotice } from '@/lib/vacancy-notice-defaults';
-import { VacancyNoticeInfo } from '@/types/organization-section';
+import { VacancyNoticeInfo, OrganizationSectionContent } from '@/types/organization-section';
+import { Organization } from '@/types/organization';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import UserContentText from '@/components/UserContentText';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
+import { resolveOrganizationDocumentSignatures } from '@/lib/organization-document-signatures';
 import { printDocument } from '@/lib/print-document';
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -15,6 +18,8 @@ type Props = {
   analytics: StaffAnalytics;
   notice?: VacancyNoticeInfo;
   editing?: boolean;
+  organization?: Organization;
+  staffContent?: OrganizationSectionContent | null;
   onNoticeChange?: (notice: VacancyNoticeInfo) => void;
 };
 
@@ -22,11 +27,18 @@ export default function StaffVacancyNotice({
   analytics,
   notice,
   editing = false,
+  organization,
+  staffContent,
   onNoticeChange,
 }: Props) {
   const t = useTranslations();
   const locale = useLocale();
   const { organizationId, organizationName } = useOrganizationReportHeader();
+  const signatures = resolveOrganizationDocumentSignatures(t, {
+    organizationId,
+    organization,
+    staffContent,
+  });
   const vacantSlots = analytics.slots.filter((slot) => slot.vacant > 0);
   const info = resolveVacancyNotice(notice, t, organizationName, organizationId);
 
@@ -214,6 +226,12 @@ export default function StaffVacancyNotice({
             )}
             <p className="mt-3 text-[10px] text-[var(--text-muted)]">{t('vacancyNoticeFooter')}</p>
           </footer>
+
+          <OrganizationDocumentSignatureFooter
+            director={signatures.director}
+            accountant={signatures.accountant}
+            sealLabel={signatures.sealLabel}
+          />
         </article>
       )}
     </div>

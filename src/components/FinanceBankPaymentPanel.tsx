@@ -10,6 +10,7 @@ import {
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import { useOrganizationReportHeader } from '@/contexts/organization-report-header-context';
 import { printDocument } from '@/lib/print-document';
 import { shiftMonth } from '@/lib/staff-timesheet';
@@ -212,20 +213,14 @@ export default function FinanceBankPaymentPanel({
                 </p>
               </div>
 
-              <div className="mt-10 grid gap-8 text-xs text-slate-700 md:grid-cols-2">
-                <div>
-                  <p className="font-semibold">{directorSignatureLabel}</p>
-                  <p className="mt-6 border-t border-slate-400 pt-1">
-                    {organization?.director || '________________'}
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold">{accountantSignatureLabel}</p>
-                  <p className="mt-6 border-t border-slate-400 pt-1">
-                    {organization?.chiefAccountant || '________________'}
-                  </p>
-                </div>
-              </div>
+              <OrganizationDocumentSignatureFooter
+                director={{ label: directorSignatureLabel, name: organization?.director }}
+                accountant={{
+                  label: accountantSignatureLabel,
+                  name: organization?.chiefAccountant,
+                }}
+                sealLabel={t('payrollLedgerSeal')}
+              />
             </div>
           </div>
         </>

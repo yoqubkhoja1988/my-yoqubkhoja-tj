@@ -1,7 +1,9 @@
 'use client';
 
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import UserContentText from '@/components/UserContentText';
+import { resolveOrganizationDocumentSignatures } from '@/lib/organization-document-signatures';
 import {
   charterExportFilename,
   downloadCharterCsv,
@@ -12,6 +14,8 @@ import {
 } from '@/lib/charter-document-io';
 import { printDocument } from '@/lib/print-document';
 import { CharterDocument } from '@/types/organization-section';
+import { Organization } from '@/types/organization';
+import { OrganizationSectionContent } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 import { ChangeEvent, useRef, useState } from 'react';
 
@@ -20,6 +24,9 @@ type Props = {
   canEdit: boolean;
   editing: boolean;
   disabled?: boolean;
+  organizationId?: string;
+  organization?: Organization;
+  staffContent?: OrganizationSectionContent | null;
   onCharterChange?: (charter: CharterDocument) => void;
   onImport?: (charter: CharterDocument) => void | Promise<void>;
 };
@@ -36,10 +43,18 @@ export default function CharterDocumentPanel({
   canEdit,
   editing,
   disabled = false,
+  organizationId,
+  organization,
+  staffContent,
   onCharterChange,
   onImport,
 }: Props) {
   const t = useTranslations();
+  const signatures = resolveOrganizationDocumentSignatures(t, {
+    organizationId,
+    organization,
+    staffContent,
+  });
   const importFileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
@@ -374,6 +389,12 @@ export default function CharterDocumentPanel({
             ) : null}
           </footer>
         )}
+
+        <OrganizationDocumentSignatureFooter
+          director={signatures.director}
+          accountant={signatures.accountant}
+          sealLabel={signatures.sealLabel}
+        />
       </article>
     </div>
   );

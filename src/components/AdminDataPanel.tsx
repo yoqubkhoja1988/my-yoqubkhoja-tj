@@ -1,6 +1,7 @@
 'use client';
 
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import { downloadAdminDataExcel } from '@/lib/admin-data-export';
 import { getProjects } from '@/lib/projects';
 import { toIntlLocale } from '@/lib/intl-locale';
@@ -508,6 +509,12 @@ export default function AdminDataPanel() {
         {!hasExportData && (
           <p className="text-sm text-[var(--text-muted)]">{t('adminDataEmpty')}</p>
         )}
+
+        <OrganizationDocumentSignatureFooter
+          director={{ label: t('payrollLedgerDirector') }}
+          accountant={{ label: t('payrollLedgerAccountant') }}
+          sealLabel={t('payrollLedgerSeal')}
+        />
       </div>
     </section>
   );

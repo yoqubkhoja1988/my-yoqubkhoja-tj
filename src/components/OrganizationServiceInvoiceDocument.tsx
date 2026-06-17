@@ -1,9 +1,11 @@
 'use client';
 
+import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import UserContentText from '@/components/UserContentText';
 import { formatAppDate } from '@/lib/intl-locale';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
+import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import {
   INVOICE_LEGAL_FOOTNOTE,
   counterpartyPartyRequisites,
@@ -16,7 +18,7 @@ import {
   ContractCounterparty,
   OrganizationServiceInvoice,
 } from '@/types/organization-section';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 type Props = {
   organizationId: string;
@@ -34,6 +36,7 @@ export default function OrganizationServiceInvoiceDocument({
   counterparty,
 }: Props) {
   const locale = useLocale();
+  const t = useTranslations();
   const preparedAt = formatAppDate(invoice.preparedAt, locale, {
     day: '2-digit',
     month: 'long',
@@ -52,6 +55,10 @@ export default function OrganizationServiceInvoiceDocument({
     address: counterparty?.address || invoice.counterpartyAddress,
   });
   const directorLabel = getDirectorSignatureLabel(organizationId);
+  const accountantLabel = getAccountantSignatureLabel(undefined, {
+    chiefAccountantName: organization?.chiefAccountant,
+    fallback: t('payrollLedgerAccountant'),
+  });
   const withVat = invoiceHasVat(invoice);
 
   return (
@@ -150,20 +157,14 @@ export default function OrganizationServiceInvoiceDocument({
         <p className="text-justify italic text-slate-600">{INVOICE_LEGAL_FOOTNOTE}</p>
       </div>
 
-      <div className="mt-10 grid gap-10 text-xs md:grid-cols-2">
-        <div>
-          <p className="font-semibold">{directorLabel}</p>
-          <p className="mt-8 border-t border-slate-400 pt-1">
-            {seller.director || '________________'} / имзо
-          </p>
-        </div>
-        <div>
-          <p className="font-semibold">Муҳосиб</p>
-          <p className="mt-8 border-t border-slate-400 pt-1">
-            {organization?.chiefAccountant || '________________'} / имзо
-          </p>
-        </div>
-      </div>
+      <OrganizationDocumentSignatureFooter
+        director={{ label: directorLabel, name: seller.director || organization?.director }}
+        accountant={{
+          label: accountantLabel,
+          name: organization?.chiefAccountant,
+        }}
+        sealLabel={t('payrollLedgerSeal')}
+      />
     </article>
   );
 }
