@@ -7,6 +7,7 @@ import {
   getConversationWithMessages,
   getMessagesAfter,
   markTelegramNotified,
+  updateConversationSourcePage,
   updateConversationStatus,
 } from '@/lib/chat-store';
 import {
@@ -132,14 +133,20 @@ export async function sendUserMessage(input: {
   conversationId: string;
   body: string;
   quickTopicId?: string;
+  sourcePage?: string | null;
 }): Promise<{ conversation: ChatConversation; messages: ChatMessage[] }> {
-  const conversation = await findConversationById(input.conversationId);
+  let conversation = await findConversationById(input.conversationId);
   if (!conversation) {
     throw new Error('CONVERSATION_NOT_FOUND');
   }
 
   if (conversation.status === 'closed') {
     throw new Error('CONVERSATION_CLOSED');
+  }
+
+  if (input.sourcePage !== undefined) {
+    const updated = await updateConversationSourcePage(input.conversationId, input.sourcePage);
+    if (updated) conversation = updated;
   }
 
   const userMessage = await addMessage({

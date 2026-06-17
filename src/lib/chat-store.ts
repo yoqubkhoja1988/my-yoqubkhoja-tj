@@ -386,6 +386,24 @@ export async function updateConversationStatus(
   return conversation;
 }
 
+export async function updateConversationSourcePage(
+  conversationId: string,
+  sourcePage: string | null
+): Promise<ChatConversation | null> {
+  const conversation = await findConversationById(conversationId);
+  if (!conversation) return null;
+
+  const normalized = sourcePage?.trim() || null;
+  if (conversation.sourcePage === normalized) {
+    return conversation;
+  }
+
+  conversation.sourcePage = normalized;
+  conversation.updatedAt = new Date().toISOString();
+  await saveConversation(conversation);
+  return conversation;
+}
+
 export async function markTelegramNotified(conversationId: string): Promise<void> {
   const conversation = await findConversationById(conversationId);
   if (!conversation) return;

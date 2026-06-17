@@ -102,6 +102,29 @@ export function buildChatAiSessionContext(
   };
 }
 
+export function getPageGreetingNote(sourcePage?: string | null): string {
+  if (!sourcePage?.trim()) return '';
+
+  const path = sourcePage.trim();
+  if (/\/organizations\/[^/]+\/staff/i.test(path)) {
+    return '\n\nМебинам, шумо дар бахши **кадр** ҳастед — дар бораи кормандон, штат, ҳузур ё реестр савол диҳед.';
+  }
+  if (/\/organizations\/[^/]+\/finance/i.test(path)) {
+    return '\n\nМебинам, шумо дар бахши **молия** ҳастед — дар бораи истифодаи бахш ё иҷозатҳо савол диҳед (маълумоти махфии молия ошкор намешавад).';
+  }
+  if (/\/login\/?$/i.test(path)) {
+    return '\n\nМебинам, шумо дар саҳифаи **вуруд** ҳастед — агар мушкилӣ бошад, кӯмак мерасонам.';
+  }
+  if (/\/register\/?$/i.test(path)) {
+    return '\n\nМебинам, шумо дар саҳифаи **сабти ном** ҳастед.';
+  }
+  if (/\/organizations\/?$/i.test(path)) {
+    return '\n\nМебинам, шумо дар рӯйхати **ташкилотҳо** ҳастед.';
+  }
+
+  return '';
+}
+
 export function formatChatAiContextBlock(context: ChatAiSessionContext): string {
   const lines: string[] = ['--- SESSION CONTEXT ---'];
 

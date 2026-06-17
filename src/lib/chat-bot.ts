@@ -1,4 +1,5 @@
 import { ChatConversation, ChatMessage } from '@/types/chat';
+import { getPageGreetingNote } from '@/lib/chat-ai-context';
 import { getSecretRefusalMessage, isOrganizationSecretQuestion } from '@/lib/chat-ai-secrets';
 import { generateChatAIReply } from '@/lib/chat-ai';
 
@@ -64,7 +65,7 @@ const KNOWLEDGE_BASE: KnowledgeEntry[] = [
       '• ташкилотҳо ва бахшҳо\n' +
       '• иҷозатҳо ва режими назорат\n' +
       '• чат ва Telegram\n\n' +
-      'Саволро нависед ё тугмаҳои интихоби зудро пахш кунед.',
+      'Саволро озодона нависед.',
     priority: 1,
   },
   {
@@ -479,7 +480,7 @@ function generateSmartLocalReply(userMessage: string, history: ChatMessage[]): s
   }
 
   return (
-    'Ман инҷо ҳастам, то дар истифодаи барнома кӯмак расонам. Саволро нависед ё тугмаҳои интихоби зудро пахш кунед.'
+    'Ман инҷо ҳастам, то дар истифодаи барнома кӯмак расонам. Саволро озодона нависед.'
   );
 }
 
@@ -487,7 +488,7 @@ export function getWelcomeMessage(): string {
   return (
     'Салом! 👋 Ман **ёрдамчии зеҳни сунъӣ**-и Yoqubkhoja Hub ҳастам.\n\n' +
     'Ман **ҳушёрам** — саҳифаи шуморо мебинам ва ҷавобро ба контексти кори шумо мувофиқ медиҳам.\n' +
-    'Саволро озодона нависед ё тугмаҳои **интихоби зуд**-ро пахш кунед.\n\n' +
+    'Саволро озодона нависед.\n\n' +
     '🔒 Саволҳои оид ба сирри ташкилот ва маълумоти махфӣ ҷавоб дода намешаванд.\n' +
     'Барои маъмури зинда: **«📞 Дархост ба маъмур»**'
   );
@@ -537,15 +538,11 @@ export async function getBotReply(
       name && name !== 'Меҳмон'
         ? `Салом, ${name}! 👋`
         : 'Салом! 👋';
-    const pageNote = options?.conversation?.sourcePage?.includes('/staff')
-      ? '\n\nМебинам, шумо дар бахши **кадр** ҳастед — дар бораи кормандон, штат ё ҳузур савол диҳед.'
-      : options?.conversation?.sourcePage?.includes('/finance')
-        ? '\n\nМебинам, шумо дар бахши **молия** ҳастед — дар бораи истифодаи бахш ё иҷозатҳо савол диҳед (маълумоти махфии молия ошкор намешавад).'
-        : '';
+    const pageNote = getPageGreetingNote(options?.conversation?.sourcePage);
     return {
       body:
         `${greeting} Ман ёрдамчии зеҳни сунъии Yoqubkhoja Hub ҳастам.${pageNote}\n\n` +
-        'Чӣ тавр кӯмак расонам? Саволро озодона нависед ё тугмаҳои **интихоби зуд**-ро пахш кунед.',
+        'Чӣ тавр кӯмак расонам? Саволро озодона нависед.',
     };
   }
 

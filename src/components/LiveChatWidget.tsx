@@ -5,7 +5,6 @@ import { useLiveChat } from '@/contexts/live-chat-context';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { QUICK_TOPICS } from '@/lib/chat-bot';
 import ChatTypingIndicator from '@/components/ChatTypingIndicator';
 import ChatGuestIntroForm, { GuestProfile } from '@/components/ChatGuestIntroForm';
 import ChatEditableMessage from '@/components/ChatEditableMessage';
@@ -488,7 +487,7 @@ export default function LiveChatWidget() {
     prevUserIdRef.current = userId;
   }, [open, prepareConversation, resetConversationState, session?.user?.id]);
 
-  async function postMessage(text: string, quickTopicId?: string) {
+  async function postMessage(text: string) {
     if (!text || !conversationId || !accessToken || sending) return;
 
     setSending(true);
@@ -504,7 +503,7 @@ export default function LiveChatWidget() {
           message: text,
           accessToken,
           guestToken,
-          ...(quickTopicId ? { quickTopicId } : {}),
+          sourcePage: getSourcePage(),
         }),
       });
 
@@ -576,10 +575,6 @@ export default function LiveChatWidget() {
     if (!text) return;
     setDraft('');
     await postMessage(text);
-  }
-
-  async function sendQuickTopic(message: string, quickTopicId: string) {
-    await postMessage(message, quickTopicId);
   }
 
   async function requestAdmin() {
@@ -737,22 +732,6 @@ export default function LiveChatWidget() {
 
           {view !== 'intro' && (
           <footer className="border-t border-[var(--border)] p-3">
-            {chatStatus === 'bot' && !loading && (
-              <div className="mb-2 flex flex-wrap gap-1.5">
-                {QUICK_TOPICS.map((topic) => (
-                  <button
-                    key={topic.id}
-                    type="button"
-                    disabled={sending || !conversationId}
-                    onClick={() => void sendQuickTopic(topic.message, topic.id)}
-                    className="rounded-full border border-[var(--border)] bg-[var(--bg-input)] px-2 py-1 text-[10px] font-semibold text-[var(--text-muted)] hover:border-[var(--accent)]/50 hover:text-[var(--text)] disabled:opacity-50"
-                  >
-                    {topic.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
             {chatStatus === 'bot' && (
               <button
                 type="button"

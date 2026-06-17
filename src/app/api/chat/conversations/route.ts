@@ -4,6 +4,7 @@ import {
   findActiveConversationForUser,
   getMessagesAfter,
   addMessage,
+  updateConversationSourcePage,
 } from '@/lib/chat-store';
 import { getWelcomeMessage } from '@/lib/chat-bot';
 import { getChatAccessContext } from '@/lib/chat-service';
@@ -72,6 +73,11 @@ export async function POST(request: NextRequest) {
         status: created.status,
         messages: await getMessagesAfter(created.id),
       });
+    }
+
+    if (sourcePage) {
+      const refreshed = await updateConversationSourcePage(conversation.id, sourcePage);
+      if (refreshed) conversation = refreshed;
     }
 
     const messages = await getMessagesAfter(conversation.id);

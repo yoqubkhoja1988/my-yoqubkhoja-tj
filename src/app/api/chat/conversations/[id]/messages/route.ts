@@ -7,6 +7,7 @@ import {
   verifyConversationAccess,
 } from '@/lib/chat-service';
 import { findConversationById, getMessagesAfter } from '@/lib/chat-store';
+import { normalizeSourcePage } from '@/lib/chat-visitor';
 import { getTypingStatus } from '@/lib/chat-typing';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -42,7 +43,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const session = await auth();
   const { id } = await context.params;
 
-  let body: { message?: string; guestToken?: string; accessToken?: string; quickTopicId?: string };
+  let body: {
+    message?: string;
+    guestToken?: string;
+    accessToken?: string;
+    quickTopicId?: string;
+    sourcePage?: string;
+  };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -69,6 +76,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       conversationId: id,
       body: message,
       quickTopicId: body.quickTopicId,
+      sourcePage: normalizeSourcePage(body.sourcePage),
     });
     return NextResponse.json({
       conversationId: id,
