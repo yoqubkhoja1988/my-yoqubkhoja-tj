@@ -97,10 +97,28 @@ export function formatMonthLabel(monthKey: string, locale: string): string {
   }).format(date);
 }
 
-export function formatTimesheetWeekday(monthKey: string, day: number, locale: string): string {
+/** Калидҳои i18n барои рӯзи ҳафта (0 = якшанбе … 6 = шанбе) */
+export const TIMESHEET_WEEKDAY_MESSAGE_KEYS = [
+  'timesheetWeekdaySun',
+  'timesheetWeekdayMon',
+  'timesheetWeekdayTue',
+  'timesheetWeekdayWed',
+  'timesheetWeekdayThu',
+  'timesheetWeekdayFri',
+  'timesheetWeekdaySat',
+] as const;
+
+export function getTimesheetWeekdayIndex(monthKey: string, day: number): number {
   const [year, month] = monthKey.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  return new Intl.DateTimeFormat(toIntlLocale(locale), { weekday: 'short' }).format(date);
+  return new Date(year, month - 1, day).getDay();
+}
+
+export function formatTimesheetWeekday(
+  monthKey: string,
+  day: number,
+  getLabel: (weekdayIndex: number) => string
+): string {
+  return getLabel(getTimesheetWeekdayIndex(monthKey, day));
 }
 
 export function getDaysInMonth(monthKey: string): number {

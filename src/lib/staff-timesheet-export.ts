@@ -3,7 +3,7 @@ import { EXCEL_COLORS, styleExcelCell } from '@/lib/document-export/excel-styles
 import {
   countWorkedDays,
   countWorkedHours,
-  formatTimesheetWeekday,
+  getTimesheetWeekdayIndex,
   getDaysInMonth,
   resolveTimesheetMark,
 } from '@/lib/staff-timesheet';
@@ -19,6 +19,7 @@ export type TimesheetExportLabels = {
   totalDays: string;
   totalHours: string;
   legend: string;
+  weekdayLabels: string[];
 };
 
 export function timesheetExportFilename(month: string): string {
@@ -30,12 +31,11 @@ export async function downloadTimesheetExcel(options: {
   employees: StaffEmployee[];
   month: string;
   monthLabel: string;
-  locale: string;
   normWorkingDays: number;
   labels: TimesheetExportLabels;
   legendLines: string[];
 }) {
-  const { sheet, employees, month, monthLabel, locale, labels, legendLines } = options;
+  const { sheet, employees, month, monthLabel, labels, legendLines } = options;
   const daysInMonth = getDaysInMonth(month);
   const dayNumbers = Array.from({ length: daysInMonth }, (_, index) => index + 1);
 
@@ -82,9 +82,10 @@ export async function downloadTimesheetExcel(options: {
     labels.no,
     labels.employee,
     labels.personnelNumber,
-    ...dayNumbers.map(
-      (day) => `${day}\n${formatTimesheetWeekday(month, day, locale)}`
-    ),
+    ...dayNumbers.map((day) => {
+      const weekday = labels.weekdayLabels[getTimesheetWeekdayIndex(month, day)] ?? '';
+      return `${day}\n${weekday}`;
+    }),
     labels.totalDays,
     labels.totalHours,
   ];

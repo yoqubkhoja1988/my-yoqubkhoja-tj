@@ -28,6 +28,7 @@ import {
   removeTimesheet,
   resolveTimesheetMark,
   shiftMonth,
+  TIMESHEET_WEEKDAY_MESSAGE_KEYS,
   upsertTimesheet,
 } from '@/lib/staff-timesheet';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
@@ -136,7 +137,15 @@ export default function StaffTimesheetPanel({
   );
   const legendLines = useMemo(
     () => TIMESHEET_MARKS.map((mark) => `${mark.code} — ${t(mark.labelKey)}`),
-    [t]
+    [t, locale]
+  );
+  const weekdayLabels = useMemo(
+    () => TIMESHEET_WEEKDAY_MESSAGE_KEYS.map((key) => t(key)),
+    [t, locale]
+  );
+  const formatWeekdayLabel = useMemo(
+    () => (day: number) => formatTimesheetWeekday(month, day, (index) => weekdayLabels[index] ?? ''),
+    [month, weekdayLabels]
   );
 
   useEffect(() => {
@@ -240,7 +249,6 @@ export default function StaffTimesheetPanel({
       employees,
       month,
       monthLabel,
-      locale,
       normWorkingDays,
       labels: {
         title: t('timesheetDocumentTitle'),
@@ -252,6 +260,7 @@ export default function StaffTimesheetPanel({
         totalDays: t('timesheetTotalDays'),
         totalHours: t('timesheetTotalHours'),
         legend: t('timesheetLegend'),
+        weekdayLabels,
       },
       legendLines,
     });
@@ -480,7 +489,7 @@ export default function StaffTimesheetPanel({
                         >
                           <span className="block font-semibold leading-none">{day}</span>
                           <span className="mt-0.5 block text-[8px] font-normal leading-none text-slate-600">
-                            {formatTimesheetWeekday(month, day, locale)}
+                            {formatWeekdayLabel(day)}
                           </span>
                         </th>
                       );
