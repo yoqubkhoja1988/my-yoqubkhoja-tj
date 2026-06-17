@@ -44,7 +44,7 @@ function getOrCreateGuestToken(): string {
 
 function getSourcePage(): string {
   if (typeof window === 'undefined') return '/';
-  return window.location.pathname + window.location.search;
+  return window.location.pathname + window.location.search + window.location.hash;
 }
 
 function loadGuestProfile(): GuestProfile | null {
@@ -486,6 +486,37 @@ export default function LiveChatWidget() {
     }
     prevUserIdRef.current = userId;
   }, [open, prepareConversation, resetConversationState, session?.user?.id]);
+
+  const syncSourcePage = useCallback(async () => {
+    if (!conversationId || sessionStatus === 'loading') return;
+
+    try {
+      await fetchWithTimeout('/api/chat/conversations', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestToken: session?.user?.id ? null : guestToken,
+          displayName: session?.user?.name,
+          sourcePage: getSourcePage(),
+        }),
+      });
+    } catch {
+      // ignore background page sync failures
+    }
+  }, [conversationId, guestToken, session?.user?.id, session?.user?.name, sessionStatus]);
+
+  useEffect(() => {
+    if (!open || !conversationId) return;
+
+    const onNavigate = () => void syncSourcePage();
+    window.addEventListener('hashchange', onNavigate);
+    window.addEventListener('popstate', onNavigate);
+    return () => {
+      window.removeEventListener('hashchange', onNavigate);
+      window.removeEventListener('popstate', onNavigate);
+    };
+  }, [conversationId, open, syncSourcePage]);
 
   async function postMessage(text: string) {
     if (!text || !conversationId || !accessToken || sending) return;

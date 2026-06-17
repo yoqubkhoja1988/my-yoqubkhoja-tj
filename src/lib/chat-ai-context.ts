@@ -1,86 +1,15 @@
 import { ChatConversation } from '@/types/chat';
 import { getRelevantKnowledgeSnippets } from '@/lib/chat-bot';
-
-type PageHint = {
-  pattern: RegExp;
-  section: string;
-  hint: string;
-};
-
-const PAGE_HINTS: PageHint[] = [
-  {
-    pattern: /\/login\/?$/i,
-    section: 'login',
-    hint: 'Корбар дар саҳифаи вуруд аст — дар бораи номи вуруд, рамз ва мушкилоти вуруд кӯмак кун.',
-  },
-  {
-    pattern: /\/register\/?$/i,
-    section: 'register',
-    hint: 'Корбар дар саҳифаи сабти ном аст — дар бораи сабт, тасдиқи маъмур ва интизори иҷозат кӯмак кун.',
-  },
-  {
-    pattern: /\/organizations\/?$/i,
-    section: 'organizations',
-    hint: 'Корбар рӯйхати ташкилотҳоро мебинад — агар ташкилот намоиш дода нашавад, иҷозатро шарҳ деҳ.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+\/staff/i,
-    section: 'staff',
-    hint: 'Корбар дар бахши «Кормандон ва кадрҳо» аст — ҷадвали штат, вакансия, ҳузур, реестр. Маълумоти шахсии кормандон/музд махфӣ аст.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+\/finance/i,
-    section: 'finance',
-    hint: 'Корбар дар бахши молия/муҳосибот аст — ҳисобот, захира, режими назорат. Рақамҳои дохилии молия махфӣ аст.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+\/formation-report/i,
-    section: 'formation',
-    hint: 'Корбар дар бахши ҳисоботи ташкилӣ аст — дар бораи пур кардан ва чоп/экспорт кӯмак кун.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+\/reports/i,
-    section: 'reports',
-    hint: 'Корбар дар бахши ҳисоботҳо аст.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+\/legal/i,
-    section: 'legal',
-    hint: 'Корбар дар бахши ҳуқуқӣ/ҳуҷҷатҳои расмӣ аст.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+\/overview/i,
-    section: 'overview',
-    hint: 'Корбар дар саҳифаи умумии ташкилот аст — менюи чап ва бахшҳоро шарҳ деҳ.',
-  },
-  {
-    pattern: /\/organizations\/[^/]+/i,
-    section: 'organization',
-    hint: 'Корбар дар саҳифаи ташкилот аст — менюи чап, бахшҳои дастрас ва иҷозатҳоро шарҳ деҳ.',
-  },
-  {
-    pattern: /\/dashboard/i,
-    section: 'dashboard',
-    hint: 'Корбар дар панели лоиҳаҳо (Dashboard) аст.',
-  },
-];
-
-function resolvePageHint(sourcePage?: string | null): string | null {
-  if (!sourcePage?.trim()) return null;
-  const path = sourcePage.trim();
-  for (const entry of PAGE_HINTS) {
-    if (entry.pattern.test(path)) {
-      return entry.hint;
-    }
-  }
-  return `Корбар дар саҳифаи «${path}» аст — ҷавобро ба ин контекст мувофиқ кун.`;
-}
+import { resolveChatPageContext } from '@/lib/chat-page-context';
 
 export type ChatAiSessionContext = {
   displayName: string;
   isLoggedIn: boolean;
   sourcePage?: string | null;
+  sectionTitle: string | null;
+  subSectionTitle: string | null;
   pageHint: string | null;
+  greetingNote: string;
   knowledgeSnippets: string[];
 };
 
@@ -91,38 +20,22 @@ export function buildChatAiSessionContext(
   const displayName = conversation?.displayName?.trim() || 'Меҳмон';
   const isLoggedIn = Boolean(conversation?.userId);
   const sourcePage = conversation?.sourcePage ?? null;
-  const pageHint = resolvePageHint(sourcePage);
+  const page = resolveChatPageContext(sourcePage);
 
   return {
     displayName,
     isLoggedIn,
     sourcePage,
-    pageHint,
+    sectionTitle: page.sectionTitle,
+    subSectionTitle: page.subSectionTitle,
+    pageHint: page.pageHint,
+    greetingNote: page.greetingNote,
     knowledgeSnippets: getRelevantKnowledgeSnippets(userMessage, 3),
   };
 }
 
 export function getPageGreetingNote(sourcePage?: string | null): string {
-  if (!sourcePage?.trim()) return '';
-
-  const path = sourcePage.trim();
-  if (/\/organizations\/[^/]+\/staff/i.test(path)) {
-    return '\n\nМебинам, шумо дар бахши **кадр** ҳастед — дар бораи кормандон, штат, ҳузур ё реестр савол диҳед.';
-  }
-  if (/\/organizations\/[^/]+\/finance/i.test(path)) {
-    return '\n\nМебинам, шумо дар бахши **молия** ҳастед — дар бораи истифодаи бахш ё иҷозатҳо савол диҳед (маълумоти махфии молия ошкор намешавад).';
-  }
-  if (/\/login\/?$/i.test(path)) {
-    return '\n\nМебинам, шумо дар саҳифаи **вуруд** ҳастед — агар мушкилӣ бошад, кӯмак мерасонам.';
-  }
-  if (/\/register\/?$/i.test(path)) {
-    return '\n\nМебинам, шумо дар саҳифаи **сабти ном** ҳастед.';
-  }
-  if (/\/organizations\/?$/i.test(path)) {
-    return '\n\nМебинам, шумо дар рӯйхати **ташкилотҳо** ҳастед.';
-  }
-
-  return '';
+  return resolveChatPageContext(sourcePage).greetingNote;
 }
 
 export function formatChatAiContextBlock(context: ChatAiSessionContext): string {
@@ -136,6 +49,12 @@ export function formatChatAiContextBlock(context: ChatAiSessionContext): string 
 
   if (context.sourcePage) {
     lines.push(`Current page: ${context.sourcePage}`);
+  }
+  if (context.sectionTitle) {
+    lines.push(`Section: ${context.sectionTitle}`);
+  }
+  if (context.subSectionTitle) {
+    lines.push(`Sub-section: ${context.subSectionTitle}`);
   }
   if (context.pageHint) {
     lines.push(`Page guidance: ${context.pageHint}`);
