@@ -13,12 +13,7 @@ import {
   parseStaffCount,
   recalculateAllStaffTables,
 } from '@/lib/staff-table-calc';
-import {
-  OrganizationSectionContent,
-  SectionItem,
-  SectionTable,
-  VacancyNoticeInfo,
-} from '@/types/organization-section';
+import { OrganizationSectionContent, SectionItem, SectionTable, VacancyNoticeInfo } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
@@ -60,6 +55,7 @@ import StaffVacancyPanel from './StaffVacancyPanel';
 import OrganizationInfoPanel from './OrganizationInfoPanel';
 import UserContentText from './UserContentText';
 import LegalDocumentsPanel from './LegalDocumentsPanel';
+import CharterDocumentPanel from './CharterDocumentPanel';
 import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 import { ensureForm5Tables, form5TablesFromAll } from '@/lib/financial-report-form5';
 import {
@@ -72,6 +68,8 @@ import {
   ORG_INFO_SECTION_SLUG,
 } from '@/lib/organization-info';
 import { isCharterLegalSection, LIST_OF_ENTERPRISES_SECTION_SLUG } from '@/lib/user-access';
+import { buildDefaultYoqubkhojaCharter, resolveCharterDocument } from '@/lib/yoqubkhoja-charter';
+import { YOQUBKHOJA_INNOVATION_CENTER_ID } from '@/lib/yoqubkhoja-innovation-center';
 import { ORGANIZATION_CONTRACTS_SECTION_SLUG } from '@/lib/org-service-contracts';
 
 function cloneContent(content: OrganizationSectionContent): OrganizationSectionContent {
@@ -284,7 +282,22 @@ export default function EditableSectionContent({
   }
 
   function startEdit() {
-    setDraft(applyStaffCalculations(cloneContent(data)));
+    let cloned = applyStaffCalculations(cloneContent(data));
+    if (
+      section === 'charter' &&
+      organizationId === YOQUBKHOJA_INNOVATION_CENTER_ID &&
+      !cloned.charterDocument
+    ) {
+      cloned = {
+        ...cloned,
+        charterDocument: buildDefaultYoqubkhojaCharter({
+          founder: organization?.director,
+          address: organization?.address,
+          location: organization?.address,
+        }),
+      };
+    }
+    setDraft(cloned);
     setEditing(true);
     setError('');
   }
@@ -364,6 +377,10 @@ export default function EditableSectionContent({
 
   const displayData = useMemo(() => applyStaffCalculations(data), [data]);
   const view = editing && draft ? draft : displayData;
+  const resolvedCharter = useMemo(
+    () => resolveCharterDocument(view, organizationId, organization),
+    [view, organizationId, organization]
+  );
   const staffAnalytics = useMemo(() => {
     if (section === 'staff') return analyzeStaffing(displayData);
     if (section === 'formation-report' && liveStaffContent) {
@@ -933,6 +950,40 @@ export default function EditableSectionContent({
           staffContent={liveStaffContent}
           onSickLeaveSaved={setPayrollLedgerMonth}
           onUpdate={setData}
+        />
+      )}
+
+      {section === 'charter' && resolvedCharter && (
+        <CharterDocumentPanel
+          charter={resolvedCharter}
+          canEdit={canEdit}
+          editing={editing && !!draft}
+          disabled={saving}
+          onCharterChange={
+            editing && draft
+              ? (charterDocument) => setDraft({ ...draft, charterDocument })
+              : undefined
+          }
+          onImport={async (charterDocument) => {
+            if (editing && draft) {
+              setDraft({ ...draft, charterDocument });
+              return;
+            }
+
+            setSaving(true);
+            setError('');
+            const payload: OrganizationSectionContent = {
+              ...(editing && draft ? draft : data),
+              charterDocument,
+            };
+            const saved = await updateOrganizationSection(organizationId, 'charter', payload);
+            setSaving(false);
+            if (!saved) {
+              setError(t('sectionSaveError'));
+              return;
+            }
+            setData(saved);
+          }}
         />
       )}
 

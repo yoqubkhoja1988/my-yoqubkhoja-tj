@@ -356,10 +356,29 @@ export interface OrganizationReportHeader {
   superiorAuthorities?: string[];
 }
 
+export interface CharterArticle {
+  number: string;
+  title: string;
+  content: string;
+}
+
+/** Матни пурраи оиннома (устав)и ташкилот */
+export interface CharterDocument {
+  title: string;
+  subtitle?: string;
+  preamble: string;
+  legalBasis: string[];
+  articles: CharterArticle[];
+  adoptedAt?: string;
+  approvedBy?: string;
+  location?: string;
+}
+
 export interface OrganizationSectionContent {
   summary: string;
   tables?: SectionTable[];
   items?: SectionItem[];
+  charterDocument?: CharterDocument;
   employees?: StaffEmployee[];
   vacancyNotice?: VacancyNoticeInfo;
   timesheets?: StaffTimesheet[];
