@@ -358,39 +358,47 @@ textarea::placeholder {
   }
 }
 
-/* ——— Print: танҳо ҳуҷҷати `.print-active` ——— */
+/* ——— Print: танҳо ҳуҷҷати `#print-root` ——— */
 @media print {
-  body *:not(.print-active):not(.print-active *) {
-    visibility: hidden;
+  body[data-print-document='true'] > *:not(#print-root) {
+    display: none !important;
   }
 
-  .print-active,
-  .print-active * {
-    visibility: visible;
+  #print-root {
+    display: block !important;
   }
 
-  .print-active {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+  #print-root .print-active,
+  #print-root .print-active * {
+    visibility: visible !important;
+  }
+
+  #print-root .print-active {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
     border: none !important;
     background: #fff !important;
     color: #000 !important;
     box-shadow: none !important;
   }
 
-  .print-active table {
+  #print-root .print-active table {
     color: #000;
+  }
+
+  #print-root .print-active .text-\[var\(--text-muted\)\],
+  #print-root .print-active [class*='text-muted'] {
+    color: #444 !important;
   }
 
   .print-supplement {
     display: none !important;
   }
 
-  .print-active .bg-amber-100,
-  .print-active .bg-sky-100,
-  .print-active .bg-slate-50 {
+  #print-root .print-active .bg-amber-100,
+  #print-root .print-active .bg-sky-100,
+  #print-root .print-active .bg-slate-50 {
     background: #fff !important;
   }
 
@@ -404,43 +412,47 @@ textarea::placeholder {
     margin: 8mm;
   }
 
-  html[data-print-orientation='portrait'] .print-active {
+  html[data-print-orientation='portrait'] #print-root .print-active {
     page: print-portrait;
   }
 
-  html[data-print-orientation='landscape'] .print-active {
+  html[data-print-orientation='landscape'] #print-root .print-active {
     page: print-landscape;
   }
 
-  #finance-payroll-ledger-document.print-active table {
+  #print-root #finance-payroll-ledger-document.print-active table {
     font-size: 8px;
     width: 100%;
     min-width: 0;
   }
 
-  #finance-payroll-ledger-document.print-active th,
-  #finance-payroll-ledger-document.print-active td {
+  #print-root #finance-payroll-ledger-document.print-active th,
+  #print-root #finance-payroll-ledger-document.print-active td {
     padding: 2px 4px;
   }
 
-  #staff-timesheet-document.print-active table {
+  #print-root #staff-timesheet-document.print-active table {
     font-size: 9px;
   }
 
-  #org-contract-print.print-active table,
-  #org-invoice-print.print-active table,
-  #org-contract-registry-export.print-active table,
-  #org-invoice-registry-export.print-active table,
-  .org-legal-document.print-active,
-  .org-legal-document.print-active * {
+  #print-root #org-contract-print.print-active table,
+  #print-root #org-invoice-print.print-active table,
+  #print-root #org-contract-registry-export.print-active table,
+  #print-root #org-invoice-registry-export.print-active table,
+  #print-root .org-legal-document.print-active,
+  #print-root .org-legal-document.print-active *,
+  #print-root .charter-document.print-active,
+  #print-root .charter-document.print-active * {
     font-family: 'Linotype Platino Pro', 'Palatino Linotype', 'Book Antiqua', Palatino, serif !important;
   }
 
-  .org-legal-document.print-active table {
-    font-size: 10px;
+  #print-root .org-legal-document.print-active table,
+  #print-root .charter-document.print-active {
+    font-size: 11pt;
+    line-height: 1.5;
   }
 
-  #finance-bank-payment-document.print-active table {
+  #print-root #finance-bank-payment-document.print-active table {
     font-size: 10px;
   }
 }

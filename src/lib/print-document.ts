@@ -1,19 +1,32 @@
 import { resolvePrintOrientation } from '@/lib/document-export/print-orientation';
 
-/** Чопи танҳо як ҳуҷҷат — `.print-active` + ориентатсияи варақ */
+const PRINT_ROOT_ID = 'print-root';
+
+/** Чопи танҳо як ҳуҷҷат — нусха ба `body`, пинҳон кардани UI-и барнома */
 export function printDocument(documentId: string) {
   const element = document.getElementById(documentId);
-  const orientation = element ? resolvePrintOrientation(element) : 'portrait';
 
-  document.documentElement.dataset.printOrientation = orientation;
-
-  if (element) {
-    element.classList.add('print-active');
+  if (!element) {
+    window.print();
+    return;
   }
 
+  const orientation = resolvePrintOrientation(element);
+  document.documentElement.dataset.printOrientation = orientation;
+  document.body.dataset.printDocument = 'true';
+
+  const printRoot = document.createElement('div');
+  printRoot.id = PRINT_ROOT_ID;
+
+  const clone = element.cloneNode(true) as HTMLElement;
+  clone.classList.add('print-active');
+  printRoot.appendChild(clone);
+  document.body.appendChild(printRoot);
+
   const cleanup = () => {
-    element?.classList.remove('print-active');
+    printRoot.remove();
     delete document.documentElement.dataset.printOrientation;
+    delete document.body.dataset.printDocument;
     window.removeEventListener('afterprint', cleanup);
   };
 

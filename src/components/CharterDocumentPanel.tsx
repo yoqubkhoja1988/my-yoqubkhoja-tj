@@ -311,14 +311,14 @@ export default function CharterDocumentPanel({
 
       <article
         id="charter-document"
-        className="space-y-5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] p-5 text-sm leading-relaxed"
+        className="charter-document mx-auto max-w-3xl space-y-5 rounded-xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-900 shadow-sm print:border-0 print:shadow-none md:p-8"
       >
         <header className="space-y-2 text-center">
           <h3 className="text-base font-bold uppercase tracking-wide">
             <UserContentText text={charter.title} as="span" />
           </h3>
           {charter.subtitle ? (
-            <p className="text-xs text-[var(--text-muted)]">
+            <p className="text-xs text-slate-600">
               <UserContentText text={charter.subtitle} as="span" />
             </p>
           ) : null}
@@ -356,7 +356,7 @@ export default function CharterDocumentPanel({
         </section>
 
         {(charter.location || charter.adoptedAt || charter.approvedBy) && (
-          <footer className="space-y-4 border-t border-[var(--border)] pt-4 text-sm">
+          <footer className="space-y-4 border-t border-slate-200 pt-4 text-sm">
             {charter.location ? (
               <p>
                 <UserContentText text={charter.location} as="span" />
