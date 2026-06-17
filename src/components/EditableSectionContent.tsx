@@ -40,6 +40,7 @@ import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
 import OrganizationContractsPanel from './OrganizationContractsPanel';
 import FinanceReportsPanel from './FinanceReportsPanel';
 import FinanceSectionNav from './FinanceSectionNav';
+import StaffStaffingImportExport from './StaffStaffingImportExport';
 import {
   DEFAULT_FINANCE_SECTION,
   FinanceSectionId,
@@ -665,9 +666,37 @@ export default function EditableSectionContent({
           className="space-y-4"
         >
           {section === 'staff' && (
-            <div>
-              <p className="page-eyebrow">{t('staffNavSchedule')}</p>
-              <h4 className="text-sm font-bold">{t('staffScheduleTitle')}</h4>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="page-eyebrow">{t('staffNavSchedule')}</p>
+                <h4 className="text-sm font-bold">{t('staffScheduleTitle')}</h4>
+              </div>
+              <StaffStaffingImportExport
+                tables={view.tables ?? []}
+                canEdit={canEdit}
+                disabled={saving}
+                onImport={async (tables) => {
+                  if (editing && draft) {
+                    setDraft({ ...draft, tables });
+                    return;
+                  }
+
+                  setSaving(true);
+                  setError('');
+                  const payload: OrganizationSectionContent = {
+                    ...(editing && draft ? draft : data),
+                    tables,
+                  };
+                  const saved = await updateOrganizationSection(organizationId, 'staff', payload);
+                  setSaving(false);
+                  if (!saved) {
+                    setError(t('sectionSaveError'));
+                    return;
+                  }
+                  setData(saved);
+                  setLiveStaffContent(saved);
+                }}
+              />
             </div>
           )}
           {section === 'finance' && (
