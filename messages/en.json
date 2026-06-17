@@ -138,6 +138,8 @@
   "adminUsersPickOrganizations": "Allowed organizations",
   "adminUsersPickSections": "Allowed sections",
   "adminUsersSupervisionOnly": "View only (supervision)",
+  "adminUsersAccountantPreset": "Accountant preset",
+  "adminUsersInflatedSectionsWarning": "This user has almost all sections. Click «Accountant preset» or pick sections manually, then save.",
   "adminUsersSupervisionOnlyHint": "Shows all sections of selected organizations; saving and edits are disabled",
   "adminUsersSupervisionSectionsNote": "In view-only mode the user can access all sections",
   "adminUsersSupervisionOnlyShort": "All sections (view only)",

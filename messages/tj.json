@@ -136,6 +136,8 @@
   "adminUsersPickOrganizations": "Ташкилотҳои иҷозатдодашуда",
   "adminUsersPickSections": "Бахшҳои иҷозатдодашуда",
   "adminUsersSupervisionOnly": "Танҳо назорат (бе иҷро)",
+  "adminUsersAccountantPreset": "Дастурҳои муҳосиб",
+  "adminUsersInflatedSectionsWarning": "Ин корбар ҳама ё қариб ҳамаи бахшҳоро дорад. Барои маҳдуд кардан тугмаи «Дастурҳои муҳосиб»-ро пахш кунед ё бахшҳоро дастӣ интихоб кунед, пас «Захира» кунед.",
   "adminUsersSupervisionOnlyHint": "Ҳама бахшҳои ташкилоти интихобшударо нишон медиҳад; тағйирот, захира ва нест кардан мамнуъ аст",
   "adminUsersSupervisionSectionsNote": "Дар режими «танҳо назорат» барои корбар ҳама бахшҳо дастрасанд",
   "adminUsersSupervisionOnlyShort": "Ҳама бахшҳо (назорат)",

@@ -138,6 +138,8 @@
   "adminUsersPickOrganizations": "Разрешённые организации",
   "adminUsersPickSections": "Разрешённые разделы",
   "adminUsersSupervisionOnly": "Только контроль (без изменений)",
+  "adminUsersAccountantPreset": "Права бухгалтера",
+  "adminUsersInflatedSectionsWarning": "У пользователя почти все разделы. Нажмите «Права бухгалтера» или выберите разделы вручную и сохраните.",
   "adminUsersSupervisionOnlyHint": "Показывает все разделы выбранных организаций; сохранение и правки запрещены",
   "adminUsersSupervisionSectionsNote": "В режиме «только контроль» пользователю доступны все разделы",
   "adminUsersSupervisionOnlyShort": "Все разделы (контроль)",

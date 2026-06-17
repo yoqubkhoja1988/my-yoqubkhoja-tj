@@ -138,6 +138,8 @@
   "adminUsersPickOrganizations": "Ruxsat etilgan tashkilotlar",
   "adminUsersPickSections": "Ruxsat etilgan bo'limlar",
   "adminUsersSupervisionOnly": "Faqat nazorat (o'zgartirishsiz)",
+  "adminUsersAccountantPreset": "Buxgalter shabloni",
+  "adminUsersInflatedSectionsWarning": "Bu foydalanuvchida deyarli barcha bo'limlar bor. «Buxgalter shabloni» tugmasini bosing yoki qo'lda tanlang va saqlang.",
   "adminUsersSupervisionOnlyHint": "Tanlangan tashkilotlarning barcha bo'limlarini ko'rsatadi; saqlash va tahrir taqiqlanadi",
   "adminUsersSupervisionSectionsNote": "«Faqat nazorat» rejimida foydalanuvchi barcha bo'limlarni ko'ra oladi",
   "adminUsersSupervisionOnlyShort": "Barcha bo'limlar (nazorat)",

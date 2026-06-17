@@ -24,7 +24,7 @@ export const DEFAULT_USER_PERMISSIONS: UserPermissions = {
   canAccessProjects: true,
   supervisionOnly: false,
   organizationIds: [],
-  sectionSlugs: ['overview', 'laws', 'government-decisions', 'official-documents'],
+  sectionSlugs: ['overview'],
 };
 
 export function normalizeUserPermissions(value: unknown): UserPermissions {
@@ -39,7 +39,7 @@ export function normalizeUserPermissions(value: unknown): UserPermissions {
     organizationIds: Array.isArray(raw.organizationIds) ? raw.organizationIds : [],
     sectionSlugs:
       Array.isArray(raw.sectionSlugs) && raw.sectionSlugs.length > 0
-        ? raw.sectionSlugs
-        : DEFAULT_USER_PERMISSIONS.sectionSlugs,
+        ? [...new Set(raw.sectionSlugs)]
+        : ['overview'],
   };
 }

@@ -1,31 +1,43 @@
 import { Session } from 'next-auth';
+import { ALL_SECTION_SLUGS } from '@/lib/activity-directions';
 import { isSiteAdmin } from '@/lib/is-admin';
 import { UserPermissions } from '@/types/user';
 import { Organization } from '@/types/organization';
 import { ActivityDirection } from '@/types/activity-direction';
-import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
-import {
-  FINANCIAL_REPORT_SECTION_SLUGS,
-  isFinancialReportSection,
-} from '@/lib/financial-reports-menu';
+import { isFinancialReportSection, FINANCIAL_REPORT_SECTION_SLUGS } from '@/lib/financial-reports-menu';
 import { ORG_INFO_SECTION_SLUG } from '@/lib/organization-info';
 import { ORGANIZATION_CONTRACTS_SECTION_SLUG } from '@/lib/org-service-contracts';
+import { LEGAL_SECTION_SLUGS } from '@/lib/official-legal-catalog';
 
 export const LIST_OF_ENTERPRISES_SECTION_SLUG = 'list-of-enterprises';
 
-const AUTO_VISIBLE_LEGAL_SECTIONS = new Set<string>([
+/** Бахшҳои гурӯҳи «Оиннома ва ҳуҷҷатҳои ҳуқуқӣ» */
+export const CHARTER_LEGAL_SECTION_SLUGS = [
+  'charter',
+  'legal',
   LEGAL_SECTION_SLUGS.laws,
   LEGAL_SECTION_SLUGS.decisions,
   LEGAL_SECTION_SLUGS.documents,
-]);
-
-const AUTO_VISIBLE_ORG_INFO_SECTIONS = new Set<string>([ORG_INFO_SECTION_SLUG]);
-
-const AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS = new Set<string>(FINANCIAL_REPORT_SECTION_SLUGS);
+] as const;
 
 function hasOrganizationAccess(session: Session | null | undefined): boolean {
   if (!session?.user || isSiteAdmin(session)) return false;
   return (session.user.permissions?.organizationIds.length ?? 0) > 0;
+}
+
+function getGrantedSectionSlugs(session: Session | null | undefined): Set<string> {
+  const permissions = session?.user?.permissions;
+  if (!permissions) return new Set();
+
+  if (permissions.supervisionOnly && permissions.organizationIds.length > 0) {
+    return new Set(ALL_SECTION_SLUGS);
+  }
+
+  const slugs = new Set(permissions.sectionSlugs);
+  if (permissions.organizationIds.length > 0) {
+    slugs.add('overview');
+  }
+  return slugs;
 }
 
 export function getSessionPermissions(session: Session | null | undefined): UserPermissions | null {
@@ -44,15 +56,6 @@ export function canEditOrganizationContent(session: Session | null | undefined):
   if (isSupervisionOnlyUser(session)) return false;
   return false;
 }
-
-/** Бахшҳои гурӯҳи «Оиннома ва ҳуҷҷатҳои ҳуқуқӣ» */
-export const CHARTER_LEGAL_SECTION_SLUGS = [
-  'charter',
-  'legal',
-  LEGAL_SECTION_SLUGS.laws,
-  LEGAL_SECTION_SLUGS.decisions,
-  LEGAL_SECTION_SLUGS.documents,
-] as const;
 
 export function isCharterLegalSection(sectionSlug: string): boolean {
   return (CHARTER_LEGAL_SECTION_SLUGS as readonly string[]).includes(sectionSlug);
@@ -115,23 +118,8 @@ export function canAccessSection(
 ): boolean {
   if (!session?.user) return false;
   if (isSiteAdmin(session)) return true;
-  const permissions = session.user.permissions;
-  if (
-    permissions?.supervisionOnly &&
-    (permissions.organizationIds.length ?? 0) > 0
-  ) {
-    return true;
-  }
-  if (AUTO_VISIBLE_LEGAL_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
-    return true;
-  }
-  if (AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
-    return true;
-  }
-  if (AUTO_VISIBLE_ORG_INFO_SECTIONS.has(sectionSlug) && hasOrganizationAccess(session)) {
-    return true;
-  }
-  return permissions?.sectionSlugs.includes(sectionSlug) ?? false;
+  if (!hasOrganizationAccess(session)) return false;
+  return getGrantedSectionSlugs(session).has(sectionSlug);
 }
 
 export function canAccessOrganizationSection(
@@ -158,14 +146,6 @@ export function filterDirectionsForSession(
   directions: ActivityDirection[]
 ): ActivityDirection[] {
   if (isSiteAdmin(session)) return directions;
-  if (isSupervisionOnlyUser(session)) return directions;
-  const allowedSections = session?.user?.permissions?.sectionSlugs ?? [];
-  const orgAccess = hasOrganizationAccess(session);
-  return directions.filter(
-    (direction) =>
-      allowedSections.includes(direction.slug) ||
-      (orgAccess && AUTO_VISIBLE_LEGAL_SECTIONS.has(direction.slug)) ||
-      (orgAccess && AUTO_VISIBLE_FINANCIAL_REPORT_SECTIONS.has(direction.slug)) ||
-      (orgAccess && AUTO_VISIBLE_ORG_INFO_SECTIONS.has(direction.slug))
-  );
+  const granted = getGrantedSectionSlugs(session);
+  return directions.filter((direction) => granted.has(direction.slug));
 }

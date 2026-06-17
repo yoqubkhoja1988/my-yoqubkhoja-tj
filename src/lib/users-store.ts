@@ -15,6 +15,7 @@ import {
   UserStatus,
   normalizeUserPermissions,
 } from '@/types/user';
+import { finalizeUserPermissions } from '@/lib/user-permissions-policy';
 
 const FILE = join(process.cwd(), 'data', 'users.json');
 
@@ -146,7 +147,7 @@ export async function createUser(input: {
     username,
     passwordHash: input.passwordHash,
     status: input.status ?? 'pending',
-    permissions: normalizeUserPermissions(input.permissions ?? DEFAULT_USER_PERMISSIONS),
+    permissions: finalizeUserPermissions(input.permissions ?? DEFAULT_USER_PERMISSIONS),
     createdAt: now,
   };
 
@@ -184,7 +185,7 @@ export async function updateUser(
     ...current,
     ...patch,
     ...(patch.permissions
-      ? { permissions: normalizeUserPermissions(patch.permissions) }
+      ? { permissions: finalizeUserPermissions(patch.permissions) }
       : {}),
     updatedAt: new Date().toISOString(),
   };

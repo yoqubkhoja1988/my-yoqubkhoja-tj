@@ -1,6 +1,10 @@
 'use client';
 
 import { ALL_SECTION_SLUGS } from '@/lib/activity-directions';
+import {
+  getAccountantPresetPermissions,
+  isInflatedSectionAccess,
+} from '@/lib/user-permissions-policy';
 import { AdminUsersOverview } from '@/lib/user-presence';
 import { Organization } from '@/types/organization';
 import { PublicUser, UserPermissions, UserStatus, normalizeUserPermissions } from '@/types/user';
@@ -137,6 +141,15 @@ function PermissionsEditor({
     });
   }
 
+  function applyAccountantPreset() {
+    onChange(
+      getAccountantPresetPermissions({
+        canAccessProjects: permissions.canAccessProjects,
+        organizationIds: permissions.organizationIds,
+      })
+    );
+  }
+
   return (
     <>
       <label className="mb-4 flex items-center gap-2 text-sm">
@@ -172,6 +185,20 @@ function PermissionsEditor({
 
       <div className="mb-4">
         <h4 className="mb-2 text-sm font-bold">{t('adminUsersPickSections')}</h4>
+        <div className="mb-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn-secondary text-xs"
+            onClick={applyAccountantPreset}
+          >
+            📊 {t('adminUsersAccountantPreset')}
+          </button>
+        </div>
+        {isInflatedSectionAccess(permissions) && (
+          <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+            {t('adminUsersInflatedSectionsWarning')}
+          </p>
+        )}
         <div className="space-y-3 rounded-lg border border-[var(--border)] p-3">
           <button
             type="button"
