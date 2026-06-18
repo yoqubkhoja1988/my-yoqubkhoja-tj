@@ -448,7 +448,7 @@ export interface ParentFoodPaymentSettings {
   dailyFoodRateSomoni: number;
   /** Рӯзҳои ғизодиҳӣ дар моҳ (меъёри корӣ) */
   mealDaysPerMonth: number;
-  /** Ҳисоби даромад — 4 12 120 */
+  /** Ҳисоби даромад — 4 42 300 */
   revenueAccountCode: string;
   /** Ҳисоби махсулоти хурока — 1 31 214 */
   inventoryAccountCode: string;

@@ -5,6 +5,7 @@ import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocume
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import {
   BUDGET_ACCOUNTING_RULES,
+  BUDGET_OPERATION_CATEGORIES,
   BUDGET_OPERATION_TEMPLATES,
   budgetAccountingFileName,
   computeAccountTurnover,
@@ -94,7 +95,9 @@ export default function FinanceBudgetAccountingPanel({
   const [syntheticOnly, setSyntheticOnly] = useState(true);
   const [draft, setDraft] = useState<BudgetAccountingJournalEntry | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(
-    BUDGET_OPERATION_TEMPLATES[0]?.id ?? ''
+    BUDGET_OPERATION_TEMPLATES.find((item) => item.category === 'memorial')?.id ??
+      BUDGET_OPERATION_TEMPLATES[0]?.id ??
+      ''
   );
   const [templateAmount, setTemplateAmount] = useState('');
   const [saving, setSaving] = useState(false);
@@ -195,6 +198,9 @@ export default function FinanceBudgetAccountingPanel({
     entry.operationTemplateId = template.id;
     entry.description = t(template.labelKey);
     entry.documentType = t(template.documentTypeKey);
+    if (template.instructionRef) {
+      entry.description = `${entry.description} (${template.instructionRef})`;
+    }
     entry.lines = template.buildLines(amount);
     setDraft(entry);
   }
@@ -416,11 +422,21 @@ export default function FinanceBudgetAccountingPanel({
                     onChange={(event) => setSelectedTemplate(event.target.value)}
                     className="input-field min-w-[14rem] text-xs"
                   >
-                    {BUDGET_OPERATION_TEMPLATES.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {t(item.labelKey)}
-                      </option>
-                    ))}
+                    {BUDGET_OPERATION_CATEGORIES.map((category) => {
+                      const items = BUDGET_OPERATION_TEMPLATES.filter(
+                        (item) => item.category === category.id
+                      );
+                      if (items.length === 0) return null;
+                      return (
+                        <optgroup key={category.id} label={t(category.labelKey)}>
+                          {items.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {t(item.labelKey)} — {t(item.descriptionKey)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })}
                   </select>
                 </label>
                 <label className="space-y-1 text-xs">

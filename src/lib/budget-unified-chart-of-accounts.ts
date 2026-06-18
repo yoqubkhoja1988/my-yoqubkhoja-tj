@@ -80,19 +80,38 @@ export const NYAH_ACCOUNT_CLASSES: NyahAccountClass[] = [
 /** Ҳисобҳои пурраи НЯҲ */
 export const NYAH_ACCOUNTS: NyahAccount[] = NYAH_ACCOUNTS_FULL;
 
-export const NYAH_PARENT_FOOD_REVENUE_ACCOUNT = '4 12 120';
-export const NYAH_PARENT_MEMBERSHIP_REVENUE_ACCOUNT = '4 12 150';
+/** Даромад аз фурӯши мол/хизматрасонии муассисаҳои ғайрибозаргонӣ (Фармоиш №173, мисолҳои 4 42 300) */
+export const NYAH_EXTRA_BUDGET_REVENUE_ACCOUNT = '4 42 300';
+export const NYAH_PARENT_FOOD_REVENUE_ACCOUNT = NYAH_EXTRA_BUDGET_REVENUE_ACCOUNT;
+export const NYAH_PARENT_MEMBERSHIP_REVENUE_ACCOUNT = NYAH_EXTRA_BUDGET_REVENUE_ACCOUNT;
+export const NYAH_PRODUCT_SALE_REVENUE_ACCOUNT = NYAH_EXTRA_BUDGET_REVENUE_ACCOUNT;
 export const NYAH_FOOD_INVENTORY_ACCOUNT = '1 31 214';
 export const NYAH_CASH_ACCOUNT = '1 11 110';
 export const NYAH_BANK_ACCOUNT = '1 11 254';
 export const NYAH_FOOD_EXPENSE_ACCOUNT = '5 12 150';
-export const NYAH_CURRENT_EXPENSE_ACCOUNT = '5 12 200';
-export const NYAH_PARENT_SETTLEMENT_BUDGET = '2 11 110';
-export const NYAH_PARENT_SETTLEMENT_EXTRA = '2 11 120';
+export const NYAH_PAYROLL_EXPENSE_ACCOUNT = '5 10 100';
+export const NYAH_PAYROLL_PAYABLE_ACCOUNT = '2 11 510';
+export const NYAH_SUPPLIER_PAYABLE_ACCOUNT = '2 11 110';
+export const NYAH_DEPRECIATION_EXPENSE_ACCOUNT = '5 13 100';
+export const NYAH_ACCUMULATED_DEPRECIATION_ACCOUNT = '1 42 300';
+export const NYAH_BUDGET_DEFERRED_REVENUE_LOCAL = '2 11 972';
+export const NYAH_TREASURY_INTERNAL_LIABILITY = '2 11 950';
+export const NYAH_GRANT_REVENUE_ACCOUNT = '4 18 310';
+export const NYAH_SOCIAL_TAX_PAYABLE_ACCOUNT = '2 11 660';
+export const NYAH_INCOME_TAX_PAYABLE_ACCOUNT = '2 11 670';
+export const NYAH_CONSUMABLES_EXPENSE_ACCOUNT = '5 12 000';
+export const NYAH_COST_OF_GOODS_SOLD_ACCOUNT = '5 12 180';
+export const NYAH_FINISHED_PRODUCTS_ACCOUNT = '1 31 230';
+export const NYAH_CONSUMABLES_INVENTORY_ACCOUNT = '1 31 212';
+export const NYAH_FIXED_ASSETS_ACCOUNT = '1 41 300';
 
 export function findNyahAccount(code: string): NyahAccount | undefined {
   const normalized = normalizeAccountCode(code);
   return NYAH_ACCOUNTS.find((item) => normalizeAccountCode(item.code) === normalized);
+}
+
+export function isValidNyahAccountCode(code: string): boolean {
+  return findNyahAccount(code) !== undefined;
 }
 
 export function normalizeAccountCode(code: string): string {

@@ -1,14 +1,21 @@
 import {
   NYAH_BANK_ACCOUNT,
+  NYAH_BUDGET_DEFERRED_REVENUE_LOCAL,
   NYAH_CASH_ACCOUNT,
-  NYAH_CURRENT_EXPENSE_ACCOUNT,
-  NYAH_FOOD_EXPENSE_ACCOUNT,
-  NYAH_FOOD_INVENTORY_ACCOUNT,
+  NYAH_GRANT_REVENUE_ACCOUNT,
   NYAH_PARENT_FOOD_REVENUE_ACCOUNT,
   NYAH_PARENT_MEMBERSHIP_REVENUE_ACCOUNT,
-  NYAH_PARENT_SETTLEMENT_BUDGET,
+  NYAH_PAYROLL_PAYABLE_ACCOUNT,
+  NYAH_PRODUCT_SALE_REVENUE_ACCOUNT,
+  NYAH_SUPPLIER_PAYABLE_ACCOUNT,
+  NYAH_TREASURY_INTERNAL_LIABILITY,
+  isValidNyahAccountCode,
   normalizeAccountCode,
 } from '@/lib/budget-unified-chart-of-accounts';
+import {
+  BUDGET_MEMORIAL_ORDER_RULES,
+  BUDGET_MEMORIAL_ORDER_TEMPLATES,
+} from '@/lib/budget-memorial-orders';
 import { isBudgetFundedOrganization } from '@/lib/organization-scope';
 import { formatAmount, parseAmount } from '@/lib/staff-table-calc';
 import {
@@ -22,8 +29,9 @@ export const BUDGET_ACCOUNTING_RULES = [
   'Ҳар амалиёт бояд бо сабтҳои дутарафа (дебет = кредит) ба қайд гирифта шавад.',
   'Ҷадвали амалиётҳо мувофиқи шакли мемориалӣ тартиб дода мешавад: № сабт, сана, ҳуҷҷат, мундариҷа, дебет, кредит, маблағ.',
   'Ҳисобҳои синфи 1 ва 5 — актив; синфи 2, 3 ва 4 — пассив (мувофиқи НЯҲ).',
-  'Маблағҳои махсуси ғайрибуҷетӣ бояд ҷудогона дар ҳисобҳои 2 11 120 ва 4 12 120 қайд шаванд.',
+  'Маблағҳои ғайрибуҷетӣ аз волидон дар ҳисоби 4 42 300 (даромад аз муассисаҳои ғайрибозаргонӣ) ҷудогона қайд мешаванд.',
   'Ҳисоботҳо мувофиқи шаклҳои №1–№6 (Дастурамал №204) тартиб дода мешаванд.',
+  ...BUDGET_MEMORIAL_ORDER_RULES,
 ] as const;
 
 export function supportsBudgetAccounting(organizationId?: string): boolean {
@@ -74,23 +82,36 @@ export function formatEntryDocument(entry: BudgetAccountingJournalEntry): string
   return parts.join(' ');
 }
 
+export type BudgetOperationCategory =
+  | 'memorial'
+  | 'payment'
+  | 'cash'
+  | 'invoice'
+  | 'budget-notice'
+  | 'bank';
+
 export type BudgetOperationTemplate = {
   id: string;
   labelKey: string;
   descriptionKey: string;
   documentTypeKey: string;
+  category: BudgetOperationCategory;
+  instructionRef?: string;
   buildLines: (amount: number) => BudgetAccountingJournalLine[];
 };
 
-export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
+/** Амалиётҳои молиявӣ бо ҳуҷҷатҳои асосии мувофиқ (ғайр аз мемориалӣ-фармон) */
+export const BUDGET_CASH_PAYMENT_TEMPLATES: BudgetOperationTemplate[] = [
   {
     id: 'budget-receipt',
     labelKey: 'nyahOpBudgetReceipt',
     descriptionKey: 'nyahOpBudgetReceiptDesc',
     documentTypeKey: 'nyahDocBudgetNotice',
+    category: 'budget-notice',
+    instructionRef: 'Дастурамал №204, ҳ. 236–240',
     buildLines: (amount) => [
       { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
-      { accountCode: '4 19 000', debit: 0, credit: amount },
+      { accountCode: NYAH_BUDGET_DEFERRED_REVENUE_LOCAL, debit: 0, credit: amount },
     ],
   },
   {
@@ -98,16 +119,20 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     labelKey: 'nyahOpTreasuryFinancing',
     descriptionKey: 'nyahOpTreasuryFinancingDesc',
     documentTypeKey: 'nyahDocBudgetNotice',
+    category: 'budget-notice',
+    instructionRef: 'Дастурамал №204, ҳ. 249–254',
     buildLines: (amount) => [
-      { accountCode: '1 11 254', debit: amount, credit: 0 },
-      { accountCode: '2 11 950', debit: 0, credit: amount },
+      { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
+      { accountCode: NYAH_TREASURY_INTERNAL_LIABILITY, debit: 0, credit: amount },
     ],
   },
   {
     id: 'parent-membership-receipt',
     labelKey: 'nyahOpParentMembershipReceipt',
     descriptionKey: 'nyahOpParentMembershipReceiptDesc',
-    documentTypeKey: 'nyahDocPaymentOrder',
+    documentTypeKey: 'nyahDocBankStatement',
+    category: 'bank',
+    instructionRef: 'Фармоиш №173, ҳ. 8177–8189',
     buildLines: (amount) => [
       { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_PARENT_MEMBERSHIP_REVENUE_ACCOUNT, debit: 0, credit: amount },
@@ -117,7 +142,9 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     id: 'parent-food-receipt',
     labelKey: 'nyahOpParentFoodReceipt',
     descriptionKey: 'nyahOpParentFoodReceiptDesc',
-    documentTypeKey: 'nyahDocPaymentOrder',
+    documentTypeKey: 'nyahDocBankStatement',
+    category: 'bank',
+    instructionRef: 'Фармоиш №173, ҳ. 8177–8189',
     buildLines: (amount) => [
       { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_PARENT_FOOD_REVENUE_ACCOUNT, debit: 0, credit: amount },
@@ -127,40 +154,24 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     id: 'food-purchase',
     labelKey: 'nyahOpFoodPurchase',
     descriptionKey: 'nyahOpFoodPurchaseDesc',
-    documentTypeKey: 'nyahDocInvoice',
+    documentTypeKey: 'nyahDocPaymentOrder',
+    category: 'payment',
+    instructionRef: 'Фармоиш №173, ҳ. 8247–8249',
     buildLines: (amount) => [
-      { accountCode: NYAH_FOOD_INVENTORY_ACCOUNT, debit: amount, credit: 0 },
+      { accountCode: NYAH_SUPPLIER_PAYABLE_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_BANK_ACCOUNT, debit: 0, credit: amount },
-    ],
-  },
-  {
-    id: 'food-consumption',
-    labelKey: 'nyahOpFoodConsumption',
-    descriptionKey: 'nyahOpFoodConsumptionDesc',
-    documentTypeKey: 'nyahDocRequirement',
-    buildLines: (amount) => [
-      { accountCode: NYAH_FOOD_EXPENSE_ACCOUNT, debit: amount, credit: 0 },
-      { accountCode: NYAH_FOOD_INVENTORY_ACCOUNT, debit: 0, credit: amount },
     ],
   },
   {
     id: 'material-receipt',
     labelKey: 'nyahOpMaterialReceipt',
     descriptionKey: 'nyahOpMaterialReceiptDesc',
-    documentTypeKey: 'nyahDocInvoice',
+    documentTypeKey: 'nyahDocPaymentOrder',
+    category: 'payment',
+    instructionRef: 'Фармоиш №173, ҳ. 8247–8249',
     buildLines: (amount) => [
-      { accountCode: '1 31 212', debit: amount, credit: 0 },
+      { accountCode: NYAH_SUPPLIER_PAYABLE_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_BANK_ACCOUNT, debit: 0, credit: amount },
-    ],
-  },
-  {
-    id: 'payroll-accrual',
-    labelKey: 'nyahOpPayrollAccrual',
-    descriptionKey: 'nyahOpPayrollAccrualDesc',
-    documentTypeKey: 'nyahDocPayroll',
-    buildLines: (amount) => [
-      { accountCode: '5 12 110', debit: amount, credit: 0 },
-      { accountCode: NYAH_PARENT_SETTLEMENT_BUDGET, debit: 0, credit: amount },
     ],
   },
   {
@@ -168,8 +179,10 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     labelKey: 'nyahOpPayrollPayment',
     descriptionKey: 'nyahOpPayrollPaymentDesc',
     documentTypeKey: 'nyahDocPaymentOrder',
+    category: 'payment',
+    instructionRef: 'Фармоиш №173, ҳ. 9654–9655',
     buildLines: (amount) => [
-      { accountCode: NYAH_PARENT_SETTLEMENT_BUDGET, debit: amount, credit: 0 },
+      { accountCode: NYAH_PAYROLL_PAYABLE_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_BANK_ACCOUNT, debit: 0, credit: amount },
     ],
   },
@@ -178,9 +191,11 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     labelKey: 'nyahOpGrantReceipt',
     descriptionKey: 'nyahOpGrantReceiptDesc',
     documentTypeKey: 'nyahDocBudgetNotice',
+    category: 'budget-notice',
+    instructionRef: 'Фармоиш №173, ҳ. 8236–8237',
     buildLines: (amount) => [
       { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
-      { accountCode: '4 18 310', debit: 0, credit: amount },
+      { accountCode: NYAH_GRANT_REVENUE_ACCOUNT, debit: 0, credit: amount },
     ],
   },
   {
@@ -188,9 +203,11 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     labelKey: 'nyahOpTaxPayment',
     descriptionKey: 'nyahOpTaxPaymentDesc',
     documentTypeKey: 'nyahDocPaymentOrder',
+    category: 'payment',
+    instructionRef: 'Дастурамал №204, ҳ. 272–274',
     buildLines: (amount) => [
-      { accountCode: '5 22 540', debit: amount, credit: 0 },
-      { accountCode: '2 11 690', debit: 0, credit: amount },
+      { accountCode: '2 11 690', debit: amount, credit: 0 },
+      { accountCode: NYAH_BANK_ACCOUNT, debit: 0, credit: amount },
     ],
   },
   {
@@ -198,6 +215,7 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     labelKey: 'nyahOpCashToBank',
     descriptionKey: 'nyahOpCashToBankDesc',
     documentTypeKey: 'nyahDocCashOrder',
+    category: 'cash',
     buildLines: (amount) => [
       { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_CASH_ACCOUNT, debit: 0, credit: amount },
@@ -208,6 +226,7 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     labelKey: 'nyahOpBankToCash',
     descriptionKey: 'nyahOpBankToCashDesc',
     documentTypeKey: 'nyahDocCashOrder',
+    category: 'cash',
     buildLines: (amount) => [
       { accountCode: NYAH_CASH_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_BANK_ACCOUNT, debit: 0, credit: amount },
@@ -217,33 +236,49 @@ export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
     id: 'fixed-asset-purchase',
     labelKey: 'nyahOpFixedAssetPurchase',
     descriptionKey: 'nyahOpFixedAssetPurchaseDesc',
-    documentTypeKey: 'nyahDocInvoice',
+    documentTypeKey: 'nyahDocPaymentOrder',
+    category: 'payment',
+    instructionRef: 'Фармоиш №173, ҳ. 8247–8249',
     buildLines: (amount) => [
-      { accountCode: '1 41 300', debit: amount, credit: 0 },
+      { accountCode: NYAH_SUPPLIER_PAYABLE_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_BANK_ACCOUNT, debit: 0, credit: amount },
-    ],
-  },
-  {
-    id: 'depreciation',
-    labelKey: 'nyahOpDepreciation',
-    descriptionKey: 'nyahOpDepreciationDesc',
-    documentTypeKey: 'nyahDocMemorialOrder',
-    buildLines: (amount) => [
-      { accountCode: NYAH_CURRENT_EXPENSE_ACCOUNT, debit: amount, credit: 0 },
-      { accountCode: '1 42 300', debit: 0, credit: amount },
     ],
   },
   {
     id: 'product-sale',
     labelKey: 'nyahOpProductSale',
     descriptionKey: 'nyahOpProductSaleDesc',
-    documentTypeKey: 'nyahDocInvoice',
+    documentTypeKey: 'nyahDocBankStatement',
+    category: 'bank',
+    instructionRef: 'Фармоиш №173, ҳ. 9739–9740',
     buildLines: (amount) => [
       { accountCode: NYAH_BANK_ACCOUNT, debit: amount, credit: 0 },
-      { accountCode: '4 12 110', debit: 0, credit: amount },
+      { accountCode: NYAH_PRODUCT_SALE_REVENUE_ACCOUNT, debit: 0, credit: amount },
     ],
   },
 ];
+
+export const BUDGET_OPERATION_TEMPLATES: BudgetOperationTemplate[] = [
+  ...BUDGET_MEMORIAL_ORDER_TEMPLATES,
+  ...BUDGET_CASH_PAYMENT_TEMPLATES,
+];
+
+export const BUDGET_OPERATION_CATEGORIES: {
+  id: BudgetOperationCategory;
+  labelKey: string;
+}[] = [
+  { id: 'memorial', labelKey: 'nyahCategoryMemorial' },
+  { id: 'payment', labelKey: 'nyahCategoryPayment' },
+  { id: 'cash', labelKey: 'nyahCategoryCash' },
+  { id: 'bank', labelKey: 'nyahCategoryBank' },
+  { id: 'budget-notice', labelKey: 'nyahCategoryBudgetNotice' },
+];
+
+export function templatesByCategory(
+  category: BudgetOperationCategory
+): BudgetOperationTemplate[] {
+  return BUDGET_OPERATION_TEMPLATES.filter((item) => item.category === category);
+}
 
 export function defaultBudgetAccountingSettings(): BudgetAccountingSettings {
   const year = new Date().getFullYear();
@@ -283,6 +318,7 @@ export function validateJournalEntry(entry: BudgetAccountingJournalEntry): strin
   let creditTotal = 0;
   for (const line of entry.lines) {
     if (!line.accountCode?.trim()) return 'nyahErrorAccountRequired';
+    if (!isValidNyahAccountCode(line.accountCode)) return 'nyahErrorUnknownAccount';
     if (line.debit < 0 || line.credit < 0) return 'nyahErrorNegativeAmount';
     if (line.debit > 0 && line.credit > 0) return 'nyahErrorBothSides';
     if (line.debit === 0 && line.credit === 0) return 'nyahErrorZeroLine';
@@ -374,5 +410,11 @@ export function budgetAccountingFileName(fiscalYear: string): string {
 }
 
 export function findOperationTemplate(id: string): BudgetOperationTemplate | undefined {
-  return BUDGET_OPERATION_TEMPLATES.find((item) => item.id === id);
+  const legacyIds: Record<string, string> = {
+    'payroll-accrual': 'mo-payroll-accrual',
+    'food-consumption': 'mo-food-consumption',
+    depreciation: 'mo-depreciation',
+  };
+  const resolvedId = legacyIds[id] ?? id;
+  return BUDGET_OPERATION_TEMPLATES.find((item) => item.id === resolvedId);
 }
