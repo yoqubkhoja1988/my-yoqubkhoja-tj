@@ -26,6 +26,7 @@ import {
   NyahAccountClassId,
   accountsByClass,
   findNyahAccount,
+  isSyntheticNyahAccount,
   resolveNyahAccountName,
   searchNyahAccounts,
 } from '@/lib/budget-unified-chart-of-accounts';
@@ -90,6 +91,7 @@ export default function FinanceBudgetAccountingPanel({
   const [tab, setTab] = useState<TabId>('chart');
   const [classFilter, setClassFilter] = useState<NyahAccountClassId | ''>('');
   const [accountSearch, setAccountSearch] = useState('');
+  const [syntheticOnly, setSyntheticOnly] = useState(true);
   const [draft, setDraft] = useState<BudgetAccountingJournalEntry | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState(
     BUDGET_OPERATION_TEMPLATES[0]?.id ?? ''
@@ -105,11 +107,14 @@ export default function FinanceBudgetAccountingPanel({
   });
 
   const filteredAccounts = useMemo(() => {
-    const byClass = accountsByClass(classFilter || undefined);
-    if (!accountSearch.trim()) return byClass;
+    let list = accountsByClass(classFilter || undefined);
+    if (syntheticOnly && !accountSearch.trim()) {
+      list = list.filter((item) => isSyntheticNyahAccount(item.code));
+    }
+    if (!accountSearch.trim()) return list;
     const codes = new Set(searchNyahAccounts(accountSearch).map((a) => a.code));
-    return byClass.filter((item) => codes.has(item.code));
-  }, [classFilter, accountSearch]);
+    return list.filter((item) => codes.has(item.code));
+  }, [classFilter, accountSearch, syntheticOnly]);
 
   const turnover = useMemo(
     () => computeAccountTurnover(entries, settings.fiscalYear),
@@ -350,6 +355,14 @@ export default function FinanceBudgetAccountingPanel({
               placeholder={t('nyahSearchAccounts')}
               className="input-field min-w-[12rem] text-xs"
             />
+            <label className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+              <input
+                type="checkbox"
+                checked={syntheticOnly}
+                onChange={(event) => setSyntheticOnly(event.target.checked)}
+              />
+              {t('nyahSyntheticOnly')}
+            </label>
           </div>
           <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
             <table className="data-table text-xs">
