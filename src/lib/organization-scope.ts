@@ -34,6 +34,14 @@ export function isFoodSafetyCenterOrganization(organizationId?: string): boolean
   return organizationId === FOOD_SAFETY_CENTER_ID;
 }
 
+/** Ташкилотҳои аз ҳисоби буҷети давлат маблағгузоришаванда */
+export function isBudgetFundedOrganization(organizationId?: string): boolean {
+  return (
+    isKindergartenOrganization(organizationId) ||
+    isFoodSafetyCenterOrganization(organizationId)
+  );
+}
+
 /** Логотип дар сарлавҳаи ҳуҷҷатҳои расмӣ (чоп, PDF, Word). */
 export function showOrganizationDocumentLogo(organizationId?: string): boolean {
   return (

@@ -19,6 +19,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { analyzeFinance } from '@/lib/finance-analytics';
 import { supportsLocalPayrollRequirement } from '@/lib/finance-local-payroll-requirement';
+import { supportsParentMembershipFee } from '@/lib/finance-parent-membership-fee';
+import { supportsParentFoodPayment } from '@/lib/finance-parent-food-payment';
+import { supportsBudgetAccounting } from '@/lib/budget-accounting-journal';
 import { analyzeStaffing } from '@/lib/staff-analytics';
 import { Organization } from '@/types/organization';
 import FinanceBudgetPanel from './FinanceBudgetPanel';
@@ -30,6 +33,9 @@ import FinancePayrollPanel from './FinancePayrollPanel';
 import FinanceLaborLeavePanel from './FinanceLaborLeavePanel';
 import FinanceMaternityLeavePanel from './FinanceMaternityLeavePanel';
 import FinanceSickLeavePanel from './FinanceSickLeavePanel';
+import FinanceParentMembershipFeePanel from './FinanceParentMembershipFeePanel';
+import FinanceParentFoodPaymentPanel from './FinanceParentFoodPaymentPanel';
+import FinanceBudgetAccountingPanel from './FinanceBudgetAccountingPanel';
 import FinanceAllowanceAdjustmentPanel from './FinanceAllowanceAdjustmentPanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
 import OrganizationContractsPanel from './OrganizationContractsPanel';
@@ -956,6 +962,42 @@ export default function EditableSectionContent({
           financeContent={displayData}
           staffContent={liveStaffContent}
           onSickLeaveSaved={setPayrollLedgerMonth}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' &&
+        activeFinanceSection === 'finance-parent-membership-fee' &&
+        supportsParentMembershipFee(organizationId) && (
+        <FinanceParentMembershipFeePanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          staffContent={liveStaffContent}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' &&
+        activeFinanceSection === 'finance-parent-food-payment' &&
+        supportsParentFoodPayment(organizationId) && (
+        <FinanceParentFoodPaymentPanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          staffContent={liveStaffContent}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' &&
+        activeFinanceSection === 'finance-budget-accounting' &&
+        supportsBudgetAccounting(organizationId) && (
+        <FinanceBudgetAccountingPanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          staffContent={liveStaffContent}
           onUpdate={setData}
         />
       )}

@@ -99,6 +99,28 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         ? { salaryAllowanceAdjustments: body.salaryAllowanceAdjustments }
         : {}),
       ...(body.laborLeaves !== undefined ? { laborLeaves: body.laborLeaves } : {}),
+      ...(body.localPayrollRequirementSettings !== undefined
+        ? { localPayrollRequirementSettings: body.localPayrollRequirementSettings }
+        : {}),
+      ...(body.parentMembershipFeeSettings !== undefined
+        ? { parentMembershipFeeSettings: body.parentMembershipFeeSettings }
+        : {}),
+      ...(body.preschoolEnrollees !== undefined ? { preschoolEnrollees: body.preschoolEnrollees } : {}),
+      ...(body.parentMembershipFeePayments !== undefined
+        ? { parentMembershipFeePayments: body.parentMembershipFeePayments }
+        : {}),
+      ...(body.parentFoodPaymentSettings !== undefined
+        ? { parentFoodPaymentSettings: body.parentFoodPaymentSettings }
+        : {}),
+      ...(body.parentFoodPayments !== undefined
+        ? { parentFoodPayments: body.parentFoodPayments }
+        : {}),
+      ...(body.budgetAccountingSettings !== undefined
+        ? { budgetAccountingSettings: body.budgetAccountingSettings }
+        : {}),
+      ...(body.budgetAccountingJournal !== undefined
+        ? { budgetAccountingJournal: body.budgetAccountingJournal }
+        : {}),
       ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
       ...(body.contractCounterparties !== undefined
         ? { contractCounterparties: body.contractCounterparties }

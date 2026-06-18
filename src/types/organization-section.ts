@@ -392,6 +392,107 @@ export interface OrganizationSectionContent {
   reportHeader?: OrganizationReportHeader;
   /** Танзимоти талаботи музди меҳнат ба раёсати молияи маҳал */
   localPayrollRequirementSettings?: LocalPayrollRequirementMonthSettings[];
+  /** Аъзо ҳаққии волидон (кумитаи волидон) — МДТМ */
+  parentMembershipFeeSettings?: ParentMembershipFeeSettings;
+  preschoolEnrollees?: PreschoolEnrollee[];
+  parentMembershipFeePayments?: ParentMembershipFeePayment[];
+  /** Пардохти хурока аз ҳисоби волидон — МДТМ */
+  parentFoodPaymentSettings?: ParentFoodPaymentSettings;
+  parentFoodPayments?: ParentFoodPayment[];
+  /** НЯҲ — сабтҳои ҳисобдорӣ барои ташкилотҳои буҷетӣ */
+  budgetAccountingSettings?: BudgetAccountingSettings;
+  budgetAccountingJournal?: BudgetAccountingJournalEntry[];
+}
+
+export type ParentMembershipFeePeriodKind = 'monthly' | 'annual';
+
+export interface ParentMembershipFeeSettings {
+  schoolYear: string;
+  periodKind: ParentMembershipFeePeriodKind;
+  /** Маблағи аъзо ҳаққ барои як тарбиятгиранда (сомонӣ) */
+  feePerChildSomoni: number;
+  committeeDecisionNumber?: string;
+  committeeDecisionDate?: string;
+  committeeChair?: string;
+  notes?: string;
+}
+
+export interface PreschoolEnrollee {
+  id: string;
+  groupName: string;
+  childFullName: string;
+  parentFullName: string;
+  parentPhone?: string;
+  educatorName?: string;
+  educatorEmployeeId?: string;
+  enrolledAt?: string;
+  active: boolean;
+}
+
+export type ParentMembershipFeePaymentStatus = 'pending' | 'paid' | 'exempt';
+
+export interface ParentMembershipFeePayment {
+  id: string;
+  enrolleeId: string;
+  period: string;
+  amount: number;
+  status: ParentMembershipFeePaymentStatus;
+  paidAt?: string;
+  receiptNumber?: string;
+  notes?: string;
+}
+
+export interface ParentFoodPaymentSettings {
+  schoolYear: string;
+  /** Нархи хурок барои як тарбиятгиранда дар як рӯз (сомонӣ) */
+  dailyFoodRateSomoni: number;
+  /** Рӯзҳои ғизодиҳӣ дар моҳ (меъёри корӣ) */
+  mealDaysPerMonth: number;
+  /** Ҳисоби даромад — 4 12 120 */
+  revenueAccountCode: string;
+  /** Ҳисоби махсулоти хурока — 1 31 214 */
+  inventoryAccountCode: string;
+  tariffDecisionNumber?: string;
+  tariffDecisionDate?: string;
+  notes?: string;
+}
+
+export type ParentFoodPaymentStatus = 'pending' | 'paid' | 'exempt';
+
+export interface ParentFoodPayment {
+  id: string;
+  enrolleeId: string;
+  period: string;
+  amount: number;
+  mealDays: number;
+  status: ParentFoodPaymentStatus;
+  paidAt?: string;
+  receiptNumber?: string;
+  notes?: string;
+}
+
+export interface BudgetAccountingSettings {
+  fiscalYear: string;
+  nextEntryNumber?: number;
+}
+
+export interface BudgetAccountingJournalLine {
+  accountCode: string;
+  debit: number;
+  credit: number;
+  note?: string;
+}
+
+export interface BudgetAccountingJournalEntry {
+  id: string;
+  entryNumber: number;
+  date: string;
+  description: string;
+  operationTemplateId?: string;
+  documentType?: string;
+  documentNumber?: string;
+  lines: BudgetAccountingJournalLine[];
+  createdAt?: string;
 }
 
 export interface LocalPayrollRequirementMonthSettings {

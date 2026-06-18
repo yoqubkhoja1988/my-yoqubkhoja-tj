@@ -2,6 +2,9 @@
 
 import { FinanceSectionId } from '@/lib/finance-section-nav';
 import { supportsLocalPayrollRequirement } from '@/lib/finance-local-payroll-requirement';
+import { supportsParentMembershipFee } from '@/lib/finance-parent-membership-fee';
+import { supportsParentFoodPayment } from '@/lib/finance-parent-food-payment';
+import { supportsBudgetAccounting } from '@/lib/budget-accounting-journal';
 import { useTranslations } from 'next-intl';
 
 const links: { id: FinanceSectionId; labelKey: string }[] = [
@@ -16,6 +19,9 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-labor-leave', labelKey: 'financeNavLaborLeave' },
   { id: 'finance-maternity-leave', labelKey: 'financeNavMaternityLeave' },
   { id: 'finance-sick-leave', labelKey: 'financeNavSickLeave' },
+  { id: 'finance-parent-membership-fee', labelKey: 'financeNavParentMembershipFee' },
+  { id: 'finance-parent-food-payment', labelKey: 'financeNavParentFoodPayment' },
+  { id: 'finance-budget-accounting', labelKey: 'financeNavBudgetAccounting' },
   { id: 'finance-contacts', labelKey: 'financeNavContacts' },
 ];
 
@@ -27,11 +33,33 @@ type Props = {
 
 export default function FinanceSectionNav({ activeId, onSelect, organizationId }: Props) {
   const t = useTranslations();
-  const visibleLinks = links.filter(
-    (link) =>
-      link.id !== 'finance-local-payroll-requirement' ||
-      supportsLocalPayrollRequirement(organizationId)
-  );
+  const visibleLinks = links.filter((link) => {
+    if (
+      link.id === 'finance-local-payroll-requirement' &&
+      !supportsLocalPayrollRequirement(organizationId)
+    ) {
+      return false;
+    }
+    if (
+      link.id === 'finance-parent-membership-fee' &&
+      !supportsParentMembershipFee(organizationId)
+    ) {
+      return false;
+    }
+    if (
+      link.id === 'finance-parent-food-payment' &&
+      !supportsParentFoodPayment(organizationId)
+    ) {
+      return false;
+    }
+    if (
+      link.id === 'finance-budget-accounting' &&
+      !supportsBudgetAccounting(organizationId)
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <nav className="flex flex-wrap gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] p-1">
