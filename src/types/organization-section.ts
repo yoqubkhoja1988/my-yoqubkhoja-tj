@@ -147,6 +147,8 @@ export interface PayrollLedgerEntry {
   fhea: string;
   kik: string;
   hhdt: string;
+  /** Дигар боздоштҳо */
+  otherDeductions?: string;
   tax: string;
 }
 
@@ -491,6 +493,8 @@ export interface BudgetAccountingJournalEntry {
   operationTemplateId?: string;
   documentType?: string;
   documentNumber?: string;
+  /** Моҳи китоби музди меҳнат (YYYY-MM) — барои гузарониши худкори мемориалӣ */
+  sourcePayrollMonth?: string;
   lines: BudgetAccountingJournalLine[];
   createdAt?: string;
 }

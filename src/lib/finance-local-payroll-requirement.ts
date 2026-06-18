@@ -1,6 +1,9 @@
 import {
-  collectSocialInsuranceBankPayments,
-} from '@/lib/finance-social-insurance-pay';
+  calcEmployerFhea25,
+  calcSanatoriumFromEmployerFhea,
+  roundPayrollMoney,
+} from '@/lib/payroll-accounting';
+import { collectSocialInsuranceBankPayments } from '@/lib/finance-social-insurance-pay';
 import {
   calcEntryTotals,
   formatLedgerAmount,
@@ -161,11 +164,9 @@ export function buildLocalPayrollRequirementDocumentTitle(monthLabel: string): s
   return `Оиди ҳисоби намудани музди маош, музди маоши додамешуда, ҷойи кори холи дар моҳи ${monthLabel}`;
 }
 const BANK_FEE_RATE = 0.005;
-const FHEA_EMPLOYER_RATE = 0.25;
-const SANATORIUM_RATE = 0.015;
 
 function roundMoney(value: number): number {
-  return Math.round(value * 100) / 100;
+  return roundPayrollMoney(value);
 }
 
 function normalizeDepartmentKey(value: string): string {
@@ -416,7 +417,7 @@ function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
   metrics.otherDeductions = roundMoney(metrics.otherDeductions);
   metrics.totalDeductions = roundMoney(metrics.totalDeductions);
   metrics.netPay = roundMoney(metrics.netPay);
-  metrics.fhea25 = roundMoney(metrics.actualAmount * FHEA_EMPLOYER_RATE);
+  metrics.fhea25 = calcEmployerFhea25(metrics.actualAmount);
   metrics.bankFeeAmount = roundMoney(metrics.netPay * BANK_FEE_RATE);
 }
 
@@ -545,7 +546,9 @@ function buildGroup(
 
   const bankFee = {
     actualAmount: employees.bankFeeAmount,
-    fhea25: roundMoney((employees.actualAmount + employees.bankFeeAmount) * FHEA_EMPLOYER_RATE - employees.fhea25),
+    fhea25: roundMoney(
+      calcEmployerFhea25(employees.actualAmount + employees.bankFeeAmount) - employees.fhea25
+    ),
   };
 
   const subtotal: LocalPayrollRequirementGroupMetrics = {
@@ -658,7 +661,7 @@ export function buildLocalPayrollRequirementDocument(
 
   const fhea25Total = grandTotal.fhea25;
   const payment2121Bank = roundMoney(budgetArticle2121Amount * BANK_FEE_RATE);
-  const payment2121Sanatorium = roundMoney(fhea25Total * SANATORIUM_RATE);
+  const payment2121Sanatorium = calcSanatoriumFromEmployerFhea(fhea25Total);
   const payment2121Fhea = roundMoney(
     fhea25Total - payment2121Sanatorium - payment2121Bank - budgetArticle2121Amount
   );

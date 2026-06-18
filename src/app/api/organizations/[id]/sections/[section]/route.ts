@@ -1,8 +1,11 @@
 import {
   affectedTimesheetMonths,
   hasStoredPayrollLedger,
-  syncPayrollLedgersAfterTimesheetChange,
 } from '@/lib/finance-payroll-ledger';
+import {
+  applyPayrollLedgerTimesheetSync,
+  rebuildPayrollMemorialJournalInFinance,
+} from '@/lib/payroll-accounting';
 import {
   getOrganizationSection,
   writeOrganizationSection,
@@ -11,8 +14,9 @@ import {
   monthsAffectedByLaborLeaves,
   syncTimesheetsWithLaborLeaves,
 } from '@/lib/staff-timesheet-leave-sync';
+import { mergeOrganizationSectionContent } from '@/lib/organization-section-merge';
 import { requireSession } from '@/lib/api-guard';
-import { validateOrganizationSectionIsolation } from '@/lib/organization-scope';
+import { validateOrganizationSectionIsolation, isBudgetFundedOrganization } from '@/lib/organization-scope';
 import {
   DEFAULT_FINANCIAL_REPORTS_CONTENT,
   isFinancialReportSection,
@@ -80,54 +84,71 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         : null;
 
     const previousFinance =
-      section === 'finance' && body.laborLeaves !== undefined
-        ? await getOrganizationSection(id, 'finance')
-        : null;
+      section === 'finance' ? await getOrganizationSection(id, 'finance') : null;
 
-    const saved = await writeOrganizationSection(id, storageSlug, {
-      summary: body.summary.trim(),
-      ...(body.tables ? { tables: body.tables } : {}),
-      ...(body.items ? { items: body.items } : {}),
-      ...(body.employees !== undefined ? { employees: body.employees } : {}),
-      ...(body.vacancyNotice !== undefined ? { vacancyNotice: body.vacancyNotice } : {}),
-      ...(body.timesheets !== undefined ? { timesheets: body.timesheets } : {}),
-      ...(body.payrollLedgers !== undefined ? { payrollLedgers: body.payrollLedgers } : {}),
-      ...(body.positionHandovers !== undefined
-        ? { positionHandovers: body.positionHandovers }
-        : {}),
-      ...(body.salaryAllowanceAdjustments !== undefined
-        ? { salaryAllowanceAdjustments: body.salaryAllowanceAdjustments }
-        : {}),
-      ...(body.laborLeaves !== undefined ? { laborLeaves: body.laborLeaves } : {}),
-      ...(body.localPayrollRequirementSettings !== undefined
-        ? { localPayrollRequirementSettings: body.localPayrollRequirementSettings }
-        : {}),
-      ...(body.parentMembershipFeeSettings !== undefined
-        ? { parentMembershipFeeSettings: body.parentMembershipFeeSettings }
-        : {}),
-      ...(body.preschoolEnrollees !== undefined ? { preschoolEnrollees: body.preschoolEnrollees } : {}),
-      ...(body.parentMembershipFeePayments !== undefined
-        ? { parentMembershipFeePayments: body.parentMembershipFeePayments }
-        : {}),
-      ...(body.parentFoodPaymentSettings !== undefined
-        ? { parentFoodPaymentSettings: body.parentFoodPaymentSettings }
-        : {}),
-      ...(body.parentFoodPayments !== undefined
-        ? { parentFoodPayments: body.parentFoodPayments }
-        : {}),
-      ...(body.budgetAccountingSettings !== undefined
-        ? { budgetAccountingSettings: body.budgetAccountingSettings }
-        : {}),
-      ...(body.budgetAccountingJournal !== undefined
-        ? { budgetAccountingJournal: body.budgetAccountingJournal }
-        : {}),
-      ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
-      ...(body.contractCounterparties !== undefined
-        ? { contractCounterparties: body.contractCounterparties }
-        : {}),
-      ...(body.serviceContracts !== undefined ? { serviceContracts: body.serviceContracts } : {}),
-      ...(body.serviceInvoices !== undefined ? { serviceInvoices: body.serviceInvoices } : {}),
-    });
+    const previousFinanceForLeaves =
+      section === 'finance' && body.laborLeaves !== undefined ? previousFinance : null;
+
+    let contentToSave: OrganizationSectionContent;
+
+    if (storageSlug === 'finance') {
+      contentToSave = mergeOrganizationSectionContent(previousFinance, body);
+      if (
+        isBudgetFundedOrganization(id) &&
+        contentToSave.payrollLedgers?.some((ledger) => ledger.preparedAt)
+      ) {
+        contentToSave = rebuildPayrollMemorialJournalInFinance(contentToSave);
+      }
+    } else {
+      contentToSave = {
+        summary: body.summary.trim(),
+        ...(body.tables ? { tables: body.tables } : {}),
+        ...(body.items ? { items: body.items } : {}),
+        ...(body.employees !== undefined ? { employees: body.employees } : {}),
+        ...(body.vacancyNotice !== undefined ? { vacancyNotice: body.vacancyNotice } : {}),
+        ...(body.timesheets !== undefined ? { timesheets: body.timesheets } : {}),
+        ...(body.payrollLedgers !== undefined ? { payrollLedgers: body.payrollLedgers } : {}),
+        ...(body.positionHandovers !== undefined
+          ? { positionHandovers: body.positionHandovers }
+          : {}),
+        ...(body.salaryAllowanceAdjustments !== undefined
+          ? { salaryAllowanceAdjustments: body.salaryAllowanceAdjustments }
+          : {}),
+        ...(body.laborLeaves !== undefined ? { laborLeaves: body.laborLeaves } : {}),
+        ...(body.localPayrollRequirementSettings !== undefined
+          ? { localPayrollRequirementSettings: body.localPayrollRequirementSettings }
+          : {}),
+        ...(body.parentMembershipFeeSettings !== undefined
+          ? { parentMembershipFeeSettings: body.parentMembershipFeeSettings }
+          : {}),
+        ...(body.preschoolEnrollees !== undefined
+          ? { preschoolEnrollees: body.preschoolEnrollees }
+          : {}),
+        ...(body.parentMembershipFeePayments !== undefined
+          ? { parentMembershipFeePayments: body.parentMembershipFeePayments }
+          : {}),
+        ...(body.parentFoodPaymentSettings !== undefined
+          ? { parentFoodPaymentSettings: body.parentFoodPaymentSettings }
+          : {}),
+        ...(body.parentFoodPayments !== undefined
+          ? { parentFoodPayments: body.parentFoodPayments }
+          : {}),
+        ...(body.budgetAccountingSettings !== undefined
+          ? { budgetAccountingSettings: body.budgetAccountingSettings }
+          : {}),
+        ...(body.budgetAccountingJournal !== undefined
+          ? { budgetAccountingJournal: body.budgetAccountingJournal }
+          : {}),
+        ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
+        ...(body.contractCounterparties !== undefined
+          ? { contractCounterparties: body.contractCounterparties }
+          : {}),
+        ...(body.serviceContracts !== undefined ? { serviceContracts: body.serviceContracts } : {}),
+        ...(body.serviceInvoices !== undefined ? { serviceInvoices: body.serviceInvoices } : {}),
+      };
+    }
+
+    const saved = await writeOrganizationSection(id, storageSlug, contentToSave);
 
     if (section === 'staff' && body.timesheets !== undefined) {
       const finance = await getOrganizationSection(id, 'finance');
@@ -137,21 +158,17 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         );
 
         if (months.length > 0) {
-          await writeOrganizationSection(id, 'finance', {
-            ...finance,
-            payrollLedgers: syncPayrollLedgersAfterTimesheetChange(
-              finance.payrollLedgers,
-              saved,
-              months,
-              {
-                organizationId: id,
-                positionHandovers: finance.positionHandovers,
-                salaryAllowanceAdjustments: finance.salaryAllowanceAdjustments,
-                laborLeaves: finance.laborLeaves,
-                payrollLedgers: finance.payrollLedgers,
-              }
-            ),
-          });
+          await writeOrganizationSection(
+            id,
+            'finance',
+            applyPayrollLedgerTimesheetSync(finance, saved, months, {
+              organizationId: id,
+              positionHandovers: finance.positionHandovers,
+              salaryAllowanceAdjustments: finance.salaryAllowanceAdjustments,
+              laborLeaves: finance.laborLeaves,
+              payrollLedgers: finance.payrollLedgers,
+            })
+          );
         }
       }
     }
@@ -161,7 +178,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       if (staff) {
         const months = monthsAffectedByLaborLeaves(
           body.laborLeaves,
-          previousFinance?.laborLeaves
+          previousFinanceForLeaves?.laborLeaves
         );
 
         if (months.length > 0) {
@@ -183,21 +200,17 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
           if (ledgerMonths.length > 0 && financeCurrent.payrollLedgers) {
             const refreshedStaff = (await getOrganizationSection(id, 'staff')) ?? staff;
-            await writeOrganizationSection(id, 'finance', {
-              ...financeCurrent,
-              payrollLedgers: syncPayrollLedgersAfterTimesheetChange(
-                financeCurrent.payrollLedgers,
-                refreshedStaff,
-                ledgerMonths,
-                {
-                  organizationId: id,
-                  positionHandovers: financeCurrent.positionHandovers,
-                  salaryAllowanceAdjustments: financeCurrent.salaryAllowanceAdjustments,
-                  laborLeaves: body.laborLeaves,
-                  payrollLedgers: financeCurrent.payrollLedgers,
-                }
-              ),
-            });
+            await writeOrganizationSection(
+              id,
+              'finance',
+              applyPayrollLedgerTimesheetSync(financeCurrent, refreshedStaff, ledgerMonths, {
+                organizationId: id,
+                positionHandovers: financeCurrent.positionHandovers,
+                salaryAllowanceAdjustments: financeCurrent.salaryAllowanceAdjustments,
+                laborLeaves: body.laborLeaves,
+                payrollLedgers: financeCurrent.payrollLedgers,
+              })
+            );
           }
         }
       }

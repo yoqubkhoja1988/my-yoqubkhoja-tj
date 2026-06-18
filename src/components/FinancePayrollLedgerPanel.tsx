@@ -1,6 +1,6 @@
 'use client';
 
-import { getDirectorSignatureLabel } from '@/lib/organization-scope';
+import { getDirectorSignatureLabel, isBudgetFundedOrganization } from '@/lib/organization-scope';
 import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import {
   calcEntryTotals,
@@ -10,10 +10,12 @@ import {
   payrollLedgerPersonGroupKey,
   recalculatePayrollLedger,
   removePayrollLedger,
+  persistPayrollLedgerInFinance,
+  removePayrollLedgerInFinance,
   resolveEmploymentWorkType,
   resolvePayrollLedgerMonth,
-  upsertPayrollLedger,
 } from '@/lib/finance-payroll-ledger';
+import { summarizePayrollLedger } from '@/lib/payroll-accounting';
 import {
   fetchOrganizationSection,
   updateOrganizationSection,
@@ -243,6 +245,13 @@ export default function FinancePayrollLedgerPanel({
     };
   }, [rows]);
 
+  const payrollAccountingSummary = useMemo(
+    () => summarizePayrollLedger(ledger),
+    [ledger]
+  );
+
+  const showEmployerCharges = isBudgetFundedOrganization(organizationId);
+
   function patchEntry(employeeId: string, field: keyof PayrollLedgerEntry, value: string) {
     setLedger((current) => ({
       ...current,
@@ -252,15 +261,31 @@ export default function FinancePayrollLedgerPanel({
     }));
   }
 
+  const [postingNotice, setPostingNotice] = useState('');
+
   async function persist(nextLedger: PayrollLedger) {
     setSaving(true);
     setError('');
+    setPostingNotice('');
 
-    const payload: OrganizationSectionContent = {
-      ...financeContent,
-      summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
-      payrollLedgers: upsertPayrollLedger(financeContent.payrollLedgers, nextLedger),
-    };
+    const { content: payload, postedCount, postingErrors } = persistPayrollLedgerInFinance(
+      {
+        ...financeContent,
+        summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
+      },
+      nextLedger,
+      organizationId
+    );
+
+    if (
+      isBudgetFundedOrganization(organizationId) &&
+      nextLedger.preparedAt &&
+      postingErrors.length > 0
+    ) {
+      setSaving(false);
+      setError(postingErrors.join('; '));
+      return;
+    }
 
     const saved = await updateOrganizationSection(organizationId, 'finance', payload);
     setSaving(false);
@@ -268,6 +293,28 @@ export default function FinancePayrollLedgerPanel({
     if (!saved) {
       setError(t('sectionSaveError'));
       return;
+    }
+
+    if (isBudgetFundedOrganization(organizationId) && nextLedger.preparedAt) {
+      if (postedCount > 0) {
+        setPostingNotice(
+          `Гузарониши мемориалӣ: ${postedCount} амалиёт ба ҷадвали НЯҲ сабт шуд.`
+        );
+      } else {
+        const journalCount =
+          saved.budgetAccountingJournal?.filter(
+            (entry) => entry.sourcePayrollMonth === nextLedger.month
+          ).length ?? 0;
+        if (journalCount > 0) {
+          setPostingNotice(
+            `Гузарониши мемориалӣ: ${journalCount} амалиёт ба ҷадвали НЯҲ сабт шуд.`
+          );
+        } else {
+          setPostingNotice(
+            'Китоб сабт шуд, аммо гузарониши мемориалӣ иҷро нашуд — маблағи ҳисобшуда сифр аст.'
+          );
+        }
+      }
     }
 
     onUpdate(saved);
@@ -324,11 +371,14 @@ export default function FinancePayrollLedgerPanel({
 
     if (hasStoredPayrollLedger(financeBase.payrollLedgers, month)) {
       setSaving(true);
-      const payload: OrganizationSectionContent = {
-        ...financeBase,
-        summary: financeBase.summary?.trim() || t('financeDefaultSummary'),
-        payrollLedgers: upsertPayrollLedger(financeBase.payrollLedgers, merged),
-      };
+      const { content: payload } = persistPayrollLedgerInFinance(
+        {
+          ...financeBase,
+          summary: financeBase.summary?.trim() || t('financeDefaultSummary'),
+        },
+        merged,
+        organizationId
+      );
       const saved = await updateOrganizationSection(organizationId, 'finance', payload);
       setSaving(false);
       if (!saved) {
@@ -346,11 +396,15 @@ export default function FinancePayrollLedgerPanel({
     if (!confirm(t('confirmDeletePayrollLedger'))) return;
 
     setSaving(true);
-    const payload: OrganizationSectionContent = {
-      ...financeContent,
-      summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
-      payrollLedgers: removePayrollLedger(financeContent.payrollLedgers, month),
-    };
+    const payload = removePayrollLedgerInFinance(
+      {
+        ...financeContent,
+        summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
+      },
+      month,
+      organizationId
+    );
+
     const saved = await updateOrganizationSection(organizationId, 'finance', payload);
     setSaving(false);
 
@@ -463,6 +517,12 @@ export default function FinancePayrollLedgerPanel({
       {error && (
         <p className="rounded-lg border border-[var(--danger)]/50 bg-red-500/10 px-3 py-2 text-xs text-red-300 print:hidden">
           {error}
+        </p>
+      )}
+
+      {postingNotice && !error && (
+        <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 print:hidden">
+          {postingNotice}
         </p>
       )}
 
@@ -692,6 +752,24 @@ export default function FinancePayrollLedgerPanel({
             <p>
               {t('payrollLedgerPreparedAt')}: <strong>{preparedAt}</strong>
             </p>
+            {showEmployerCharges && (
+              <>
+                <p>
+                  ФҲИА 25% (корфармо):{' '}
+                  <strong>{formatLedgerAmount(payrollAccountingSummary.employerFhea25)}</strong>{' '}
+                  {t('staffCurrency')}
+                </p>
+                <p>
+                  Санаторияи истироҳатӣ 1,5% аз ФҲИА:{' '}
+                  <strong>{formatLedgerAmount(payrollAccountingSummary.sanatorium15)}</strong>{' '}
+                  {t('staffCurrency')}
+                </p>
+                <p className="text-slate-500">
+                  Ҳангоми сабт кардани китоб, гузаронишҳои мемориалӣ-фармон дар ҷадвали амалиётҳои
+                  мемориалӣ ба таври автоматикӣ сабт мешаванд.
+                </p>
+              </>
+            )}
           </div>
 
           <OrganizationDocumentSignatureFooter

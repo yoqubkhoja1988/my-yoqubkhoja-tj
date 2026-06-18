@@ -356,6 +356,7 @@ function emptyEntry(employeeId: string): PayrollLedgerEntry {
     fhea: ZERO,
     kik: ZERO,
     hhdt: ZERO,
+    otherDeductions: ZERO,
     tax: ZERO,
   };
 }
@@ -368,8 +369,9 @@ export function calcEntryTotals(entry: PayrollLedgerEntry) {
   const fhea = parseAmount(entry.fhea) ?? 0;
   const kik = parseAmount(entry.kik) ?? 0;
   const hhdt = parseAmount(entry.hhdt) ?? 0;
+  const otherDeductions = parseAmount(entry.otherDeductions ?? '') ?? 0;
   const tax = parseAmount(entry.tax) ?? 0;
-  const deductions = fhea + kik + hhdt + tax;
+  const deductions = fhea + kik + hhdt + otherDeductions + tax;
 
   return {
     baseSalary,
@@ -379,6 +381,7 @@ export function calcEntryTotals(entry: PayrollLedgerEntry) {
     fhea,
     kik,
     hhdt,
+    otherDeductions,
     tax,
     deductions,
     netPay: Math.max(0, gross - deductions),
@@ -392,14 +395,17 @@ function autoDeductions(
   normDays: number | undefined,
   workType: EmploymentWorkType
 ) {
+  const defaultFhea = gross * 0.01;
+  const defaultKik = gross * 0.01;
+  const defaultHhdt = gross * 0.01;
   const fhea =
     saved && saved.fhea !== ZERO
-      ? (parseAmount(saved.fhea) ?? gross * 0.01)
-      : gross * 0.01;
+      ? (parseAmount(saved.fhea) ?? defaultFhea)
+      : defaultFhea;
   const kik =
-    saved && saved.kik !== ZERO ? (parseAmount(saved.kik) ?? gross * 0.01) : gross * 0.01;
+    saved && saved.kik !== ZERO ? (parseAmount(saved.kik) ?? defaultKik) : defaultKik;
   const hhdt =
-    saved && saved.hhdt !== ZERO ? (parseAmount(saved.hhdt) ?? gross * 0.01) : gross * 0.01;
+    saved && saved.hhdt !== ZERO ? (parseAmount(saved.hhdt) ?? defaultHhdt) : defaultHhdt;
   const tax =
     saved && saved.tax !== ZERO
       ? (parseAmount(saved.tax) ?? calcIncomeTax(gross, workedDays, normDays, workType))
@@ -640,3 +646,10 @@ export function syncPayrollLedgersAfterTimesheetChange(
 
   return ledgers;
 }
+
+export {
+  applyPayrollLedgerTimesheetSync,
+  persistPayrollLedgerInFinance,
+  postPayrollAccountingOperations,
+  removePayrollLedgerInFinance,
+} from '@/lib/payroll-accounting';
