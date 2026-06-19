@@ -99,6 +99,7 @@ export default function FinanceMemorialOrdersPanel({
   const { canEdit } = useOrganizationAccess();
   const [selectedOrderId, setSelectedOrderId] = useState(MEMORIAL_ORDERS_CATALOG[0]?.id ?? '');
   const [rowDrafts, setRowDrafts] = useState<Record<string, RowDraft>>({});
+  const [editingMetaIds, setEditingMetaIds] = useState<Set<string>>(() => new Set());
   const [error, setError] = useState('');
   const memorialMetaPersistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -157,6 +158,52 @@ export default function FinanceMemorialOrdersPanel({
       ...current,
       [operationId]: { ...rowDraft(operationId), ...patch },
     }));
+  }
+
+  function isEditingMeta(operationId: string, isCustom: boolean): boolean {
+    return isCustom || editingMetaIds.has(operationId);
+  }
+
+  function startEditingMeta(operationId: string) {
+    setEditingMetaIds((current) => new Set(current).add(operationId));
+  }
+
+  function renderAccountCell(
+    operation: MemorialOrderOperation,
+    side: 'debit' | 'credit',
+    editingMeta: boolean
+  ) {
+    const code = side === 'debit' ? operation.debitAccount : operation.creditAccount;
+    if (canEdit && editingMeta) {
+      const field = side === 'debit' ? 'debitAccount' : 'creditAccount';
+      return (
+        <>
+          <input
+            value={code}
+            onChange={(event) =>
+              updateOperationField(operation.id, { [field]: event.target.value })
+            }
+            className="input-field w-full font-mono text-xs"
+            list="nyah-mo-account-codes"
+          />
+          {code && (
+            <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
+              {accountLabel(code)}
+            </span>
+          )}
+        </>
+      );
+    }
+    return (
+      <>
+        {code || '—'}
+        {code && (
+          <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
+            {accountLabel(code)}
+          </span>
+        )}
+      </>
+    );
   }
 
   function updateOperationField(
@@ -291,6 +338,7 @@ export default function FinanceMemorialOrdersPanel({
             onChange={(event) => {
               setSelectedOrderId(event.target.value);
               setRowDrafts({});
+              setEditingMetaIds(new Set());
               setError('');
             }}
             className="input-field min-w-[18rem] text-xs"
@@ -340,11 +388,15 @@ export default function FinanceMemorialOrdersPanel({
               {operations.map((operation) => {
                 const draft = rowDraft(operation.id);
                 const isCustom = isCustomOperation(operation.id);
+                const editingMeta = isEditingMeta(operation.id, isCustom);
                 const saved = findMemorialEntry(entries, selectedOrder.id, operation.id);
                 return (
-                  <tr key={operation.id}>
+                  <tr
+                    key={operation.id}
+                    className={saved ? 'bg-[var(--accent)]/5' : undefined}
+                  >
                     <td className="min-w-[12rem]">
-                      {canEdit ? (
+                      {canEdit && editingMeta ? (
                         <input
                           value={operation.name}
                           onChange={(event) =>
@@ -353,64 +405,14 @@ export default function FinanceMemorialOrdersPanel({
                           className="input-field w-full text-xs"
                         />
                       ) : (
-                        operation.name
+                        <span className="block leading-snug">{operation.name}</span>
                       )}
                     </td>
                     <td className="font-mono text-[10px]">
-                      {canEdit ? (
-                        <>
-                          <input
-                            value={operation.debitAccount}
-                            onChange={(event) =>
-                              updateOperationField(operation.id, {
-                                debitAccount: event.target.value,
-                              })
-                            }
-                            className="input-field w-full font-mono text-xs"
-                            list="nyah-mo-account-codes"
-                          />
-                          {operation.debitAccount && (
-                            <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
-                              {accountLabel(operation.debitAccount)}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {operation.debitAccount}
-                          <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
-                            {accountLabel(operation.debitAccount)}
-                          </span>
-                        </>
-                      )}
+                      {renderAccountCell(operation, 'debit', editingMeta)}
                     </td>
                     <td className="font-mono text-[10px]">
-                      {canEdit ? (
-                        <>
-                          <input
-                            value={operation.creditAccount}
-                            onChange={(event) =>
-                              updateOperationField(operation.id, {
-                                creditAccount: event.target.value,
-                              })
-                            }
-                            className="input-field w-full font-mono text-xs"
-                            list="nyah-mo-account-codes"
-                          />
-                          {operation.creditAccount && (
-                            <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
-                              {accountLabel(operation.creditAccount)}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {operation.creditAccount}
-                          <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
-                            {accountLabel(operation.creditAccount)}
-                          </span>
-                        </>
-                      )}
+                      {renderAccountCell(operation, 'credit', editingMeta)}
                     </td>
                     <td>
                       {canEdit ? (
@@ -456,6 +458,19 @@ export default function FinanceMemorialOrdersPanel({
                     </td>
                     {canEdit && (
                       <td className="whitespace-nowrap">
+                        {!isCustom && !editingMeta && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => startEditingMeta(operation.id)}
+                              className="text-[var(--text-muted)] hover:text-[var(--accent)] hover:underline"
+                              disabled={saving}
+                            >
+                              {t('editSection')}
+                            </button>
+                            {' · '}
+                          </>
+                        )}
                         <button
                           type="button"
                           onClick={() => void saveOperation(operation)}
