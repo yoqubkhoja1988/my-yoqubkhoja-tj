@@ -236,7 +236,10 @@ export default function FinanceSocialInsuranceAgencyPanel({
                 </thead>
                 <tbody>
                   {report.monthlyStats
-                    .filter((stat) => report.quarterMonths.includes(stat.month))
+                    .filter(
+                      (stat) =>
+                        report.quarterMonths.includes(stat.month) && stat.hasStoredLedger
+                    )
                     .map((stat) => (
                       <tr key={stat.month}>
                         <td>{ADSIN_MONTH_LABELS_TJ[stat.monthIndex]}</td>
@@ -335,7 +338,7 @@ export default function FinanceSocialInsuranceAgencyPanel({
                   </thead>
                   <tbody>
                     {report.employeeRows.map((row) => (
-                      <tr key={row.employeeId}>
+                      <tr key={row.personKey}>
                         <td>{row.index}</td>
                         <td>{row.ris || '—'}</td>
                         <td>{row.fullName}</td>
@@ -369,7 +372,7 @@ export default function FinanceSocialInsuranceAgencyPanel({
                   </thead>
                   <tbody>
                     {report.benefitRows.map((row) => (
-                      <tr key={`${row.category}-${row.employeeId}-${row.index}`}>
+                      <tr key={`${row.category}-${row.personKey}`}>
                         <td>{row.categoryLabel}</td>
                         <td>{row.fullName}</td>
                         <td className="tabular-nums">{formatAdsinAmount(row.total)}</td>

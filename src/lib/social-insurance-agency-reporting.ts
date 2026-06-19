@@ -1,8 +1,7 @@
 import {
   calcEntryTotals,
-  mergePayrollLedgerForMonth,
+  hasStoredPayrollLedger,
   payrollLedgerPersonGroupKey,
-  type PayrollLedgerBuildContext,
 } from '@/lib/finance-payroll-ledger';
 import { isStateInsuranceLeaveType } from '@/lib/finance-labor-leave-pay';
 import { socialInsurancePayForLeaveInMonth } from '@/lib/finance-social-insurance-pay';
@@ -15,6 +14,7 @@ import { Organization } from '@/types/organization';
 import {
   LaborLeave,
   OrganizationSectionContent,
+  PayrollLedger,
   SocialInsuranceAgencyPaymentRecord,
   SocialInsuranceAgencyReportSettings,
   StaffEmployee,
@@ -65,11 +65,14 @@ export type AdsinMonthlyPayrollStat = {
   monthLabel: string;
   employeeCount: number;
   payrollFund: number;
+  employer25: number;
+  employee1: number;
+  hasStoredLedger: boolean;
 };
 
 export type AdsinEmployeeQuarterRow = {
   index: number;
-  employeeId: string;
+  personKey: string;
   ris: string;
   fullName: string;
   monthlyGross: Record<string, number>;
@@ -87,7 +90,7 @@ export type AdsinBenefitRow = {
   index: number;
   category: AdsinBenefitCategory;
   categoryLabel: string;
-  employeeId: string;
+  personKey: string;
   ris: string;
   fullName: string;
   monthlyAmounts: Record<string, number>;
@@ -99,7 +102,7 @@ export type AdsinStaffMovementKind = 'dismissed' | 'hired';
 export type AdsinStaffMovementRow = {
   index: number;
   kind: AdsinStaffMovementKind;
-  employeeId: string;
+  personKey: string;
   ris: string;
   fullName: string;
   eventDate: string;
@@ -164,18 +167,6 @@ export function resolveAdsinQuarter(preferred?: AdsinQuarter | null): AdsinQuart
   return (Math.ceil(currentMonth / 3) as AdsinQuarter) || 1;
 }
 
-function payrollContext(
-  financeContent: OrganizationSectionContent,
-  organizationId?: string
-): PayrollLedgerBuildContext {
-  return {
-    positionHandovers: financeContent.positionHandovers,
-    laborLeaves: financeContent.laborLeaves,
-    salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
-    organizationId,
-  };
-}
-
 function employeeById(
   staffContent: OrganizationSectionContent,
   employeeId: string
@@ -183,39 +174,64 @@ function employeeById(
   return staffContent.employees?.find((employee) => employee.id === employeeId);
 }
 
+function storedLedgerForMonth(
+  ledgers: PayrollLedger[] | undefined,
+  month: string
+): PayrollLedger | undefined {
+  return ledgers?.find((ledger) => ledger.month === month);
+}
+
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
+function personKeyForEmployee(employee: StaffEmployee): string {
+  return payrollLedgerPersonGroupKey(employee);
+}
+
+function pickRepresentativeEmployee(employees: StaffEmployee[]): StaffEmployee {
+  const primary = employees.find((employee) => employee.employmentWorkType !== 'secondary');
+  if (primary) return primary;
+  const withRis = employees.find((employee) => employee.ris?.trim());
+  if (withRis) return withRis;
+  return employees[0];
+}
+
+function entryFheaAmount(gross: number, fhea: number): number {
+  return fhea > 0 ? fhea : roundMoney(gross * PAYROLL_FHEA_EMPLOYEE_RATE);
+}
+
+/** Ҳисоб танҳо аз китоби музди меҳнати нигоҳдошташуда (бе пешнамоиши худкор) */
 export function summarizePayrollMonth(
   financeContent: OrganizationSectionContent,
   staffContent: OrganizationSectionContent,
   month: string,
-  organizationId?: string
+  _organizationId?: string
 ): { employeeCount: number; payrollFund: number; employer25: number; employee1: number } {
-  const ledger = mergePayrollLedgerForMonth(
-    financeContent.payrollLedgers,
-    month,
-    staffContent,
-    payrollContext(financeContent, organizationId)
-  );
+  const saved = storedLedgerForMonth(financeContent.payrollLedgers, month);
+  if (!saved) {
+    return { employeeCount: 0, payrollFund: 0, employer25: 0, employee1: 0 };
+  }
 
-  let employeeCount = 0;
+  const personKeys = new Set<string>();
   let payrollFund = 0;
   let employer25 = 0;
   let employee1 = 0;
 
-  for (const entry of ledger.entries) {
+  for (const entry of saved.entries) {
+    const employee = employeeById(staffContent, entry.employeeId);
+    if (!employee) continue;
     const totals = calcEntryTotals(entry);
     if (totals.gross <= 0) continue;
-    employeeCount += 1;
+
+    personKeys.add(personKeyForEmployee(employee));
     payrollFund += totals.gross;
     employer25 += calcEmployerFhea25(totals.gross);
-    employee1 += totals.fhea > 0 ? totals.fhea : roundMoney(totals.gross * PAYROLL_FHEA_EMPLOYEE_RATE);
+    employee1 += entryFheaAmount(totals.gross, totals.fhea);
   }
 
   return {
-    employeeCount,
+    employeeCount: personKeys.size,
     payrollFund: roundMoney(payrollFund),
     employer25: roundMoney(employer25),
     employee1: roundMoney(employee1),
@@ -241,6 +257,7 @@ function sumContributions(
   let employer25 = 0;
   let employee1 = 0;
   for (const month of months) {
+    if (!hasStoredPayrollLedger(financeContent.payrollLedgers, month)) continue;
     const summary = summarizePayrollMonth(financeContent, staffContent, month, organizationId);
     employer25 += summary.employer25;
     employee1 += summary.employee1;
@@ -259,6 +276,7 @@ function buildMonthlyStats(
 ): AdsinMonthlyPayrollStat[] {
   return ADSIN_MONTH_LABELS_TJ.map((monthLabel, index) => {
     const month = monthKey(year, index + 1);
+    const hasStoredLedger = hasStoredPayrollLedger(financeContent.payrollLedgers, month);
     const summary = summarizePayrollMonth(financeContent, staffContent, month, organizationId);
     return {
       month,
@@ -266,6 +284,9 @@ function buildMonthlyStats(
       monthLabel,
       employeeCount: summary.employeeCount,
       payrollFund: summary.payrollFund,
+      employer25: summary.employer25,
+      employee1: summary.employee1,
+      hasStoredLedger,
     };
   });
 }
@@ -274,54 +295,75 @@ function buildEmployeeQuarterRows(
   financeContent: OrganizationSectionContent,
   staffContent: OrganizationSectionContent,
   year: number,
-  quarter: AdsinQuarter,
-  organizationId?: string
+  quarter: AdsinQuarter
 ): AdsinEmployeeQuarterRow[] {
   const quarterMonths = ADSIN_QUARTER_MONTHS[quarter].map((month) => monthKey(year, month));
   const grouped = new Map<
     string,
     {
-      employee: StaffEmployee;
+      employees: StaffEmployee[];
       monthlyGross: Record<string, number>;
+      monthlyFhea: Record<string, number>;
     }
   >();
 
   for (const month of quarterMonths) {
-    const ledger = mergePayrollLedgerForMonth(
-      financeContent.payrollLedgers,
-      month,
-      staffContent,
-      payrollContext(financeContent, organizationId)
-    );
+    const saved = storedLedgerForMonth(financeContent.payrollLedgers, month);
+    if (!saved) continue;
 
-    for (const entry of ledger.entries) {
-      const totals = calcEntryTotals(entry);
-      if (totals.gross <= 0) continue;
+    for (const entry of saved.entries) {
       const employee = employeeById(staffContent, entry.employeeId);
       if (!employee) continue;
-      const key = payrollLedgerPersonGroupKey(employee);
-      const existing = grouped.get(key) ?? { employee, monthlyGross: {} };
-      existing.monthlyGross[month] = (existing.monthlyGross[month] ?? 0) + totals.gross;
+      const totals = calcEntryTotals(entry);
+      if (totals.gross <= 0) continue;
+
+      const key = personKeyForEmployee(employee);
+      const existing = grouped.get(key) ?? {
+        employees: [],
+        monthlyGross: {},
+        monthlyFhea: {},
+      };
+
+      if (!existing.employees.some((item) => item.id === employee.id)) {
+        existing.employees.push(employee);
+      }
+
+      existing.monthlyGross[month] = roundMoney(
+        (existing.monthlyGross[month] ?? 0) + totals.gross
+      );
+      existing.monthlyFhea[month] = roundMoney(
+        (existing.monthlyFhea[month] ?? 0) + entryFheaAmount(totals.gross, totals.fhea)
+      );
       grouped.set(key, existing);
     }
   }
 
-  return [...grouped.values()]
-    .sort((a, b) => a.employee.fullName.localeCompare(b.employee.fullName, 'tg'))
-    .map((item, index) => {
+  return [...grouped.entries()]
+    .sort(([, a], [, b]) =>
+      pickRepresentativeEmployee(a.employees).fullName.localeCompare(
+        pickRepresentativeEmployee(b.employees).fullName,
+        'tg'
+      )
+    )
+    .map(([, item], index) => {
+      const representative = pickRepresentativeEmployee(item.employees);
       const quarterGross = roundMoney(
         quarterMonths.reduce((sum, month) => sum + (item.monthlyGross[month] ?? 0), 0)
       );
+      const socialInsurance1Percent = roundMoney(
+        quarterMonths.reduce((sum, month) => sum + (item.monthlyFhea[month] ?? 0), 0)
+      );
+
       return {
         index: index + 1,
-        employeeId: item.employee.id,
-        ris: item.employee.ris?.trim() ?? '',
-        fullName: item.employee.fullName,
+        personKey: personKeyForEmployee(representative),
+        ris: representative.ris?.trim() ?? '',
+        fullName: representative.fullName,
         monthlyGross: Object.fromEntries(
-          quarterMonths.map((month) => [month, roundMoney(item.monthlyGross[month] ?? 0)])
+          quarterMonths.map((month) => [month, item.monthlyGross[month] ?? 0])
         ),
         quarterGross,
-        socialInsurance1Percent: roundMoney(quarterGross * PAYROLL_FHEA_EMPLOYEE_RATE),
+        socialInsurance1Percent,
       };
     });
 }
@@ -346,16 +388,32 @@ function buildBenefitRows(
   quarter: AdsinQuarter
 ): AdsinBenefitRow[] {
   const quarterMonths = ADSIN_QUARTER_MONTHS[quarter].map((month) => monthKey(year, month));
-  const rows: AdsinBenefitRow[] = [];
+  const grouped = new Map<
+    string,
+    {
+      category: AdsinBenefitCategory;
+      employee: StaffEmployee | undefined;
+      fullName: string;
+      monthlyAmounts: Record<string, number>;
+      total: number;
+    }
+  >();
 
   for (const leave of financeContent.laborLeaves ?? []) {
     if (!isStateInsuranceLeaveType(leave.leaveType)) continue;
     const category = benefitCategoryForLeave(leave);
     if (!category) continue;
 
+    const employee = employeeById(staffContent, leave.employeeId);
+    const personKey = employee
+      ? personKeyForEmployee(employee)
+      : `leave:${leave.employeeId}`;
+    const groupKey = `${category}:${personKey}`;
+
     const monthlyAmounts: Record<string, number> = {};
     let total = 0;
     for (const month of quarterMonths) {
+      if (!hasStoredPayrollLedger(financeContent.payrollLedgers, month)) continue;
       const amount = socialInsurancePayForLeaveInMonth(
         leave,
         month,
@@ -369,20 +427,39 @@ function buildBenefitRows(
     }
     if (total <= 0) continue;
 
-    const employee = employeeById(staffContent, leave.employeeId);
-    rows.push({
-      index: rows.length + 1,
+    const existing = grouped.get(groupKey);
+    if (existing) {
+      for (const [month, amount] of Object.entries(monthlyAmounts)) {
+        existing.monthlyAmounts[month] = roundMoney(
+          (existing.monthlyAmounts[month] ?? 0) + amount
+        );
+      }
+      existing.total = roundMoney(existing.total + total);
+      grouped.set(groupKey, existing);
+      continue;
+    }
+
+    grouped.set(groupKey, {
       category,
-      categoryLabel: BENEFIT_CATEGORY_LABELS[category],
-      employeeId: leave.employeeId,
-      ris: employee?.ris?.trim() ?? '',
+      employee,
       fullName: employee?.fullName ?? leave.employeeId,
       monthlyAmounts,
       total: roundMoney(total),
     });
   }
 
-  return rows;
+  return [...grouped.values()]
+    .sort((a, b) => a.fullName.localeCompare(b.fullName, 'tg'))
+    .map((item, index) => ({
+      index: index + 1,
+      category: item.category,
+      categoryLabel: BENEFIT_CATEGORY_LABELS[item.category],
+      personKey: item.employee ? personKeyForEmployee(item.employee) : `benefit-${index}`,
+      ris: item.employee?.ris?.trim() ?? '',
+      fullName: item.fullName,
+      monthlyAmounts: item.monthlyAmounts,
+      total: item.total,
+    }));
 }
 
 function buildStaffMovements(
@@ -392,39 +469,46 @@ function buildStaffMovements(
 ): AdsinStaffMovementRow[] {
   const quarterStart = monthKey(year, ADSIN_QUARTER_MONTHS[quarter][0]);
   const quarterEnd = monthKey(year, ADSIN_QUARTER_MONTHS[quarter][2]);
-  const rows: AdsinStaffMovementRow[] = [];
+  const hired = new Map<string, AdsinStaffMovementRow>();
+  const dismissed = new Map<string, AdsinStaffMovementRow>();
 
   for (const employee of staffContent.employees ?? []) {
+    const key = personKeyForEmployee(employee);
+
     if (employee.hiredAt) {
       const hireMonth = employee.hiredAt.slice(0, 7);
-      if (hireMonth >= quarterStart && hireMonth <= quarterEnd) {
-        rows.push({
-          index: rows.length + 1,
+      if (hireMonth >= quarterStart && hireMonth <= quarterEnd && !hired.has(key)) {
+        hired.set(key, {
+          index: 0,
           kind: 'hired',
-          employeeId: employee.id,
+          personKey: key,
           ris: employee.ris?.trim() ?? '',
           fullName: employee.fullName,
           eventDate: employee.hiredAt,
-          reason: employee.position || 'Қабул ба кор',
+          reason: 'Қабул ба кор',
         });
       }
     }
 
-    if (employee.status === 'inactive' && employee.hiredAt) {
-      // Бе санаи озодкунӣ — танҳо дар сабти корманд намоиш дода мешавад, агар санаи қабул мавҷуд бошад
-      rows.push({
-        index: rows.length + 1,
+    if (employee.status === 'inactive' && !dismissed.has(key)) {
+      dismissed.set(key, {
+        index: 0,
         kind: 'dismissed',
-        employeeId: employee.id,
+        personKey: key,
         ris: employee.ris?.trim() ?? '',
         fullName: employee.fullName,
         eventDate: '',
-        reason: employee.position ? `Озод кардан — ${employee.position}` : 'Озод кардан',
+        reason: 'Озод кардан',
       });
     }
   }
 
-  return rows;
+  const rows = [
+    ...[...dismissed.values()].sort((a, b) => a.fullName.localeCompare(b.fullName, 'tg')),
+    ...[...hired.values()].sort((a, b) => a.fullName.localeCompare(b.fullName, 'tg')),
+  ];
+
+  return rows.map((row, index) => ({ ...row, index: index + 1 }));
 }
 
 function sumPaymentRecords(
@@ -438,6 +522,17 @@ function sumPaymentRecords(
     }
   }
   return roundMoney(total);
+}
+
+function sumPayrollFund(
+  monthlyStats: AdsinMonthlyPayrollStat[],
+  months: string[]
+): number {
+  return roundMoney(
+    monthlyStats
+      .filter((stat) => months.includes(stat.month) && stat.hasStoredLedger)
+      .reduce((sum, stat) => sum + stat.payrollFund, 0)
+  );
 }
 
 export function buildSocialInsuranceAgencyReport(
@@ -463,23 +558,21 @@ export function buildSocialInsuranceAgencyReport(
     organization?.id
   );
 
-  const yearToDatePayrollFund = roundMoney(
-    monthlyStats
-      .filter((stat) => ytdMonths.includes(stat.month))
-      .reduce((sum, stat) => sum + stat.payrollFund, 0)
+  const employeeRows = buildEmployeeQuarterRows(
+    financeContent,
+    staffContent,
+    year,
+    quarter
   );
 
-  const quarterPayrollFund = roundMoney(
-    monthlyStats
-      .filter((stat) => quarterMonths.includes(stat.month))
-      .reduce((sum, stat) => sum + stat.payrollFund, 0)
-  );
+  const quarterPayrollFund = sumPayrollFund(monthlyStats, quarterMonths);
+  const yearToDatePayrollFund = sumPayrollFund(monthlyStats, ytdMonths);
 
   const quarterEmployeeCount = Math.max(
+    0,
     ...monthlyStats
-      .filter((stat) => quarterMonths.includes(stat.month))
-      .map((stat) => stat.employeeCount),
-    0
+      .filter((stat) => quarterMonths.includes(stat.month) && stat.hasStoredLedger)
+      .map((stat) => stat.employeeCount)
   );
 
   return {
@@ -515,13 +608,7 @@ export function buildSocialInsuranceAgencyReport(
       priorYearLastQuarterMonths(year),
       organization?.id
     ),
-    employeeRows: buildEmployeeQuarterRows(
-      financeContent,
-      staffContent,
-      year,
-      quarter,
-      organization?.id
-    ),
+    employeeRows,
     benefitRows: buildBenefitRows(financeContent, staffContent, year, quarter),
     staffMovements: buildStaffMovements(staffContent, year, quarter),
     paymentRecords1Percent: settings.paymentRecords1Percent ?? [],
