@@ -3,7 +3,6 @@
 import {
   formatJournalAmount,
   nextJournalEntryNumber,
-  resolveBudgetAccountingSettings,
   upsertBudgetJournalEntry,
   validateJournalEntry,
 } from '@/lib/budget-accounting-journal';
@@ -11,8 +10,10 @@ import {
   MEMORIAL_ORDERS_CATALOG,
   MemorialOrderDefinition,
   MemorialOrderOperation,
+  MemorialOrderOperationOverride,
   memorialOrderFullTitle,
   memorialOrderLabel,
+  resolveMemorialOperation,
 } from '@/lib/memorial-orders-catalog';
 import { findNyahAccount, NYAH_ACCOUNTS, resolveNyahAccountName } from '@/lib/budget-unified-chart-of-accounts';
 import { parseAmount } from '@/lib/staff-table-calc';
@@ -20,7 +21,6 @@ import { useOrganizationAccess } from '@/contexts/organization-access-context';
 import {
   BudgetAccountingJournalEntry,
   BudgetAccountingSettings,
-  OrganizationSectionContent,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -28,14 +28,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 type Props = {
   settings: BudgetAccountingSettings;
   entries: BudgetAccountingJournalEntry[];
-  financeContent: OrganizationSectionContent;
   customOperations: Record<string, MemorialOrderOperation[]>;
+  operationOverrides: Record<string, MemorialOrderOperationOverride>;
   onCustomOperationsChange: (next: Record<string, MemorialOrderOperation[]>) => void;
+  onOperationOverridesChange: (next: Record<string, MemorialOrderOperationOverride>) => void;
   onEntriesChange: (next: BudgetAccountingJournalEntry[]) => void;
   onPersist: (
     settings: BudgetAccountingSettings,
     entries: BudgetAccountingJournalEntry[],
-    customOps: Record<string, MemorialOrderOperation[]>
+    customOps: Record<string, MemorialOrderOperation[]>,
+    operationOverrides: Record<string, MemorialOrderOperationOverride>
   ) => Promise<void>;
   saving: boolean;
 };
@@ -50,11 +52,21 @@ function defaultDate(settings: BudgetAccountingSettings): string {
   return `${settings.fiscalYear}-01-31`;
 }
 
+function isCustomOperation(operationId: string): boolean {
+  return operationId.includes('-custom-');
+}
+
 function operationsForOrder(
   order: MemorialOrderDefinition,
-  customOperations: Record<string, MemorialOrderOperation[]>
+  customOperations: Record<string, MemorialOrderOperation[]>,
+  operationOverrides: Record<string, MemorialOrderOperationOverride>
 ): MemorialOrderOperation[] {
-  return [...order.operations, ...(customOperations[order.id] ?? [])];
+  return [
+    ...order.operations.map((operation) =>
+      resolveMemorialOperation(operation, operationOverrides)
+    ),
+    ...(customOperations[order.id] ?? []),
+  ];
 }
 
 function findMemorialEntry(
@@ -74,9 +86,10 @@ function findMemorialEntry(
 export default function FinanceMemorialOrdersPanel({
   settings,
   entries,
-  financeContent,
   customOperations,
+  operationOverrides,
   onCustomOperationsChange,
+  onOperationOverridesChange,
   onEntriesChange,
   onPersist,
   saving,
@@ -87,18 +100,21 @@ export default function FinanceMemorialOrdersPanel({
   const [selectedOrderId, setSelectedOrderId] = useState(MEMORIAL_ORDERS_CATALOG[0]?.id ?? '');
   const [rowDrafts, setRowDrafts] = useState<Record<string, RowDraft>>({});
   const [error, setError] = useState('');
-  const customOpsPersistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const memorialMetaPersistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
-      if (customOpsPersistTimer.current) clearTimeout(customOpsPersistTimer.current);
+      if (memorialMetaPersistTimer.current) clearTimeout(memorialMetaPersistTimer.current);
     };
   }, []);
 
-  function scheduleCustomOpsPersist(next: Record<string, MemorialOrderOperation[]>) {
-    if (customOpsPersistTimer.current) clearTimeout(customOpsPersistTimer.current);
-    customOpsPersistTimer.current = setTimeout(() => {
-      void onPersist(settings, entries, next);
+  function scheduleMemorialMetaPersist(
+    nextCustomOps: Record<string, MemorialOrderOperation[]>,
+    nextOverrides: Record<string, MemorialOrderOperationOverride>
+  ) {
+    if (memorialMetaPersistTimer.current) clearTimeout(memorialMetaPersistTimer.current);
+    memorialMetaPersistTimer.current = setTimeout(() => {
+      void onPersist(settings, entries, nextCustomOps, nextOverrides);
     }, 800);
   }
 
@@ -108,8 +124,11 @@ export default function FinanceMemorialOrdersPanel({
   );
 
   const operations = useMemo(
-    () => (selectedOrder ? operationsForOrder(selectedOrder, customOperations) : []),
-    [selectedOrder, customOperations]
+    () =>
+      selectedOrder
+        ? operationsForOrder(selectedOrder, customOperations, operationOverrides)
+        : [],
+    [selectedOrder, customOperations, operationOverrides]
   );
 
   function accountLabel(code: string): string {
@@ -138,6 +157,33 @@ export default function FinanceMemorialOrdersPanel({
       ...current,
       [operationId]: { ...rowDraft(operationId), ...patch },
     }));
+  }
+
+  function updateOperationField(
+    operationId: string,
+    patch: Partial<MemorialOrderOperation>
+  ) {
+    if (!selectedOrder || !canEdit) return;
+
+    if (isCustomOperation(operationId)) {
+      const custom = customOperations[selectedOrder.id] ?? [];
+      const nextCustomOps = {
+        ...customOperations,
+        [selectedOrder.id]: custom.map((item) =>
+          item.id === operationId ? { ...item, ...patch } : item
+        ),
+      };
+      onCustomOperationsChange(nextCustomOps);
+      scheduleMemorialMetaPersist(nextCustomOps, operationOverrides);
+      return;
+    }
+
+    const nextOverrides = {
+      ...operationOverrides,
+      [operationId]: { ...(operationOverrides[operationId] ?? {}), ...patch },
+    };
+    onOperationOverridesChange(nextOverrides);
+    scheduleMemorialMetaPersist(customOperations, nextOverrides);
   }
 
   async function saveOperation(operation: MemorialOrderOperation) {
@@ -176,7 +222,7 @@ export default function FinanceMemorialOrdersPanel({
 
     const nextEntries = upsertBudgetJournalEntry(entries, entry);
     onEntriesChange(nextEntries);
-    await onPersist(settings, nextEntries, customOperations);
+    await onPersist(settings, nextEntries, customOperations, operationOverrides);
   }
 
   async function removeOperationEntry(operation: MemorialOrderOperation) {
@@ -190,7 +236,7 @@ export default function FinanceMemorialOrdersPanel({
       delete next[operation.id];
       return next;
     });
-    await onPersist(settings, nextEntries, customOperations);
+    await onPersist(settings, nextEntries, customOperations, operationOverrides);
   }
 
   function addCustomOperation() {
@@ -203,28 +249,28 @@ export default function FinanceMemorialOrdersPanel({
       creditAccount: '',
       basisHint: null,
     };
-    const next = {
+    const nextCustomOps = {
       ...customOperations,
       [selectedOrder.id]: [...custom, nextOp],
     };
-    onCustomOperationsChange(next);
-    void onPersist(settings, entries, next);
+    onCustomOperationsChange(nextCustomOps);
+    void onPersist(settings, entries, nextCustomOps, operationOverrides);
   }
 
-  function updateCustomOperation(
-    operationId: string,
-    patch: Partial<MemorialOrderOperation>
-  ) {
-    if (!selectedOrder) return;
+  function removeCustomOperation(operationId: string) {
+    if (!selectedOrder || !canEdit || !isCustomOperation(operationId)) return;
     const custom = customOperations[selectedOrder.id] ?? [];
-    const next = {
+    const nextCustomOps = {
       ...customOperations,
-      [selectedOrder.id]: custom.map((item) =>
-        item.id === operationId ? { ...item, ...patch } : item
-      ),
+      [selectedOrder.id]: custom.filter((item) => item.id !== operationId),
     };
-    onCustomOperationsChange(next);
-    scheduleCustomOpsPersist(next);
+    onCustomOperationsChange(nextCustomOps);
+    setRowDrafts((current) => {
+      const next = { ...current };
+      delete next[operationId];
+      return next;
+    });
+    void onPersist(settings, entries, nextCustomOps, operationOverrides);
   }
 
   if (!selectedOrder) {
@@ -293,16 +339,16 @@ export default function FinanceMemorialOrdersPanel({
             <tbody>
               {operations.map((operation) => {
                 const draft = rowDraft(operation.id);
-                const isCustom = operation.id.includes('-custom-');
+                const isCustom = isCustomOperation(operation.id);
                 const saved = findMemorialEntry(entries, selectedOrder.id, operation.id);
                 return (
                   <tr key={operation.id}>
                     <td className="min-w-[12rem]">
-                      {isCustom && canEdit ? (
+                      {canEdit ? (
                         <input
                           value={operation.name}
                           onChange={(event) =>
-                            updateCustomOperation(operation.id, { name: event.target.value })
+                            updateOperationField(operation.id, { name: event.target.value })
                           }
                           className="input-field w-full text-xs"
                         />
@@ -311,17 +357,24 @@ export default function FinanceMemorialOrdersPanel({
                       )}
                     </td>
                     <td className="font-mono text-[10px]">
-                      {isCustom && canEdit ? (
-                        <input
-                          value={operation.debitAccount}
-                          onChange={(event) =>
-                            updateCustomOperation(operation.id, {
-                              debitAccount: event.target.value,
-                            })
-                          }
-                          className="input-field w-full font-mono text-xs"
-                          list="nyah-mo-account-codes"
-                        />
+                      {canEdit ? (
+                        <>
+                          <input
+                            value={operation.debitAccount}
+                            onChange={(event) =>
+                              updateOperationField(operation.id, {
+                                debitAccount: event.target.value,
+                              })
+                            }
+                            className="input-field w-full font-mono text-xs"
+                            list="nyah-mo-account-codes"
+                          />
+                          {operation.debitAccount && (
+                            <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
+                              {accountLabel(operation.debitAccount)}
+                            </span>
+                          )}
+                        </>
                       ) : (
                         <>
                           {operation.debitAccount}
@@ -332,17 +385,24 @@ export default function FinanceMemorialOrdersPanel({
                       )}
                     </td>
                     <td className="font-mono text-[10px]">
-                      {isCustom && canEdit ? (
-                        <input
-                          value={operation.creditAccount}
-                          onChange={(event) =>
-                            updateCustomOperation(operation.id, {
-                              creditAccount: event.target.value,
-                            })
-                          }
-                          className="input-field w-full font-mono text-xs"
-                          list="nyah-mo-account-codes"
-                        />
+                      {canEdit ? (
+                        <>
+                          <input
+                            value={operation.creditAccount}
+                            onChange={(event) =>
+                              updateOperationField(operation.id, {
+                                creditAccount: event.target.value,
+                              })
+                            }
+                            className="input-field w-full font-mono text-xs"
+                            list="nyah-mo-account-codes"
+                          />
+                          {operation.creditAccount && (
+                            <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
+                              {accountLabel(operation.creditAccount)}
+                            </span>
+                          )}
+                        </>
                       ) : (
                         <>
                           {operation.creditAccount}
@@ -402,7 +462,7 @@ export default function FinanceMemorialOrdersPanel({
                           className="text-[var(--accent)] hover:underline"
                           disabled={saving}
                         >
-                          {t('save')}
+                          {saved ? t('nyahMoUpdate') : t('save')}
                         </button>
                         {saved && (
                           <>
@@ -410,6 +470,19 @@ export default function FinanceMemorialOrdersPanel({
                             <button
                               type="button"
                               onClick={() => void removeOperationEntry(operation)}
+                              className="text-red-400 hover:underline"
+                              disabled={saving}
+                            >
+                              {t('sickLeaveDelete')}
+                            </button>
+                          </>
+                        )}
+                        {isCustom && !saved && (
+                          <>
+                            {' · '}
+                            <button
+                              type="button"
+                              onClick={() => removeCustomOperation(operation.id)}
                               className="text-red-400 hover:underline"
                               disabled={saving}
                             >

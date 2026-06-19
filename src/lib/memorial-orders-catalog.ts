@@ -34,3 +34,15 @@ export function memorialOrderLabel(order: MemorialOrderDefinition): string {
 export function memorialOrderFullTitle(order: MemorialOrderDefinition): string {
   return `${memorialOrderLabel(order)} — ${order.title}`;
 }
+
+export type MemorialOrderOperationOverride = Partial<
+  Pick<MemorialOrderOperation, 'name' | 'debitAccount' | 'creditAccount' | 'basisHint'>
+>;
+
+export function resolveMemorialOperation(
+  operation: MemorialOrderOperation,
+  overrides?: Record<string, MemorialOrderOperationOverride>
+): MemorialOrderOperation {
+  const patch = overrides?.[operation.id];
+  return patch ? { ...operation, ...patch } : operation;
+}

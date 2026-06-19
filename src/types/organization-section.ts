@@ -419,6 +419,16 @@ export interface OrganizationSectionContent {
       basisHint?: string | null;
     }>
   >;
+  /** Тағйироти дастӣ барои амалиётҳои намунавии ордерҳои мемориалӣ (бо id-и амалиёт) */
+  memorialOrderOperationOverrides?: Record<
+    string,
+    {
+      name?: string;
+      debitAccount?: string;
+      creditAccount?: string;
+      basisHint?: string | null;
+    }
+  >;
 }
 
 export interface BalanceSheetReportSettings {

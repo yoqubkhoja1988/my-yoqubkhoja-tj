@@ -22,6 +22,7 @@ import {
 } from '@/lib/budget-accounting-journal';
 import {
   MemorialOrderOperation,
+  MemorialOrderOperationOverride,
 } from '@/lib/memorial-orders-catalog';
 import {
   NYAH_ACCOUNT_CLASSES,
@@ -96,6 +97,9 @@ export default function FinanceBudgetAccountingPanel({
   const [customMemorialOperations, setCustomMemorialOperations] = useState<
     Record<string, MemorialOrderOperation[]>
   >(() => financeContent.memorialOrderCustomOperations ?? {});
+  const [memorialOperationOverrides, setMemorialOperationOverrides] = useState<
+    Record<string, MemorialOrderOperationOverride>
+  >(() => financeContent.memorialOrderOperationOverrides ?? {});
   const [tab, setTab] = useState<TabId>('chart');
   const [classFilter, setClassFilter] = useState<NyahAccountClassId | ''>('');
   const [accountSearch, setAccountSearch] = useState('');
@@ -158,7 +162,8 @@ export default function FinanceBudgetAccountingPanel({
   async function persist(
     nextSettings: typeof settings,
     nextEntries: BudgetAccountingJournalEntry[],
-    nextCustomOps: Record<string, MemorialOrderOperation[]> = customMemorialOperations
+    nextCustomOps: Record<string, MemorialOrderOperation[]> = customMemorialOperations,
+    nextOperationOverrides: Record<string, MemorialOrderOperationOverride> = memorialOperationOverrides
   ) {
     setSaving(true);
     setError('');
@@ -168,6 +173,7 @@ export default function FinanceBudgetAccountingPanel({
       budgetAccountingSettings: nextSettings,
       budgetAccountingJournal: nextEntries,
       memorialOrderCustomOperations: nextCustomOps,
+      memorialOrderOperationOverrides: nextOperationOverrides,
     };
     try {
       const saved = await updateOrganizationSection(organizationId, 'finance', payload);
@@ -181,11 +187,16 @@ export default function FinanceBudgetAccountingPanel({
         budgetAccountingJournal: saved.budgetAccountingJournal ?? payload.budgetAccountingJournal,
         memorialOrderCustomOperations:
           saved.memorialOrderCustomOperations ?? payload.memorialOrderCustomOperations,
+        memorialOrderOperationOverrides:
+          saved.memorialOrderOperationOverrides ?? payload.memorialOrderOperationOverrides,
       });
       setSettings(resolveBudgetAccountingSettings(saved));
       setEntries(saved.budgetAccountingJournal ?? nextEntries);
       setCustomMemorialOperations(
         saved.memorialOrderCustomOperations ?? nextCustomOps
+      );
+      setMemorialOperationOverrides(
+        saved.memorialOrderOperationOverrides ?? nextOperationOverrides
       );
     } catch {
       setError(t('sectionSaveError'));
@@ -428,9 +439,10 @@ export default function FinanceBudgetAccountingPanel({
         <FinanceMemorialOrdersPanel
           settings={settings}
           entries={entries}
-          financeContent={financeContent}
           customOperations={customMemorialOperations}
+          operationOverrides={memorialOperationOverrides}
           onCustomOperationsChange={setCustomMemorialOperations}
+          onOperationOverridesChange={setMemorialOperationOverrides}
           onEntriesChange={setEntries}
           onPersist={persist}
           saving={saving}
