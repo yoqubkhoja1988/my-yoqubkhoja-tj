@@ -408,6 +408,17 @@ export interface OrganizationSectionContent {
   socialInsuranceAgencySettings?: SocialInsuranceAgencyReportSettings;
   /** Танзимоти шакли №1 — тавозун (волияти молиявӣ) */
   balanceSheetReport?: BalanceSheetReportSettings;
+  /** Сатрҳои иловагии дастӣ барои ордерҳои мемориалӣ (бо id-и ордер) */
+  memorialOrderCustomOperations?: Record<
+    string,
+    Array<{
+      id: string;
+      name: string;
+      debitAccount: string;
+      creditAccount: string;
+      basisHint?: string | null;
+    }>
+  >;
 }
 
 export interface BalanceSheetReportSettings {
@@ -507,6 +518,12 @@ export interface BudgetAccountingJournalEntry {
   sourcePayrollMonth?: string;
   /** Моҳи пособии ҳомиладорӣ/корношоямӣ (YYYY-MM) — барои гузарониши худкори мемориалӣ */
   sourceSocialInsuranceMonth?: string;
+  /** Ордери мемориалӣ (mo-1, mo-2, …) */
+  memorialOrderId?: string;
+  /** Сатри амалиёт дар ордери мемориалӣ */
+  memorialOperationId?: string;
+  /** Ҳуҷҷати асос (сутуни «Асос» дар М.О.) */
+  basisDocument?: string;
   lines: BudgetAccountingJournalLine[];
   createdAt?: string;
 }

@@ -1,0 +1,3143 @@
+[
+  {
+    "id": "mo-1",
+    "number": "1",
+    "sheetName": "М.О. № 1",
+    "title": "ведомости ҳисоботи ҷамбасти бо ҳазинавӣ",
+    "operations": [
+      {
+        "id": "mo1-op1",
+        "name": "Пардохти музди меҳнат",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo1-op2",
+        "name": "Пардохт аз рӯи варақаи корношоям",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo1-op3",
+        "name": "Пардохти ҳароҷоти сафарӣ",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo1-op4",
+        "name": "Пардохти кӯмакпулиҳои пулдиҳии аҳолӣ",
+        "debitAccount": "5 17 220",
+        "creditAccount": "1 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo1-op5",
+        "name": "Шинохтани даромадҳои давра",
+        "debitAccount": "2 11 972",
+        "creditAccount": "4 18 310",
+        "basisHint": null
+      },
+      {
+        "id": "mo1-op6",
+        "name": "Пардохти кӯмакпулиҳо",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 110",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-2",
+    "number": "2",
+    "sheetName": "М.О. № 2",
+    "title": "бо пеш бурдани воситаҳои буҷети",
+    "operations": [
+      {
+        "id": "mo2-op1",
+        "name": "Маблағдиҳӣ аз буҷети маҳаллӣ",
+        "debitAccount": "1 11 254",
+        "creditAccount": "2 11 972",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op2",
+        "name": "Гузаронидани музди меҳнат",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op3",
+        "name": "Гузаронидани маблағ ба ФХИА-25%",
+        "debitAccount": "2 11 680",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op4",
+        "name": "Гузаронидани мабалғ ба фонди КИК-1%",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op5",
+        "name": "Гузаронидани ФХИА-1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op6",
+        "name": "Гузаронидани маблағи снаторияи курорти 1,4%",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op7",
+        "name": "Ҳисоб кардан ва пардохти хизмати бонк",
+        "debitAccount": "5 12 820",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op8",
+        "name": "Шинохтани даромадҳои давра",
+        "debitAccount": "2 11 972",
+        "creditAccount": "4 18 310",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op9",
+        "name": "андози даромад",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op10",
+        "name": "Точиксугурта",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op11",
+        "name": "Обуна",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op12",
+        "name": "ХХДТ",
+        "debitAccount": "2 11 591",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op13",
+        "name": "Гузаронидани музди меҳнат барои моҳи январ",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op14",
+        "name": "Гузаронидани маблаги варакахои корношоями ва нигохубини кудак",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op15",
+        "name": "гузаронидани маблағи ФХИА-1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op16",
+        "name": "Гузаронидани маблаги ХХДТ-1%",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op17",
+        "name": "Барои маводхои безараргардони (2216)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op18",
+        "name": "Гузаронидани мабалғи андоз аз даромад",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op19",
+        "name": "Пардохти оби нушоки дар асоси шартнома",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op20",
+        "name": "Гузаронидани маблағи КИК-1%",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op21",
+        "name": "Гузаронидани маблаги 1,5% табобати истирохати",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op22",
+        "name": "Пардохти маблаг барои корхои безараргардонии муассиса( ГИБ 2216)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op23",
+        "name": "Пардохти маблаг барои хизматрасонии барномаи sgb.net барои соли 2022 ( ГИБ 2216)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op24",
+        "name": "Пардохти мабалаг барои истифодабари оби нушоки",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op25",
+        "name": "Гузаронидани фонди нафақаи 1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op26",
+        "name": "Пардохти маблағи қувваи барқ",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op27",
+        "name": "Гузаронидани маблағи ТИК \"Маориф\" барои харидори намудани таҷҳизотҳои компютерӣ",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op28",
+        "name": "Гузаронидани андози даромад",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op29",
+        "name": "Гузаронидани АСИН 25%",
+        "debitAccount": "2 11 680",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op30",
+        "name": "Гузаронидани фонди иттиф. кас. 1% (БМ)",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op31",
+        "name": "Гузаронидани санатори-курортӣ 1,4%",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op32",
+        "name": "Гузаронидани маблағи \"Обуна-2020\" ба Почтаи Тоҷик",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op33",
+        "name": "Гузаронидани маблағи \"Обуна-2020\" ба Рузномаи Иқбол",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op34",
+        "name": "Гузаронидани маблағи барои обуна 2020 ба рузномахои 1.Минбари халқ; 2.Сухани халк ба суратҳисоби Почтаи Тоҷик",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op35",
+        "name": "Гузаронидани маблағ барои харидори намудани сузишвории дизелӣ ба суратҳисоби Газпромнефт",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op36",
+        "name": "Гузаронидани маблағ барои хизматрасонии барномаи SGB.net ба суратҳисоби МДАМББ",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op37",
+        "name": "Гузаронидани маблағ барои харидори намудани молҳои конселярӣ ба суратҳисоби С/И-Алиева Д.Қ.",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op38",
+        "name": "Гузаронидани маблағи сафари хизмати",
+        "debitAccount": "1 14 610",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op39",
+        "name": "Гузаронидани маблағ барои харидори намудани ангиштсанг ба суратҳисоби С/И-Содиров А.",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op40",
+        "name": "Ҳисоб кардан ва пардохти хизмати бонк",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op41",
+        "name": "Гузаронидани маблағ барои хариди ангиштсанг аз С/И-Содиров А",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op42",
+        "name": "Гузаронидани маблағ барои хариди масолеҳҳо барои таъмир аз С/И-Содиров А",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op43",
+        "name": "Гузаронидани маблағ барои хариди сузишвории дизелӣ (солярка) аз С/И-Содиров А",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op44",
+        "name": "Гузаронидани маблағ барои обуна-2019 ба мачалаи \"Молия ва ҳисобдорӣ\"",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op45",
+        "name": "Гузаронидани маблағ барои пайваст намудани тарофаи интернетии \"Сарфа-2018\" ва истифодабарии он",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op46",
+        "name": "Гузаронидани маблағии аъзоҳаққии иттифоқи касаба барои пардохт - ба иттифоқи касабаи муассиса",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op47",
+        "name": "Гузаронидани маблағ барои обуна-2019 ба рузномаи \"Иқбол\"",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op48",
+        "name": "Гузаронидани маблағ барои санҷиши воситаҳои ченак",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op49",
+        "name": "Гузаронидани маблағ ба суратҳисоби С.И. Алиева Д.Қ. барои хариди молҳои конселярӣ дар мағозаи \"Дунёи Китоб\"",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op50",
+        "name": "Гузаронидани маблағ барои дароз кардани мухлати бакайдгирии барномаи андоз",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op51",
+        "name": "Гузаронидани маблағ барои харидори намудани кисмхои эхтиётии автомоштнаи хизматии идора аз С/И-Содиров А.",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op52",
+        "name": "Гузаронидани маблағ барои харидори намудани маводхои безараргардони барзидди беморихои сирояти алалхусус Covid-19 аз С/И-Содиров А.",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op53",
+        "name": "Гузаронидани маблағ барои санчиши воситахои ченакм ОМТБО-и бозори Ашроф",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2-op54",
+        "name": "Гузаронидани мабалғи снаторияи кур. 1,4%",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-2b",
+    "number": "2Б",
+    "sheetName": "М.О. № 2Б",
+    "title": "бо маблағдиҳии тасдиқ кардашудани грантҳои буҷетӣ",
+    "operations": [
+      {
+        "id": "mo2Б-op1",
+        "name": "Маблағдиҳӣ аз буҷети маҳаллӣ",
+        "debitAccount": "1 11 254",
+        "creditAccount": "2 11 972",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op2",
+        "name": "Гузаронидани музди меҳнат",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op3",
+        "name": "Гузаронидани андози даромад",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op4",
+        "name": "Гузаронидани фонди нафақаи 1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op5",
+        "name": "Гузаронидани фонди иттиф. кас. 1% (БҶ)",
+        "debitAccount": "2 11 541",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op6",
+        "name": "Гузаронидани фонди иттиф. кас. 1% (БМ)",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op7",
+        "name": "Гузаронидани фонди ҳизби 1% ва алимен.",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op8",
+        "name": "Гузаронидани АСИН 25%",
+        "debitAccount": "2 11 680",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op9",
+        "name": "Гузаронидани санатори-курортӣ 1,4%",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op10",
+        "name": "Пардохт аз рӯи варақаи корношоям",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op11",
+        "name": "Пардохт барои мол (ММЗ)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op12",
+        "name": "Пардохт барои мол (Воситаҳои асосӣ)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op13",
+        "name": "Пардохт барои хизматрасони",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op14",
+        "name": "Пардохти ҳароҷоти сафарӣ",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op15",
+        "name": "Маблағдиҳӣ шинохтани гранти буҷети",
+        "debitAccount": "2 11 972",
+        "creditAccount": "1 14 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op16",
+        "name": "Ҳисоб кардан ва пардохти хизмати бонк",
+        "debitAccount": "5 12 820",
+        "creditAccount": "1 11 254",
+        "basisHint": null
+      },
+      {
+        "id": "mo2Б-op17",
+        "name": "Шинохтани даромадҳои давра",
+        "debitAccount": "2 11 972",
+        "creditAccount": "4 18 310",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-3",
+    "number": "3",
+    "sheetName": "М.О. № 3",
+    "title": "бо пеш бурдани воситаҳои маҳсус",
+    "operations": [
+      {
+        "id": "mo3-op1",
+        "name": "Даром. пули нақд дар хазина(Шин.даром.маҳсус)",
+        "debitAccount": "1 11 110",
+        "creditAccount": "1 13 100",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op2",
+        "name": "Ворид шуд ичорапулии",
+        "debitAccount": "1 11 110",
+        "creditAccount": "4 42 300",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op3",
+        "name": "Даровардани пули нақд дар суратҳисоби маҳсус",
+        "debitAccount": "1 11 252",
+        "creditAccount": "1 11 110",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op4",
+        "name": "Ҳис.кар.-5%Шинох.даром.дар ҳис",
+        "debitAccount": "5 22 540",
+        "creditAccount": "2 11 690",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op5",
+        "name": "Дар намудани маблаг ворид шуда  расиди бонк",
+        "debitAccount": "2 11 190",
+        "creditAccount": "4 42 300",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op6",
+        "name": "Барои хурок ЧДММ Шохнура",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": "М/О№2"
+      },
+      {
+        "id": "mo3-op7",
+        "name": "Барои хурок ЧДММ Шахризода",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": "М/О№2"
+      },
+      {
+        "id": "mo3-op8",
+        "name": "Барои бучет 5%",
+        "debitAccount": "2 11 690",
+        "creditAccount": "1 11 252",
+        "basisHint": "М/О№2"
+      },
+      {
+        "id": "mo3-op9",
+        "name": "Ба корти шахси масъул",
+        "debitAccount": "1 14 610",
+        "creditAccount": "1 11 252",
+        "basisHint": "М/О№2"
+      },
+      {
+        "id": "mo3-op10",
+        "name": "Дар асоси хисоби пешпардохт харочотхои хочаги",
+        "debitAccount": "5 12 120",
+        "creditAccount": "1 14 610",
+        "basisHint": "М/О№8"
+      },
+      {
+        "id": "mo3-op11",
+        "name": "Хуроквори",
+        "debitAccount": "1 31 214",
+        "creditAccount": "2 11 110",
+        "basisHint": "м\\о11"
+      },
+      {
+        "id": "mo3-op12",
+        "name": "Гирифтани нон",
+        "debitAccount": "1 31 214",
+        "creditAccount": "2 11 110",
+        "basisHint": "м\\о11"
+      },
+      {
+        "id": "mo3-op13",
+        "name": "Баровардани ҳурокворӣ",
+        "debitAccount": "5 12 150",
+        "creditAccount": "1 31 214",
+        "basisHint": "М/О№12"
+      },
+      {
+        "id": "mo3-op14",
+        "name": "Хисоб. нам. маб аъзохакки аз руи табели кудакон",
+        "debitAccount": "1 13 100",
+        "creditAccount": "2 11 190",
+        "basisHint": "м\\о№15"
+      },
+      {
+        "id": "mo3-op15",
+        "name": "Санатори-курортӣ 1,4% ҳисоб карда шудааст",
+        "debitAccount": "2 11 680",
+        "creditAccount": "2 11 681",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op16",
+        "name": "Варақаи корношоям ҳисоб карда шудааст",
+        "debitAccount": "2 11 680",
+        "creditAccount": "2 11 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op17",
+        "name": "Музди маош ҳисоб карда шудааст",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op18",
+        "name": "Суғур. иҷтим. ҳисоб карда шудааст (АСИН 25%)",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 680",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op19",
+        "name": "Фонди нафақаи 1% нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 660",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op20",
+        "name": "Андози даромад нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 670",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op21",
+        "name": "Фонди иттиф. кас. 1% (БҶ) нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 541",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op22",
+        "name": "Фонди иттиф. кас. 1% (БМ) нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 542",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op23",
+        "name": "Фонди ҳизби 1% ва алимен. нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 590",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op24",
+        "name": "Моли конселярӣ ва китобҳои дарсӣ",
+        "debitAccount": "1 31 210",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op25",
+        "name": "Моли ҳоҷагидорӣ ва инвентар",
+        "debitAccount": "1 31 211",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op26",
+        "name": "Ҳароҷоти масолеҳҳо",
+        "debitAccount": "1 31 212",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op27",
+        "name": "Инвентари нарм ва либоси расми",
+        "debitAccount": "1 31 213",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op28",
+        "name": "Ҳурокворӣ",
+        "debitAccount": "1 31 214",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op29",
+        "name": "Дорувориҳо ва лавозимоти ҷароҳатбандӣ",
+        "debitAccount": "1 31 215",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op30",
+        "name": "Сӯзандаи молидани масолеҳҳо (Ангишт ва ҳезум)",
+        "debitAccount": "1 31 216",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op31",
+        "name": "Сӯзишворӣ ба ҳисоби ронанда",
+        "debitAccount": "1 31 217",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op32",
+        "name": "Кисмҳои эҳтиётӣ",
+        "debitAccount": "1 31 218",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op33",
+        "name": "Зарфӣ",
+        "debitAccount": "1 31 219",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op34",
+        "name": "Биноҳои истиқоматӣ (истиқоматгоҳ)",
+        "debitAccount": "1 41 110",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op35",
+        "name": "Биноҳои ғайриистиқоматӣ",
+        "debitAccount": "1 41 120",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op36",
+        "name": "Иншоотҳо",
+        "debitAccount": "1 41 210",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op37",
+        "name": "Дастгоҳҳои таҳвилдиҳӣ",
+        "debitAccount": "1 41 220",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op38",
+        "name": "Таҷҳизоти нақлиёт",
+        "debitAccount": "1 41 310",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op39",
+        "name": "Дигар машинҳо ва таҷҳизот",
+        "debitAccount": "1 41 320",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op40",
+        "name": "Мебел ва лавозимот",
+        "debitAccount": "1 41 400",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op41",
+        "name": "Ободонии замин",
+        "debitAccount": "1 41 500",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op42",
+        "name": "Фонди воситаҳои асосии иловагӣ",
+        "debitAccount": "3 60 100",
+        "creditAccount": "3 10 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op43",
+        "name": "Шинохтани ҳароҷот барои  таъмири фаръӣ",
+        "debitAccount": "5 12 510",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op44",
+        "name": "Шинохтани ҳароҷот барои нерӯи барқ",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op45",
+        "name": "Шинохтани ҳароҷот барои газ",
+        "debitAccount": "5 12 720",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op46",
+        "name": "Шинохтани ҳароҷот барои партовбарӣ",
+        "debitAccount": "5 12 740",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op47",
+        "name": "Шинохтани ҳароҷот барои обу ташноб",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op48",
+        "name": "Шинохт. ҳароҷот барои хизм. мутаҳ.(ГИБ 2216.1)",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op49",
+        "name": "Шинохтани ҳароҷот барои хизматрасонии алоқа",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op50",
+        "name": "Шинохтани ҳароҷот барои гузошт. восит. алоқа",
+        "debitAccount": "5 12 772",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op51",
+        "name": "Шинохтани ҳароҷот барои хизматрас. почтавӣ",
+        "debitAccount": "5 12 773",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op52",
+        "name": "Ҳароҷотҳо барои суғуртаи биноҳо",
+        "debitAccount": "5 22 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op53",
+        "name": "Ҳароҷотҳо барои суғуртаи техника ва таҷҳизот",
+        "debitAccount": "5 22 620",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op54",
+        "name": "Ҳисоб кардан ва пардохти хизмати бонк",
+        "debitAccount": "5 12 820",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op55",
+        "name": "Пардохт-5% (15%) Шинох.даром дар буҷ.маҳаллӣ",
+        "debitAccount": "2 11 690",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op56",
+        "name": "Пардохт-5%дар заҳира барои сохтм.Давл.(ГВБ 01)",
+        "debitAccount": "2 11 690",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op57",
+        "name": "Пардохт-5%Шинох.даром.дар ҳис.Тандур.(ГВБ 05)",
+        "debitAccount": "2 11 690",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op58",
+        "name": "Гузаронидани музди меҳнат",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op59",
+        "name": "Гузаронидани андози даромад",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op60",
+        "name": "Гузаронидани фонди нафақаи 1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op61",
+        "name": "Гузаронидани фонди иттиф. кас. 1% (БҶ)",
+        "debitAccount": "2 11 541",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op62",
+        "name": "Гузаронидани фонди иттиф. кас. 1% (БМ)",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op63",
+        "name": "Гузаронидани фонди ҳизби 1% ва алимен.",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op64",
+        "name": "Гузаронидани АСИН 25%",
+        "debitAccount": "2 11 680",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op65",
+        "name": "Гузаронидани санатори-курортӣ 1,4%",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op66",
+        "name": "Пардохт аз рӯи варақаи корношоям",
+        "debitAccount": "2 11 510",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op67",
+        "name": "Пардохт барои мол (ММЗ)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op68",
+        "name": "Пардохт барои мол (Воситаҳои асосӣ)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op69",
+        "name": "Пардохт барои хизматрасони",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op70",
+        "name": "Пешпардохт барои мол",
+        "debitAccount": "1 15 100",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op71",
+        "name": "Пешпардохт барои хизматрасони",
+        "debitAccount": "1 15 200",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op72",
+        "name": "Пешпардохти андозҳо (Ан.даром.,АСИН 1%,25%)",
+        "debitAccount": "1 15 400",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op73",
+        "name": "Пешпардохти ғайра(Итт.касаба, ҳизбӣ, алимент.)",
+        "debitAccount": "1 15 900",
+        "creditAccount": "1 11 252",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op74",
+        "name": "Камкунӣ - Пешпардохт барои мол (ММЗ)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 15 100",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op75",
+        "name": "Камкунӣ -Пешпардохт барои мол (Восит. асосӣ)",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 15 100",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op76",
+        "name": "Камкунӣ - Пешпардохт барои хизматрасони",
+        "debitAccount": "2 11 190",
+        "creditAccount": "1 15 200",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op77",
+        "name": "Камкунӣ - Пешпардохти фонди нафақаи 1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 15 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op78",
+        "name": "Камкунӣ - Пешпардохти андози даромад",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 15 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op79",
+        "name": "Камкунӣ - Пешпардохти АСИН 25%",
+        "debitAccount": "2 11 680",
+        "creditAccount": "1 15 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op80",
+        "name": "Камкунӣ-Пешпардохти ғайра(Итт. кас.-ҷумҳур.)",
+        "debitAccount": "2 11 541",
+        "creditAccount": "1 15 900",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op81",
+        "name": "Камкунӣ-Пешпардохти ғайра.(Итт. кас.-маҳаллӣ)",
+        "debitAccount": "2 11 542",
+        "creditAccount": "1 15 900",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op82",
+        "name": "Камкунӣ-Пешпардохти ғайра(Ҳизби,алиментҳо)",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 15 900",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op83",
+        "name": "Баровардани моли конселярӣ ва китобҳои дарсӣ",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op84",
+        "name": "Баровардани моли ҳоҷагидорӣ ва инвентар",
+        "debitAccount": "5 12 120",
+        "creditAccount": "1 31 211",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op85",
+        "name": "Баровардани ҳароҷоти масолеҳҳо",
+        "debitAccount": "5 12 130",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op86",
+        "name": "Баровардани инвентари нарм ва либоси расми",
+        "debitAccount": "5 12 140",
+        "creditAccount": "1 31 213",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op87",
+        "name": "Баровардани дорувориҳо ва лавоз.ҷароҳатбандӣ",
+        "debitAccount": "5 12 160",
+        "creditAccount": "1 31 215",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op88",
+        "name": "Баровардани масолеҳҳои ғайра (кисмҳои эҳтиётӣ)",
+        "debitAccount": "5 12 170",
+        "creditAccount": "1 31 218",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op89",
+        "name": "Баровардани масолеҳҳои ғайра",
+        "debitAccount": "5 12 171",
+        "creditAccount": "1 31 219",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op90",
+        "name": "Баровардани СММ аз амбор - Бензин",
+        "debitAccount": "5 12 310",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op91",
+        "name": "Баровардани СММ аз амбор - Солярка",
+        "debitAccount": "5 12 320",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op92",
+        "name": "Баровардани СММ аз амбор - Керосин",
+        "debitAccount": "5 12 330",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op93",
+        "name": "Баровардани СММ аз амбор - Мазут",
+        "debitAccount": "5 12 340",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op94",
+        "name": "Баровардани СММ аз амбор - Равғани мошин",
+        "debitAccount": "5 12 350",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op95",
+        "name": "Баровар. СММ аз амбор-Сӯзиш. ғайра(Гази моеъ)",
+        "debitAccount": "5 12 390",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op96",
+        "name": "Баровар.СММ барои гармидиҳӣ-Ангишт ва ҳезум",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op97",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда - Бензин",
+        "debitAccount": "5 12 310",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op98",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда-Солярка",
+        "debitAccount": "5 12 320",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op99",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда-Керосин",
+        "debitAccount": "5 12 330",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op100",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда - Мазут",
+        "debitAccount": "5 12 340",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op101",
+        "name": "Баров. сӯзишв ба ҳисоби ронанда-Равғани мошин",
+        "debitAccount": "5 12 350",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op102",
+        "name": "Баров.сӯзиш.ба ҳис.рон.-Сӯзиш. ғайра(Гази моеъ)",
+        "debitAccount": "5 12 390",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op103",
+        "name": "Баров.масол.барои таъм.фаръӣ-Биноҳо,иншоотҳо",
+        "debitAccount": "5 12 510",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op104",
+        "name": "Баровард.масолеҳ.барои таъм.фаръӣ-Восит.нақл.",
+        "debitAccount": "5 12 530",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op105",
+        "name": "Баровар.масолеҳҳо барои таъмири фаръӣ-Мебел",
+        "debitAccount": "5 12 540",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op106",
+        "name": "Даромад пули нақд дар бонк(Шин.даром.маҳсус)",
+        "debitAccount": "1 11 252",
+        "creditAccount": "4 42 300",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op107",
+        "name": "Ҳис.кар.-5%  Шинох.даром дар хис",
+        "debitAccount": "5 22 540",
+        "creditAccount": "2 11 690",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op108",
+        "name": "ЧДММ Содиров барои ангишт ва маводхои хачаги",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": "М/О№2"
+      },
+      {
+        "id": "mo3-op109",
+        "name": "Гириф ва истифодани маводхои конселяри",
+        "debitAccount": "5 12 110",
+        "creditAccount": "2 11 110",
+        "basisHint": "М/О№6"
+      },
+      {
+        "id": "mo3-op110",
+        "name": "Гириф ва истифодани маводхои хачагии",
+        "debitAccount": "5 12 120",
+        "creditAccount": "2 11 110",
+        "basisHint": "М/О№6"
+      },
+      {
+        "id": "mo3-op111",
+        "name": "Дар асоси хисоби пешпардохт гир. шуд тачхизот",
+        "debitAccount": "1 31 211",
+        "creditAccount": "1 14 610",
+        "basisHint": "М/О№8"
+      },
+      {
+        "id": "mo3-op112",
+        "name": "Гирифтани партовхо",
+        "debitAccount": "5 12 740",
+        "creditAccount": "1 14 610",
+        "basisHint": "М/О№8"
+      },
+      {
+        "id": "mo3-op113",
+        "name": "Камомад дар асоси санчиш",
+        "debitAccount": "1 14 620",
+        "creditAccount": "1 31 214",
+        "basisHint": "М/О№12"
+      },
+      {
+        "id": "mo3-op114",
+        "name": "Даромад шуд камомади шахси масул",
+        "debitAccount": "1 11 252",
+        "creditAccount": "1 14 620",
+        "basisHint": "М/О№1"
+      },
+      {
+        "id": "mo3-op115",
+        "name": "Зиёдомад дар асоси санчиш",
+        "debitAccount": "1 31 214",
+        "creditAccount": "3 60 200",
+        "basisHint": "М/О№11"
+      },
+      {
+        "id": "mo3-op116",
+        "name": "ЧДММ Содиров барои маводхои хачаги ва конселяри",
+        "debitAccount": "2 11 110",
+        "creditAccount": "1 11 252",
+        "basisHint": "М/О№2"
+      },
+      {
+        "id": "mo3-op117",
+        "name": "Гириф ва истифодани маводхои хачагии",
+        "debitAccount": "1 31 211",
+        "creditAccount": "2 11 110",
+        "basisHint": "М/О№6"
+      },
+      {
+        "id": "mo3-op118",
+        "name": "Гирифтани амволи хоб",
+        "debitAccount": "1 31 212",
+        "creditAccount": "2 11 110",
+        "basisHint": "М/О№6"
+      },
+      {
+        "id": "mo3-op119",
+        "name": "Истифода шуд ангишт",
+        "debitAccount": "5 12 730",
+        "creditAccount": "2 11 110",
+        "basisHint": "М/о№13"
+      },
+      {
+        "id": "mo3-op120",
+        "name": "Даром. пули нақд дар хазина(Шин.даром.маҳсус)",
+        "debitAccount": "1 11 110",
+        "creditAccount": "4 42 300",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op121",
+        "name": "Ҳис.кар.-5% (15%) Шинох.даром дар буҷ.маҳаллӣ",
+        "debitAccount": "5 22 540",
+        "creditAccount": "2 11 690",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op122",
+        "name": "Ҳис.кар.-5%Шинох.даром.дар ҳис.Тандур.(ГВБ 05)",
+        "debitAccount": "5 22 930",
+        "creditAccount": "2 11 690",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op123",
+        "name": "Ҳис.кар.-5%дар заҳира барои сохтм.Давл.(ГВБ 01)",
+        "debitAccount": "5 22 920",
+        "creditAccount": "2 11 690",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op124",
+        "name": "Музди маош ҳисоб карда шудааст",
+        "debitAccount": "5 10 100",
+        "creditAccount": "2 11 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op125",
+        "name": "Мукофотҳо ҳисоб карда шудааст",
+        "debitAccount": "5 10 300",
+        "creditAccount": "2 11 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op126",
+        "name": "Суғур. иҷтим. ҳисоб карда шудааст (АСИН 25%)",
+        "debitAccount": "5 11 100",
+        "creditAccount": "2 11 680",
+        "basisHint": null
+      },
+      {
+        "id": "mo3-op127",
+        "name": "Суғур. давлати хизм. давл.  ҳисоб карда шудааст",
+        "debitAccount": "5 11 200",
+        "creditAccount": "2 11 590",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-4",
+    "number": "4",
+    "sheetName": "М.О. № 4",
+    "title": "соли 2026",
+    "operations": []
+  },
+  {
+    "id": "mo-5",
+    "number": "5",
+    "sheetName": "М.О. № 5",
+    "title": "барои ҳисоби музди маоши кормандон",
+    "operations": [
+      {
+        "id": "mo5-op1",
+        "name": "Музди маош ҳисоб карда шудааст",
+        "debitAccount": "5 10 100",
+        "creditAccount": "2 11 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op2",
+        "name": "Суғур. иҷтим. ҳисоб карда шудааст (АСИН 25%)",
+        "debitAccount": "5 11 100",
+        "creditAccount": "2 11 680",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op3",
+        "name": "Санатори-курортӣ 1,5% ҳисоб карда шудааст",
+        "debitAccount": "2 11 680",
+        "creditAccount": "2 11 681",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op4",
+        "name": "Фонди нафақаи 1% нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 660",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op5",
+        "name": "Фонди иттиф. кас. 1% (БМ) нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 542",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op6",
+        "name": "ХХДТ-1%",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 590",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op7",
+        "name": "Андози даромад нигоҳ дошта шудааст",
+        "debitAccount": "2 11 510",
+        "creditAccount": "2 11 670",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op8",
+        "name": "Варақаи корношоям ҳисоб карда шудааст",
+        "debitAccount": "2 11 680",
+        "creditAccount": "2 11 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op9",
+        "name": "Шинохтани даромадҳо (за счет факт. финансирован.)",
+        "debitAccount": "2 11 972",
+        "creditAccount": "4 18 310",
+        "basisHint": null
+      },
+      {
+        "id": "mo5-op10",
+        "name": "Санатори-курортӣ 1,4% ҳисоб карда шудааст",
+        "debitAccount": "2 11 680",
+        "creditAccount": "2 11 681",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-6",
+    "number": "6",
+    "sheetName": "М.О. № 6",
+    "title": "ҳисобҳои аз рӯи тахмини дигар қарздорҳо ва қарздиҳандаҳо",
+    "operations": [
+      {
+        "id": "mo6-op1",
+        "name": "Хароҷот барои сугуртаи хизматчии давлатй барои  соли 2021",
+        "debitAccount": "5 11 900",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op2",
+        "name": "Барои нигохдори Бойгони",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op3",
+        "name": "Қабули молхои конселяри аз С.И Алиева Д.Қ.",
+        "debitAccount": "1 31 210",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи борхати хароҷотии №6 аз 10.01.2020 сол"
+      },
+      {
+        "id": "mo6-op4",
+        "name": "Барои истифодабарии оби нушоки-январ 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №33 аз 30.01.2020 сол"
+      },
+      {
+        "id": "mo6-op5",
+        "name": "Барои истифодабарии қувваи барқ",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураҳо"
+      },
+      {
+        "id": "mo6-op6",
+        "name": "Барои истифодабарии оби нушоки-феврал 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №33 аз 26.02.2020 сол"
+      },
+      {
+        "id": "mo6-op7",
+        "name": "Барои аз муоинаи техники гузаронидани автомошинаи хизматии идора тамғаи мерседес бенз",
+        "debitAccount": "5 12 530",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураҳо"
+      },
+      {
+        "id": "mo6-op8",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи  феврал ва марти соли 2020",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op9",
+        "name": "Барои истифодабарии оби нушоки-март 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op10",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи  апрели соли 2020",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома-фактураи №-322070 аз 30.04.2020"
+      },
+      {
+        "id": "mo6-op11",
+        "name": "Харидории қисмҳои компютер ва принтер",
+        "debitAccount": "5 12 590",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи борхати хароҷотии №23 аз 30.04.2020 сол"
+      },
+      {
+        "id": "mo6-op12",
+        "name": "Маводҳои безараргардони оиди бемориҳои сироятӣ",
+        "debitAccount": "1 31 215",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи борхати хароҷотии №250 аз 28.04.2020 сол"
+      },
+      {
+        "id": "mo6-op13",
+        "name": "Харидори намудани сузишвори дизелӣ  аз ҶДММ Газпромнефт",
+        "debitAccount": "1 31 217",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома-фактураи №-153 аз 06.04.2020"
+      },
+      {
+        "id": "mo6-op14",
+        "name": "Барои истифодабарии оби нушоки-апрел 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №33 аз 28.04.2020 сол"
+      },
+      {
+        "id": "mo6-op15",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи  майи соли 2020",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op16",
+        "name": "Барои истифодабарии оби нушоки-май 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op17",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи  июни соли 2020",
+        "debitAccount": "5 12 765",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op18",
+        "name": "Харидори намудани диёдвий лампа аз С/И-Алиева Д.Қ.",
+        "debitAccount": "1 31 211",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op19",
+        "name": "Хароҷоти маблағ барои хизматрасонии КВД МДАМББ (Токен-SGB.net) барои соли 2022",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op20",
+        "name": "Барои истифодабарии оби нушоки-июн 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op21",
+        "name": "Барои маводхои безараргардони  ГИБ 2216",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op22",
+        "name": "Барои истифодабарии оби нушоки-июл 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op23",
+        "name": "Барои истифодабарии қувваи барқ дар мохи июли соли 2020",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op24",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи июл ва августи соли 2020",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op25",
+        "name": "Барои истифодабарии қувваи барқ дар мохи августи соли 2020",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op26",
+        "name": "Барои обуна 2020 ба рузномахои; Ҷумҳурият, Садои мардум, Халқ овозӣ, Народная газета, Тоҷикистон, Адабиёт ва санъат, Ваҳдат, Ҷавонони Тоҷикистон, Ҳақиқати Суғд, Согдийская правда, Суғд ҳақиқати-1 адади ва Ризқофарин-3адад, Иқбол-2адад.",
+        "debitAccount": "5 12 773",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op27",
+        "name": "Хароҷоти маблағ барои хизматрасонии КВД МДАМББ (Токен-SGB.net) барои соли 2020",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №7064 аз 24.09.2020"
+      },
+      {
+        "id": "mo6-op28",
+        "name": "Хароҷоти маблағ барои истифодабарии интернет",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №44635 аз 15.09.2020 сол"
+      },
+      {
+        "id": "mo6-op29",
+        "name": "Хароҷоти маблағ барои обуна 2020 ба рузномахои; 1.Минбари халқ-1адад; 2.Сухани халқ-1адад.",
+        "debitAccount": "5 12 773",
+        "creditAccount": "2 11 110",
+        "basisHint": "Дар асоси мактуби №4 аз 29.09.2020 сол"
+      },
+      {
+        "id": "mo6-op30",
+        "name": "Хароҷоти маблағ барои истифодабарии оби нушоки-август ва сентябри 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №38 аз 20.08.2020 ва №207 аз 29.09.2020 сол"
+      },
+      {
+        "id": "mo6-op31",
+        "name": "Хароҷоти маблағ барои истифодабарии қувваи барқ дар мохи сентябри соли 2020",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": "Аз руи ҳисобнома фактураи №1228702 аз 28.09.2020 сол"
+      },
+      {
+        "id": "mo6-op32",
+        "name": "Пушонидани харочоти сафари хизматии Азизов А.Н.",
+        "debitAccount": "5 12 450",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op33",
+        "name": "Хароҷоти маблағ барои истифодабарии оби нушоки-октябри 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op34",
+        "name": "Хароҷоти маблағ барои истифодабарии қувваи барқ дар мохи октябри соли 2020",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op35",
+        "name": "Қабули сузишвории дизелӣ (солярка) ба ҳисоби ронанда аз СИ Содиров А",
+        "debitAccount": "1 31 217",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op36",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи октябри соли 2018",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op37",
+        "name": "Хароҷоти маблағ барои гузаронидани санҷиши воситаҳои ченак",
+        "debitAccount": "5 12 900",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op38",
+        "name": "Хароҷоти маблағ барои хизматрасонии КВД МДАМББ (Токен-SGB.net)",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op39",
+        "name": "Қабули ангиштсанг аз С/И-Содиров А барои зимистонгузаронӣ",
+        "debitAccount": "1 31 219",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op40",
+        "name": "Хароҷоти маблағ барои истифодабарии оби нушоки-ноябри 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op41",
+        "name": "Хароҷоти маблағ барои истифодабарии қувваи барқ дар мохи ноябри соли 2020",
+        "debitAccount": "5 12 710",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op42",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи октябри соли 2020",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op43",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи ноябри соли 2018",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op44",
+        "name": "Қабули молҳои дафтардорӣ аз мағозаи \"Дунёи китоб\"-и С.И Алиева Д.Қ.",
+        "debitAccount": "1 31 210",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op45",
+        "name": "Қабули қисмҳои эҳтиётии автомошина аз С/И-Содиров А.",
+        "debitAccount": "1 31 219",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op46",
+        "name": "Қабули маводҳои безараргардони оиди бемориҳои сироятӣ аз С/И-Содиров А.",
+        "debitAccount": "1 31 215",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op47",
+        "name": "Харочоти маблаг барои санҷиши воситаҳои ченаки ОМТБО-и бозори Ашроф",
+        "debitAccount": "5 12 900",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op48",
+        "name": "Хароҷоти маблағ барои истифодабарии оби нушоки-декабри 2020с.",
+        "debitAccount": "5 12 750",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op49",
+        "name": "Хароҷоти маблағ барои дароз намудани барномаи электронии андоз ба муҳлати 1-сол",
+        "debitAccount": "5 12 610",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo6-op50",
+        "name": "Хароҷот барои хизматрасонии алоқаи телефонии ФҶСК \"Точиктелеком\" барои моҳи ноябри соли 2020",
+        "debitAccount": "5 12 771",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-7",
+    "number": "7",
+    "sheetName": "М.О. № 7",
+    "title": "соли 2026",
+    "operations": []
+  },
+  {
+    "id": "mo-8",
+    "number": "8",
+    "sheetName": "М.О. № 8",
+    "title": "ҳисобҳои аз рӯи тахмини шахси ҳисоботдиҳандаҳо",
+    "operations": [
+      {
+        "id": "mo8-op1",
+        "name": "Моли конселярӣ ва китобҳои дарсӣ",
+        "debitAccount": "1 31 210",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op2",
+        "name": "Моли ҳоҷагидорӣ ва инвентар",
+        "debitAccount": "1 31 211",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op3",
+        "name": "Ҳароҷоти масолеҳҳо",
+        "debitAccount": "1 31 212",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op4",
+        "name": "Инвентари нарм ва либоси расми",
+        "debitAccount": "1 31 213",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op5",
+        "name": "Ҳурокворӣ",
+        "debitAccount": "1 31 214",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op6",
+        "name": "Дорувориҳо ва лавозимоти ҷароҳатбандӣ",
+        "debitAccount": "1 31 215",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op7",
+        "name": "Сӯзандаи молидани масолеҳҳо (Ангишт ва ҳезум)",
+        "debitAccount": "1 31 216",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op8",
+        "name": "Сӯзишворӣ ба ҳисоби ронанда",
+        "debitAccount": "1 31 217",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op9",
+        "name": "Кисмҳои эҳтиётӣ",
+        "debitAccount": "1 31 218",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op10",
+        "name": "Зарфӣ",
+        "debitAccount": "1 31 219",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op11",
+        "name": "Дастгоҳҳои таҳвилдиҳӣ",
+        "debitAccount": "1 41 220",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op12",
+        "name": "Таҷҳизоти нақлиёт",
+        "debitAccount": "1 41 310",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op13",
+        "name": "Дигар машинҳо ва таҷҳизот",
+        "debitAccount": "1 41 320",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op14",
+        "name": "Мебел ва лавозимот",
+        "debitAccount": "1 41 400",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op15",
+        "name": "Фонди вос. асосии иловагӣ(бар.ҳис.маблағд. ҳақ.)",
+        "debitAccount": "2 11 972",
+        "creditAccount": "3 10 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op16",
+        "name": "Баргардонидани наистифодаи маблағи ҳисоб",
+        "debitAccount": "1 11 110",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op17",
+        "name": "Ҳароҷоти сафарӣ",
+        "debitAccount": "5 12 450",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op18",
+        "name": "Хизм.марбут ба интиш.ва корҳ.нашр.,наш.хабарҳо",
+        "debitAccount": "5 12 620",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op19",
+        "name": "Истифодаи ғайра молҳо, корҳо ва хизматҳо",
+        "debitAccount": "5 12 900",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op20",
+        "name": "қарздории кредитории шахси ҳисоботдиҳанда",
+        "debitAccount": "1 14 610",
+        "creditAccount": "2 11 590",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op21",
+        "name": "Шинохтани даромадҳо (за счет факт. финансирован.)",
+        "debitAccount": "2 11 972",
+        "creditAccount": "4 18 310",
+        "basisHint": "Шинохт. даромадҳо"
+      },
+      {
+        "id": "mo8-op22",
+        "name": "Пардохт аз пешпардохт барои карзд. дебитори",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 14 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo8-op23",
+        "name": "Ҳароҷоти сафарӣ",
+        "debitAccount": "5 12 450",
+        "creditAccount": "2 11 590",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-9",
+    "number": "9",
+    "sheetName": "М.О. № 9",
+    "title": "барои гузаронидан ва ҳориҷшавӣ воситаҳои асосӣ",
+    "operations": [
+      {
+        "id": "mo9-op1",
+        "name": "Биноҳои истиқоматӣ (истиқоматгоҳ)",
+        "debitAccount": "1 41 110",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op2",
+        "name": "Биноҳои ғайриистиқоматӣ",
+        "debitAccount": "1 41 120",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op3",
+        "name": "Иншоотҳо",
+        "debitAccount": "1 41 210",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op4",
+        "name": "Дастгоҳҳои таҳвилдиҳӣ",
+        "debitAccount": "1 41 220",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op5",
+        "name": "Таҷҳизоти нақлиёт",
+        "debitAccount": "1 41 310",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op6",
+        "name": "Дигар машинҳо ва таҷҳизот",
+        "debitAccount": "1 41 320",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op7",
+        "name": "Мебел ва лавозимот",
+        "debitAccount": "1 41 400",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op8",
+        "name": "Ободонии замин",
+        "debitAccount": "1 41 500",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op9",
+        "name": "Фонди воситаҳои асосии иловагӣ",
+        "debitAccount": "3 60 100",
+        "creditAccount": "3 10 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op10",
+        "name": "Аз ҳисоби Кумита компютер комплект ба МТБО ворид карда шуд",
+        "debitAccount": "1 41 320",
+        "creditAccount": "3 10 110",
+        "basisHint": "Борхати №212 аз 09.10.2020 сол"
+      },
+      {
+        "id": "mo9-op11",
+        "name": "Аз ҳисоби Кумита 1-адад принтер ба МТБО ворид карда шуд",
+        "debitAccount": "1 41 320",
+        "creditAccount": "3 10 110",
+        "basisHint": "Борхати №212 аз 09.10.2020 сол"
+      },
+      {
+        "id": "mo9-op12",
+        "name": "Хурдашави воситахои асосии Бино",
+        "debitAccount": "5 13 100",
+        "creditAccount": "1 42 120",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op13",
+        "name": "Хурдашави воситахои асосии техника",
+        "debitAccount": "5 13 100",
+        "creditAccount": "1 42 320",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op14",
+        "name": "Хурдашави воситахои асосии мебелхо",
+        "debitAccount": "5 13 100",
+        "creditAccount": "1 42 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo9-op15",
+        "name": "Шинохти даромади давра",
+        "debitAccount": "3 10 110",
+        "creditAccount": "4 18 320",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-10",
+    "number": "10",
+    "sheetName": "М.О. № 10",
+    "title": "по учёту безвоздмездных поступлений",
+    "operations": [
+      {
+        "id": "mo10-op1",
+        "name": "Моли конселярӣ ва китобҳои дарсӣ",
+        "debitAccount": "1 31 210",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op2",
+        "name": "Моли ҳоҷагидорӣ ва инвентар",
+        "debitAccount": "1 31 211",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op3",
+        "name": "Ҳароҷоти масолеҳҳо",
+        "debitAccount": "1 31 212",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op4",
+        "name": "Инвентари нарм ва либоси расми",
+        "debitAccount": "1 31 213",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op5",
+        "name": "Ҳурокворӣ",
+        "debitAccount": "1 31 214",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op6",
+        "name": "Дорувориҳо ва лавозимоти ҷароҳатбандӣ",
+        "debitAccount": "1 31 215",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op7",
+        "name": "Сӯзандаи молидани масолеҳҳо (Ангишт ва ҳезум)",
+        "debitAccount": "1 31 216",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op8",
+        "name": "Сӯзишворӣ ба ҳисоби ронанда",
+        "debitAccount": "1 31 217",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op9",
+        "name": "Кисмҳои эҳтиётӣ",
+        "debitAccount": "1 31 218",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op10",
+        "name": "Зарфӣ",
+        "debitAccount": "1 31 219",
+        "creditAccount": "2 11 981",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op11",
+        "name": "Биноҳои истиқоматӣ (истиқоматгоҳ)",
+        "debitAccount": "1 41 110",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op12",
+        "name": "Биноҳои ғайриистиқоматӣ",
+        "debitAccount": "1 41 120",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op13",
+        "name": "Иншоотҳо",
+        "debitAccount": "1 41 210",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op14",
+        "name": "Дастгоҳҳои таҳвилдиҳӣ",
+        "debitAccount": "1 41 220",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op15",
+        "name": "Таҷҳизоти нақлиёт",
+        "debitAccount": "1 41 310",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op16",
+        "name": "Дигар машинҳо ва таҷҳизот",
+        "debitAccount": "1 41 320",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op17",
+        "name": "Мебел ва лавозимот",
+        "debitAccount": "1 41 400",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op18",
+        "name": "Ободонии замин",
+        "debitAccount": "1 41 500",
+        "creditAccount": "3 10 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op19",
+        "name": "Баровардани моли конселярӣ ва китобҳои дарсӣ",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op20",
+        "name": "Баровардани моли ҳоҷагидорӣ ва инвентар",
+        "debitAccount": "5 12 120",
+        "creditAccount": "1 31 211",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op21",
+        "name": "Баровардани ҳароҷоти масолеҳҳо",
+        "debitAccount": "5 12 130",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op22",
+        "name": "Баровардани инвентари нарм ва либоси расми",
+        "debitAccount": "5 12 140",
+        "creditAccount": "1 31 213",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op23",
+        "name": "Баровардани ҳурокворӣ",
+        "debitAccount": "5 12 150",
+        "creditAccount": "1 31 214",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op24",
+        "name": "Баровардани дорувориҳо ва лавоз.ҷароҳатбандӣ",
+        "debitAccount": "5 12 160",
+        "creditAccount": "1 31 215",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op25",
+        "name": "Баровардани масолеҳҳои ғайра (кисмҳои эҳтиётӣ)",
+        "debitAccount": "5 12 170",
+        "creditAccount": "1 31 218",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op26",
+        "name": "Баровардани масолеҳҳои ғайра",
+        "debitAccount": "5 12 171",
+        "creditAccount": "1 31 219",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op27",
+        "name": "Баровардани СММ аз амбор - Бензин",
+        "debitAccount": "5 12 310",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op28",
+        "name": "Баровардани СММ аз амбор - Солярка",
+        "debitAccount": "5 12 320",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op29",
+        "name": "Баровардани СММ аз амбор - Керосин",
+        "debitAccount": "5 12 330",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op30",
+        "name": "Баровардани СММ аз амбор - Мазут",
+        "debitAccount": "5 12 340",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op31",
+        "name": "Баровардани СММ аз амбор - Равғани мошин",
+        "debitAccount": "5 12 350",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op32",
+        "name": "Баровар. СММ аз амбор-Сӯзиш. ғайра(Гази моеъ)",
+        "debitAccount": "5 12 390",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op33",
+        "name": "Баровар.СММ барои гармидиҳӣ-Ангишт ва ҳезум",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op34",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда - Бензин",
+        "debitAccount": "5 12 310",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op35",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда-Солярка",
+        "debitAccount": "5 12 320",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op36",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда-Керосин",
+        "debitAccount": "5 12 330",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op37",
+        "name": "Баровард. сӯзишворӣ ба ҳисоби ронанда - Мазут",
+        "debitAccount": "5 12 340",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op38",
+        "name": "Баров. сӯзишв ба ҳисоби ронанда-Равғани мошин",
+        "debitAccount": "5 12 350",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op39",
+        "name": "Баров.сӯзиш.ба ҳис.рон.-Сӯзиш. ғайра(Гази моеъ)",
+        "debitAccount": "5 12 390",
+        "creditAccount": "1 31 217",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op40",
+        "name": "Баров.масол.барои таъм.фаръӣ-Биноҳо,иншоотҳо",
+        "debitAccount": "5 12 510",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op41",
+        "name": "Баровард.масолеҳ.барои таъм.фаръӣ-Восит.нақл.",
+        "debitAccount": "5 12 530",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      },
+      {
+        "id": "mo10-op42",
+        "name": "Баровар.масолеҳҳо барои таъмири фаръӣ-Мебел",
+        "debitAccount": "5 12 540",
+        "creditAccount": "1 31 212",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-11",
+    "number": "11",
+    "sheetName": "М.О. № 11",
+    "title": "соли 2026",
+    "operations": []
+  },
+  {
+    "id": "mo-12",
+    "number": "12",
+    "sheetName": "М.О. № 12",
+    "title": "барои ҳисоби хакки волидайн",
+    "operations": []
+  },
+  {
+    "id": "mo-13",
+    "number": "13",
+    "sheetName": "М.О. № 13",
+    "title": "барои ҳароҷоти масолеҳҳо",
+    "operations": [
+      {
+        "id": "mo13-op1",
+        "name": "Хароҷот барои истифодабарии Ангишт дар моҳи январи соли 2021",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 216",
+        "basisHint": "Дар асоси санад аз санаи 31.01.2021 сол"
+      },
+      {
+        "id": "mo13-op2",
+        "name": "Хароҷот барои истифодабарии молҳои конселярӣ дар моҳи январи соли 2021",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": "Дар асоси санад аз санаи 31.01.2021 сол"
+      },
+      {
+        "id": "mo13-op3",
+        "name": "Баровардани хароҷоти сӯзишворӣ ба ҳисоби ронанда-Солярка",
+        "debitAccount": "5 12 320",
+        "creditAccount": "1 31 217",
+        "basisHint": "Дар асоси роҳхати №1 ва №2"
+      },
+      {
+        "id": "mo13-op4",
+        "name": "Хароҷот барои истифодабарии Ангишт дар моҳи феврали соли 2020",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 219",
+        "basisHint": "Дар асоси санад аз санаи 26.02.2021 сол"
+      },
+      {
+        "id": "mo13-op5",
+        "name": "Хароҷот барои истифодабарии молҳои конселярӣ дар моҳи феврали соли 2020",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": "Дар асоси санад аз санаи 26.02.2021 сол"
+      },
+      {
+        "id": "mo13-op6",
+        "name": "Хароҷот барои истифодабарии Ангишт дар моҳи марти соли 2020",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 219",
+        "basisHint": "Дар асоси санад аз санаи 31.03.2021 сол"
+      },
+      {
+        "id": "mo13-op7",
+        "name": "Хароҷот барои истифодабарии молҳои конселярӣ дар моҳи майи соли 2020",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": "Дар асоси санад аз санаи 29.05.2020 сол"
+      },
+      {
+        "id": "mo13-op8",
+        "name": "Баровардани хароҷоти маводҳои безараргардони оиди бемориҳои сироятӣ",
+        "debitAccount": "5 12 120",
+        "creditAccount": "1 31 215",
+        "basisHint": "Дар асоси санад ба санаи 30.06.2020"
+      },
+      {
+        "id": "mo13-op9",
+        "name": "Баровардани хароҷоти лампаҳои диёдвий",
+        "debitAccount": "5 12 120",
+        "creditAccount": "1 31 211",
+        "basisHint": "Дар асоси санад ба санаи 30.06.2020"
+      },
+      {
+        "id": "mo13-op10",
+        "name": "Хароҷот барои истифодабарии молҳои конселярӣ дар моҳи июни соли 2020",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": "Дар асоси санад ба санаи 30.06.2020"
+      },
+      {
+        "id": "mo13-op11",
+        "name": "Хароҷот барои ранги катреҷ",
+        "debitAccount": "5 12 130",
+        "creditAccount": "1 31 210",
+        "basisHint": "Дар асоси санад ба санаи 30.06.2020"
+      },
+      {
+        "id": "mo13-op12",
+        "name": "Хароҷот барои истифодабарии молҳои конселярӣ",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op13",
+        "name": "Хароҷоти маблағ барои муҳарики автомошинаи мерседес бенз 6-литр равған",
+        "debitAccount": "5 12 350",
+        "creditAccount": "1 31 216",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op14",
+        "name": "Хароҷоти маблағ барои автомошинаи хизматии идора Мерседес бенз 4-адад чархҳои резинӣ",
+        "debitAccount": "5 12 530",
+        "creditAccount": "1 31 218",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op15",
+        "name": "Хароҷоти маблағ барои автомошинаи хизматии идора Мерседес бенз 4-адад чархҳои резинӣ, ки дар соли 2017 харидори шудабуданд аз сабаби дар хароҷоти соли 2017 нишон надодан дар соли 2018 ба харочот бурда шуданд",
+        "debitAccount": "5 12 530",
+        "creditAccount": "1 31 218",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op16",
+        "name": "Хароҷоти маблағ барои шинондани тирезаҳои плостики дар бинои идора, ки соли 2017 харидори шудабуданд аз сабаби дар хароҷоти соли 2017 нишон надодан дар соли 2018 ба харочот бурда шуданд",
+        "debitAccount": "5 12 130",
+        "creditAccount": "1 31 218",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op17",
+        "name": "Хароҷот барои молҳои дафтардорӣ",
+        "debitAccount": "5 12 110",
+        "creditAccount": "1 31 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op18",
+        "name": "Хароҷот барои истифодабарии Ангишт дар моҳи ноябри соли 2018",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 219",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op19",
+        "name": "Хароҷот барои истифодабарии Ангишт дар моҳи декабри соли 2018",
+        "debitAccount": "5 12 730",
+        "creditAccount": "1 31 219",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op20",
+        "name": "Хароҷот барои қисмҳои эҳтиётии автомошинаи хизматии идора",
+        "debitAccount": "5 12 530",
+        "creditAccount": "1 31 219",
+        "basisHint": null
+      },
+      {
+        "id": "mo13-op21",
+        "name": "Соқит намудани молҳои камарзиш",
+        "debitAccount": "5 12 120",
+        "creditAccount": "1 31 211",
+        "basisHint": "Санади №01 аз 27.11.2020 сол"
+      }
+    ]
+  },
+  {
+    "id": "mo-14",
+    "number": "14",
+    "sheetName": "М.О. № 14",
+    "title": "соли 2026",
+    "operations": []
+  },
+  {
+    "id": "mo-15",
+    "number": "15",
+    "sheetName": "М.О. № 15",
+    "title": "Корректура (Storno)",
+    "operations": [
+      {
+        "id": "mo15-op1",
+        "name": "Тасҳеҳот (Storno)",
+        "debitAccount": "3 10 110",
+        "creditAccount": "1 41 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op2",
+        "name": "Пӯшидани ҳисоби даромад",
+        "debitAccount": "4 18 310",
+        "creditAccount": "6 10 000",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op3",
+        "name": "Пӯшидани ҳисоби даромад",
+        "debitAccount": "4 18 320",
+        "creditAccount": "6 10 000",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op4",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 10 100",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op5",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 11 100",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op6",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op7",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 130",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op8",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 320",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op9",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 350",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op10",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 510",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op11",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 520",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op12",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 530",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op13",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op14",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 710",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op15",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 730",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op16",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 750",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op17",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 771",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op18",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 773",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op19",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 820",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op20",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 900",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op21",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 13 100",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op22",
+        "name": "Пӯшидани ҳисоби фоида ва зарар",
+        "debitAccount": "6 10 000",
+        "creditAccount": "3 60 200",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op23",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 390",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op24",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 440",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op25",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 450",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op26",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 540",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op27",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 620",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op28",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 630",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op29",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 12 740",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op30",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 13 200",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op31",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 17 210",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op32",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 17 220",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op33",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 420",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op34",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 540",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op35",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 530",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op36",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 550",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op37",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 610",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op38",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 620",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op39",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 920",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op40",
+        "name": "Пӯшидани ҳисоби ҳароҷот",
+        "debitAccount": "6 10 000",
+        "creditAccount": "5 22 930",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op41",
+        "name": "Пӯшидани ҳисоби фоида ва зарар",
+        "debitAccount": "6 10 000",
+        "creditAccount": "3 60 100",
+        "basisHint": null
+      },
+      {
+        "id": "mo15-op42",
+        "name": "Пӯшидани ҳисоби фоида ва зарар",
+        "debitAccount": "3 60 100",
+        "creditAccount": "6 10 000",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-16",
+    "number": "16",
+    "sheetName": "М.О. № 16",
+    "title": "соли 2026",
+    "operations": [
+      {
+        "id": "mo16-op1",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2021 ба суратҳисоби ФХИА-1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 15 200",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op2",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2021 ба суратҳисоби ХХДТ-1%",
+        "debitAccount": "2 11 590",
+        "creditAccount": "1 15 200",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op3",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2021 ба суратҳисоби 1,4%",
+        "debitAccount": "2 11 681",
+        "creditAccount": "1 15 200",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op4",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2018 ба суратҳисоби ФҲИА-1%",
+        "debitAccount": "2 11 660",
+        "creditAccount": "1 15 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op5",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2018 ба суратҳисоби андоз аз даромад-13%",
+        "debitAccount": "2 11 670",
+        "creditAccount": "1 15 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op6",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2018  ба суратҳисоби ФҲИА-25%",
+        "debitAccount": "2 11 680",
+        "creditAccount": "1 15 400",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op7",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2022 ба суратҳисоби ХХДТ-1%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 590",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op8",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2022 ба суратҳисоби 1,4%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 681",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op9",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2019 ба суратҳисоби КВД МАМББ (SGB.NET)",
+        "debitAccount": "1 15 200",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op10",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2020 барои оби нушоки",
+        "debitAccount": "1 15 200",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op11",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2019 ба суратҳисоби андоз аз даромад-13%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 670",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op12",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2020 ба суратҳисоби ФХИА-1%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 660",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op13",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми 9-мохаи соли 2020 ба суратхисоби КИК-1%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 542",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op14",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми 9-моҳаи соли 2020 ба суратҳисоби ФҲИА-25%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 680",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op15",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми 9-моҳаи соли 2020 ба суратҳисоби Точиктелеком барои истифодаи алоқаи телефонӣ",
+        "debitAccount": "1 15 200",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op16",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми 9-моҳаи соли 2020 ба суратҳисоби КВД КФ оби нушоки",
+        "debitAccount": "1 15 200",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op17",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2020 ба суратҳисоби ФҶСК \"Тоҷиктелеком\" дар н.Ҷ.Расулов барои истифодаи алоқаи телефонӣ",
+        "debitAccount": "1 15 200",
+        "creditAccount": "2 11 110",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op18",
+        "name": "Бақияи маблағҳои пардохтшуда дар давоми соли 2020 ба суратҳисоби КИК-ноҳия 1%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 542",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op19",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2020  ба суратҳисоби ФҲИА-25%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 680",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op20",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2018 ба суратҳисоби ФҲИА-1%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 660",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op21",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2018 ба суратҳисоби андоз аз даромад-13%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 670",
+        "basisHint": null
+      },
+      {
+        "id": "mo16-op22",
+        "name": "Бақияи маблағҳои пардохтшуда дар соли 2018  ба суратҳисоби ФҲИА-25%",
+        "debitAccount": "1 15 400",
+        "creditAccount": "2 11 680",
+        "basisHint": null
+      }
+    ]
+  },
+  {
+    "id": "mo-17",
+    "number": "17",
+    "sheetName": "М.О. № 17",
+    "title": "соли 2026",
+    "operations": []
+  }
+]

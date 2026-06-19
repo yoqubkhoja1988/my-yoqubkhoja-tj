@@ -1,6 +1,7 @@
 'use client';
 
 import DocumentExportMenu from '@/components/DocumentExportMenu';
+import FinanceMemorialOrdersPanel from '@/components/FinanceMemorialOrdersPanel';
 import OrganizationDocumentSignatureFooter from '@/components/OrganizationDocumentSignatureFooter';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import {
@@ -19,6 +20,9 @@ import {
   upsertBudgetJournalEntry,
   validateJournalEntry,
 } from '@/lib/budget-accounting-journal';
+import {
+  MemorialOrderOperation,
+} from '@/lib/memorial-orders-catalog';
 import {
   NYAH_ACCOUNT_CLASSES,
   NYAH_ACCOUNTS,
@@ -53,7 +57,7 @@ type Props = {
   onUpdate: (content: OrganizationSectionContent) => void;
 };
 
-type TabId = 'chart' | 'journal' | 'turnover';
+type TabId = 'chart' | 'memorial' | 'journal' | 'turnover';
 
 function emptyEntry(
   settings: ReturnType<typeof resolveBudgetAccountingSettings>,
@@ -89,6 +93,9 @@ export default function FinanceBudgetAccountingPanel({
   const [entries, setEntries] = useState<BudgetAccountingJournalEntry[]>(
     () => financeContent.budgetAccountingJournal ?? []
   );
+  const [customMemorialOperations, setCustomMemorialOperations] = useState<
+    Record<string, MemorialOrderOperation[]>
+  >(() => financeContent.memorialOrderCustomOperations ?? {});
   const [tab, setTab] = useState<TabId>('chart');
   const [classFilter, setClassFilter] = useState<NyahAccountClassId | ''>('');
   const [accountSearch, setAccountSearch] = useState('');
@@ -150,7 +157,8 @@ export default function FinanceBudgetAccountingPanel({
 
   async function persist(
     nextSettings: typeof settings,
-    nextEntries: BudgetAccountingJournalEntry[]
+    nextEntries: BudgetAccountingJournalEntry[],
+    nextCustomOps: Record<string, MemorialOrderOperation[]> = customMemorialOperations
   ) {
     setSaving(true);
     setError('');
@@ -159,6 +167,7 @@ export default function FinanceBudgetAccountingPanel({
       summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
       budgetAccountingSettings: nextSettings,
       budgetAccountingJournal: nextEntries,
+      memorialOrderCustomOperations: nextCustomOps,
     };
     try {
       const saved = await updateOrganizationSection(organizationId, 'finance', payload);
@@ -170,9 +179,14 @@ export default function FinanceBudgetAccountingPanel({
         ...saved,
         budgetAccountingSettings: saved.budgetAccountingSettings ?? payload.budgetAccountingSettings,
         budgetAccountingJournal: saved.budgetAccountingJournal ?? payload.budgetAccountingJournal,
+        memorialOrderCustomOperations:
+          saved.memorialOrderCustomOperations ?? payload.memorialOrderCustomOperations,
       });
       setSettings(resolveBudgetAccountingSettings(saved));
       setEntries(saved.budgetAccountingJournal ?? nextEntries);
+      setCustomMemorialOperations(
+        saved.memorialOrderCustomOperations ?? nextCustomOps
+      );
     } catch {
       setError(t('sectionSaveError'));
     } finally {
@@ -313,6 +327,7 @@ export default function FinanceBudgetAccountingPanel({
         {(
           [
             ['chart', 'nyahTabChart'],
+            ['memorial', 'nyahTabMemorial'],
             ['journal', 'nyahTabJournal'],
             ['turnover', 'nyahTabTurnover'],
           ] as const
@@ -407,6 +422,19 @@ export default function FinanceBudgetAccountingPanel({
             {t('nyahAccountsCount', { count: NYAH_ACCOUNTS.length })}
           </p>
         </div>
+      )}
+
+      {tab === 'memorial' && (
+        <FinanceMemorialOrdersPanel
+          settings={settings}
+          entries={entries}
+          financeContent={financeContent}
+          customOperations={customMemorialOperations}
+          onCustomOperationsChange={setCustomMemorialOperations}
+          onEntriesChange={setEntries}
+          onPersist={persist}
+          saving={saving}
+        />
       )}
 
       {tab === 'journal' && (
