@@ -19,6 +19,7 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-labor-leave', labelKey: 'financeNavLaborLeave' },
   { id: 'finance-maternity-leave', labelKey: 'financeNavMaternityLeave' },
   { id: 'finance-sick-leave', labelKey: 'financeNavSickLeave' },
+  { id: 'finance-social-insurance-agency', labelKey: 'financeNavSocialInsuranceAgency' },
   { id: 'finance-parent-membership-fee', labelKey: 'financeNavParentMembershipFee' },
   { id: 'finance-parent-food-payment', labelKey: 'financeNavParentFoodPayment' },
   { id: 'finance-budget-accounting', labelKey: 'financeNavBudgetAccounting' },

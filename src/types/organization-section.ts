@@ -404,6 +404,8 @@ export interface OrganizationSectionContent {
   /** НЯҲ — сабтҳои ҳисобдорӣ барои ташкилотҳои буҷетӣ */
   budgetAccountingSettings?: BudgetAccountingSettings;
   budgetAccountingJournal?: BudgetAccountingJournalEntry[];
+  /** Ҳисобот ба Агентии суғуртаи иҷтимоиӣ ва нафақа (АДСИН) */
+  socialInsuranceAgencySettings?: SocialInsuranceAgencyReportSettings;
 }
 
 export type ParentMembershipFeePeriodKind = 'monthly' | 'annual';
@@ -510,6 +512,44 @@ export interface LocalPayrollRequirementMonthSettings {
       string
     >
   >;
+}
+
+/** Сабти пардохти саҳмҳои суғуртаи иҷтимоӣ (Замимаи 5/6 — АДСИН) */
+export interface SocialInsuranceAgencyPaymentRecord {
+  id: string;
+  paymentSlipNumber?: string;
+  paymentDate?: string;
+  /** Маблағи пардохт барои ҳар моҳ (YYYY-MM → сомонӣ) */
+  monthAmounts?: Record<string, number>;
+}
+
+/** Маълумоти дастии/илова барои ҳисоботи АДСИН (Замимаи 1, сатрҳои 100–160) */
+export interface SocialInsuranceAgencyReportSettings {
+  fiscalYear?: string;
+  openingDebtAgent25?: number;
+  openingDebtAgent1?: number;
+  openingDebtTaxpayer25?: number;
+  openingDebtTaxpayer1?: number;
+  recalculatedPlus25?: number;
+  recalculatedPlus1?: number;
+  recalculatedMinus25?: number;
+  recalculatedMinus1?: number;
+  penalty25?: number;
+  penalty1?: number;
+  interest25?: number;
+  interest1?: number;
+  excludedExpenses25?: number;
+  excludedExpenses1?: number;
+  transferredFromAdsin25?: number;
+  transferredFromAdsin1?: number;
+  listAmount25?: number;
+  listAmount1?: number;
+  paidYtd25?: number;
+  paidYtd1?: number;
+  expenseYtd25?: number;
+  expenseYtd1?: number;
+  paymentRecords1Percent?: SocialInsuranceAgencyPaymentRecord[];
+  paymentRecords25Percent?: SocialInsuranceAgencyPaymentRecord[];
 }
 
 export type OrganizationSectionsMap = Record<string, OrganizationSectionContent>;

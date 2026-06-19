@@ -10,6 +10,7 @@ export const FINANCE_SECTION_IDS = [
   'finance-labor-leave',
   'finance-maternity-leave',
   'finance-sick-leave',
+  'finance-social-insurance-agency',
   'finance-parent-membership-fee',
   'finance-parent-food-payment',
   'finance-budget-accounting',
