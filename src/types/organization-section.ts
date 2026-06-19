@@ -495,6 +495,8 @@ export interface BudgetAccountingJournalEntry {
   documentNumber?: string;
   /** Моҳи китоби музди меҳнат (YYYY-MM) — барои гузарониши худкори мемориалӣ */
   sourcePayrollMonth?: string;
+  /** Моҳи пособии ҳомиладорӣ/корношоямӣ (YYYY-MM) — барои гузарониши худкори мемориалӣ */
+  sourceSocialInsuranceMonth?: string;
   lines: BudgetAccountingJournalLine[];
   createdAt?: string;
 }

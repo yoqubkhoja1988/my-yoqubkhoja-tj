@@ -23,6 +23,7 @@ import {
   SICK_LEAVE_REGULATION,
   suggestSickBenefitCategory,
 } from '@/lib/finance-sick-leave-pay';
+import { persistLaborLeaveInFinance } from '@/lib/payroll-accounting';
 import { printDocument } from '@/lib/print-document';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
@@ -207,12 +208,16 @@ export default function FinanceSickLeavePanel({
         )
       : financeContent.payrollLedgers;
 
-    const payload: OrganizationSectionContent = {
-      ...financeContent,
-      summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
-      laborLeaves: nextLeaves,
-      payrollLedgers,
-    };
+    const payload = persistLaborLeaveInFinance(
+      {
+        ...financeContent,
+        summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
+        laborLeaves: nextLeaves,
+        payrollLedgers,
+      },
+      staffContent,
+      organizationId
+    );
 
     const { content: saved, error: saveError } = await updateOrganizationSectionResult(
       organizationId,
@@ -278,12 +283,16 @@ export default function FinanceSickLeavePanel({
             organizationId
           )
         : financeContent.payrollLedgers;
-    const payload: OrganizationSectionContent = {
-      ...financeContent,
-      summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
-      laborLeaves: nextLeaves,
-      payrollLedgers,
-    };
+    const payload = persistLaborLeaveInFinance(
+      {
+        ...financeContent,
+        summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
+        laborLeaves: nextLeaves,
+        payrollLedgers,
+      },
+      staffContent,
+      organizationId
+    );
     const { content: saved, error: saveError } = await updateOrganizationSectionResult(
       organizationId,
       'finance',

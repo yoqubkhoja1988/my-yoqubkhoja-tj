@@ -26,6 +26,8 @@ import {
 } from '@/lib/finance-payroll-ledger';
 import { isBudgetFundedOrganization } from '@/lib/organization-scope';
 import { resolveBudgetAccountingSettings } from '@/lib/budget-accounting-journal';
+import { isStateInsuranceLeaveType, leaveMonthsAffected } from '@/lib/finance-labor-leave-pay';
+import { collectSocialInsuranceBankPayments } from '@/lib/finance-social-insurance-pay';
 import {
   BudgetAccountingJournalEntry,
   BudgetAccountingJournalLine,
@@ -295,19 +297,21 @@ export function parsePayrollSummaryAmount(value: string): number {
   return parseLedgerAmount(value);
 }
 
-/** Бозсозии ҳамаи гузаронишҳои мемориалӣ аз китобҳои сабтшудаи музди меҳнат */
-export function rebuildPayrollMemorialJournalInFinance(
-  financeContent: OrganizationSectionContent
+/** Бозсозии ҳамаи гузаронишҳои мемориалӣ (музди меҳнат, ҳомиладорӣ, корношоямӣ) */
+export function rebuildBudgetMemorialJournalInFinance(
+  financeContent: OrganizationSectionContent,
+  staffContent?: OrganizationSectionContent | null
 ): OrganizationSectionContent {
-  const ledgers = (financeContent.payrollLedgers ?? []).filter((ledger) =>
-    hasStoredPayrollLedger(financeContent.payrollLedgers, ledger.month)
-  );
   const manualEntries = (financeContent.budgetAccountingJournal ?? []).filter(
-    (entry) => !entry.sourcePayrollMonth
+    (entry) => !entry.sourcePayrollMonth && !entry.sourceSocialInsuranceMonth
   );
 
   let settings = resolveBudgetAccountingSettings(financeContent);
   let journal = manualEntries;
+
+  const ledgers = (financeContent.payrollLedgers ?? []).filter((ledger) =>
+    hasStoredPayrollLedger(financeContent.payrollLedgers, ledger.month)
+  );
 
   for (const ledger of [...ledgers].sort((a, b) => a.month.localeCompare(b.month))) {
     if (!ledger.preparedAt) continue;
@@ -316,11 +320,134 @@ export function rebuildPayrollMemorialJournalInFinance(
     settings = synced.settings;
   }
 
+  if (staffContent) {
+    for (const month of socialInsuranceLeaveMonths(financeContent)) {
+      const synced = syncSocialInsuranceMemorialJournal(
+        month,
+        financeContent,
+        staffContent,
+        settings,
+        journal
+      );
+      journal = synced.entries;
+      settings = synced.settings;
+    }
+  }
+
   return {
     ...financeContent,
     budgetAccountingJournal: journal,
     budgetAccountingSettings: settings,
   };
+}
+
+/** @deprecated Истифодаи `rebuildBudgetMemorialJournalInFinance` */
+export function rebuildPayrollMemorialJournalInFinance(
+  financeContent: OrganizationSectionContent,
+  staffContent?: OrganizationSectionContent | null
+): OrganizationSectionContent {
+  return rebuildBudgetMemorialJournalInFinance(financeContent, staffContent);
+}
+
+export function socialInsuranceLeaveMonths(
+  financeContent: OrganizationSectionContent
+): string[] {
+  const months = new Set<string>();
+  for (const leave of financeContent.laborLeaves ?? []) {
+    if (!isStateInsuranceLeaveType(leave.leaveType)) continue;
+    for (const month of leaveMonthsAffected(leave)) {
+      months.add(month);
+    }
+  }
+  return [...months].sort();
+}
+
+export function summarizeSocialInsuranceMonth(
+  month: string,
+  financeContent: OrganizationSectionContent,
+  staffContent: OrganizationSectionContent
+): number {
+  const payments = collectSocialInsuranceBankPayments(
+    financeContent.laborLeaves,
+    staffContent,
+    financeContent.payrollLedgers,
+    month
+  );
+  return roundPayrollMoney(payments.reduce((sum, payment) => sum + payment.amount, 0));
+}
+
+export function removeSocialInsuranceMemorialJournalEntries(
+  entries: BudgetAccountingJournalEntry[] | undefined,
+  month: string
+): BudgetAccountingJournalEntry[] {
+  return (entries ?? []).filter((entry) => entry.sourceSocialInsuranceMonth !== month);
+}
+
+export function syncSocialInsuranceMemorialJournal(
+  month: string,
+  financeContent: OrganizationSectionContent,
+  staffContent: OrganizationSectionContent,
+  settings: BudgetAccountingSettings,
+  journal: BudgetAccountingJournalEntry[] | undefined
+): {
+  entries: BudgetAccountingJournalEntry[];
+  settings: BudgetAccountingSettings;
+} {
+  const amount = summarizeSocialInsuranceMonth(month, financeContent, staffContent);
+  const withoutMonth = removeSocialInsuranceMemorialJournalEntries(journal, month);
+
+  if (amount <= 0) {
+    return { entries: withoutMonth, settings };
+  }
+
+  const maxExisting = withoutMonth.reduce((max, entry) => Math.max(max, entry.entryNumber), 0);
+  const startNumber = Math.max(settings.nextEntryNumber ?? 1, maxExisting + 1);
+  const [year, mon] = month.split('-');
+  const lastDay = new Date(Number(year), Number(mon), 0).getDate();
+  const entryDate = `${month}-${String(lastDay).padStart(2, '0')}`;
+
+  const entry: BudgetAccountingJournalEntry = {
+    id: newJournalEntryId(),
+    entryNumber: startNumber,
+    date: entryDate,
+    description: `Рухсатии ҳомиладорӣ ва варақаи корношоямӣ (${month})`,
+    operationTemplateId: 'mo-social-insurance-leave',
+    documentType: 'Мемориалӣ-фармон',
+    documentNumber: month,
+    sourceSocialInsuranceMonth: month,
+    lines: memorialLines(
+      NYAH_EMPLOYER_SOCIAL_TAX_PAYABLE_ACCOUNT,
+      NYAH_PAYROLL_PAYABLE_ACCOUNT,
+      amount
+    ),
+    createdAt: new Date().toISOString(),
+  };
+
+  const merged = [...withoutMonth, entry].sort((a, b) => {
+    const dateCmp = a.date.localeCompare(b.date);
+    if (dateCmp !== 0) return dateCmp;
+    return a.entryNumber - b.entryNumber;
+  });
+
+  return {
+    entries: merged,
+    settings: {
+      ...settings,
+      nextEntryNumber: startNumber + 1,
+    },
+  };
+}
+
+/** Сабти рухсатии меҳнатӣ ва гузарониши худкори мемориалӣ (ҳомиладорӣ/корношоямӣ) */
+export function persistLaborLeaveInFinance(
+  financeContent: OrganizationSectionContent,
+  staffContent: OrganizationSectionContent | null | undefined,
+  organizationId?: string
+): OrganizationSectionContent {
+  if (!organizationId || !isBudgetFundedOrganization(organizationId) || !staffContent) {
+    return financeContent;
+  }
+  return rebuildBudgetMemorialJournalInFinance(financeContent, staffContent);
 }
 
 export type PayrollAccountingPostResult = {
@@ -375,7 +502,8 @@ export type PayrollLedgerPersistResult = {
 export function persistPayrollLedgerInFinance(
   financeContent: OrganizationSectionContent,
   ledger: PayrollLedger,
-  organizationId?: string
+  organizationId?: string,
+  staffContent?: OrganizationSectionContent | null
 ): PayrollLedgerPersistResult {
   const withLedger: OrganizationSectionContent = {
     ...financeContent,
@@ -390,15 +518,18 @@ export function persistPayrollLedgerInFinance(
     };
   }
 
-  const posted = postPayrollAccountingOperations(ledger, withLedger);
+  const rebuilt = rebuildBudgetMemorialJournalInFinance(withLedger, staffContent);
+  const postedCount =
+    rebuilt.budgetAccountingJournal?.filter(
+      (entry) =>
+        entry.sourcePayrollMonth === ledger.month ||
+        entry.sourceSocialInsuranceMonth === ledger.month
+    ).length ?? 0;
+
   return {
-    content: {
-      ...withLedger,
-      budgetAccountingJournal: posted.entries,
-      budgetAccountingSettings: posted.settings,
-    },
-    postedCount: posted.postedCount,
-    postingErrors: posted.errors,
+    content: rebuilt,
+    postedCount,
+    postingErrors: [],
   };
 }
 
@@ -455,7 +586,7 @@ export function applyPayrollLedgerTimesheetSync(
     };
   }
 
-  return next;
+  return rebuildBudgetMemorialJournalInFinance(next, staffContent);
 }
 
 export function syncFinanceAfterPayrollLedgerSave(

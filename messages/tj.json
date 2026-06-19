@@ -1272,6 +1272,8 @@
   "nyahMoPayrollSocialTaxDesc": "Дт 2 11 510 — Кт 2 11 660",
   "nyahMoPayrollIncomeTax": "Бастани андоз аз даромад",
   "nyahMoPayrollIncomeTaxDesc": "Дт 2 11 510 — Кт 2 11 670",
+  "nyahMoSocialInsuranceLeave": "Рухсатии ҳомиладорӣ ва варақаи корношоямӣ",
+  "nyahMoSocialInsuranceLeaveDesc": "Дт 2 11 680 — Кт 2 11 510",
   "nyahMoDepreciation": "Ба ҳисоб гирифтани амортизатсия",
   "nyahMoDepreciationDesc": "Дт 5 13 100 — Кт 1 42 300",
   "nyahMoFoodConsumption": "Истеъмоли маводи хурока",

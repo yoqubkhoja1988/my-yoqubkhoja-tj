@@ -14,6 +14,7 @@ import {
   syncLedgersAfterLaborLeaveChange,
   upsertLaborLeave,
 } from '@/lib/finance-labor-leave';
+import { persistLaborLeaveInFinance } from '@/lib/payroll-accounting';
 import { getDirectorSignatureLabel } from '@/lib/organization-scope';
 import { getAccountantSignatureLabel } from '@/lib/staff-signature-labels';
 import { formatAmount } from '@/lib/staff-table-calc';
@@ -216,12 +217,16 @@ export default function FinanceMaternityLeavePanel({
         )
       : financeContent.payrollLedgers;
 
-    const payload: OrganizationSectionContent = {
-      ...financeContent,
-      summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
-      laborLeaves: nextLeaves,
-      payrollLedgers,
-    };
+    const payload = persistLaborLeaveInFinance(
+      {
+        ...financeContent,
+        summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
+        laborLeaves: nextLeaves,
+        payrollLedgers,
+      },
+      staffContent,
+      organizationId
+    );
 
     const saved = await updateOrganizationSection(organizationId, 'finance', payload);
     setSaving(false);
@@ -286,12 +291,16 @@ export default function FinanceMaternityLeavePanel({
             organizationId
           )
         : financeContent.payrollLedgers;
-    const payload: OrganizationSectionContent = {
-      ...financeContent,
-      summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
-      laborLeaves: nextLeaves,
-      payrollLedgers,
-    };
+    const payload = persistLaborLeaveInFinance(
+      {
+        ...financeContent,
+        summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
+        laborLeaves: nextLeaves,
+        payrollLedgers,
+      },
+      staffContent,
+      organizationId
+    );
     const saved = await updateOrganizationSection(organizationId, 'finance', payload);
     setSaving(false);
 

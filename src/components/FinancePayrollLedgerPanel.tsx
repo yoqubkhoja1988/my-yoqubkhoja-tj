@@ -268,24 +268,15 @@ export default function FinancePayrollLedgerPanel({
     setError('');
     setPostingNotice('');
 
-    const { content: payload, postedCount, postingErrors } = persistPayrollLedgerInFinance(
+    const { content: payload, postedCount } = persistPayrollLedgerInFinance(
       {
         ...financeContent,
         summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
       },
       nextLedger,
-      organizationId
+      organizationId,
+      staffContent
     );
-
-    if (
-      isBudgetFundedOrganization(organizationId) &&
-      nextLedger.preparedAt &&
-      postingErrors.length > 0
-    ) {
-      setSaving(false);
-      setError(postingErrors.join('; '));
-      return;
-    }
 
     const saved = await updateOrganizationSection(organizationId, 'finance', payload);
     setSaving(false);
@@ -303,7 +294,9 @@ export default function FinancePayrollLedgerPanel({
       } else {
         const journalCount =
           saved.budgetAccountingJournal?.filter(
-            (entry) => entry.sourcePayrollMonth === nextLedger.month
+            (entry) =>
+              entry.sourcePayrollMonth === nextLedger.month ||
+              entry.sourceSocialInsuranceMonth === nextLedger.month
           ).length ?? 0;
         if (journalCount > 0) {
           setPostingNotice(
@@ -377,7 +370,8 @@ export default function FinancePayrollLedgerPanel({
           summary: financeBase.summary?.trim() || t('financeDefaultSummary'),
         },
         merged,
-        organizationId
+        organizationId,
+        freshStaff
       );
       const saved = await updateOrganizationSection(organizationId, 'finance', payload);
       setSaving(false);

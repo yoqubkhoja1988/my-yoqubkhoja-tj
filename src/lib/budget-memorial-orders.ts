@@ -17,6 +17,7 @@ import {
   NYAH_FOOD_INVENTORY_ACCOUNT,
   NYAH_GRANT_REVENUE_ACCOUNT,
   NYAH_INCOME_TAX_PAYABLE_ACCOUNT,
+  NYAH_EMPLOYER_SOCIAL_TAX_PAYABLE_ACCOUNT,
   NYAH_PAYROLL_EXPENSE_ACCOUNT,
   NYAH_PAYROLL_PAYABLE_ACCOUNT,
   NYAH_SOCIAL_TAX_PAYABLE_ACCOUNT,
@@ -72,6 +73,18 @@ export const BUDGET_MEMORIAL_ORDER_TEMPLATES: BudgetOperationTemplate[] = [
     buildLines: (amount) => [
       { accountCode: NYAH_PAYROLL_PAYABLE_ACCOUNT, debit: amount, credit: 0 },
       { accountCode: NYAH_INCOME_TAX_PAYABLE_ACCOUNT, debit: 0, credit: amount },
+    ],
+  },
+  {
+    id: 'mo-social-insurance-leave',
+    labelKey: 'nyahMoSocialInsuranceLeave',
+    descriptionKey: 'nyahMoSocialInsuranceLeaveDesc',
+    documentTypeKey: 'nyahDocMemorialOrder',
+    category: 'memorial',
+    instructionRef: 'Фармоиш №173 — пособиеи суғуртаи иҷтимоӣ',
+    buildLines: (amount) => [
+      { accountCode: NYAH_EMPLOYER_SOCIAL_TAX_PAYABLE_ACCOUNT, debit: amount, credit: 0 },
+      { accountCode: NYAH_PAYROLL_PAYABLE_ACCOUNT, debit: 0, credit: amount },
     ],
   },
   {

@@ -1274,6 +1274,8 @@
   "nyahMoPayrollSocialTaxDesc": "Дт 2 11 510 — Кт 2 11 660",
   "nyahMoPayrollIncomeTax": "Удержание подоходного налога",
   "nyahMoPayrollIncomeTaxDesc": "Дт 2 11 510 — Кт 2 11 670",
+  "nyahMoSocialInsuranceLeave": "Пособие по беременности и больничный лист",
+  "nyahMoSocialInsuranceLeaveDesc": "Дт 2 11 680 — Кт 2 11 510",
   "nyahMoDepreciation": "Начисление амортизации",
   "nyahMoDepreciationDesc": "Дт 5 13 100 — Кт 1 42 300",
   "nyahMoFoodConsumption": "Списание продуктов питания",

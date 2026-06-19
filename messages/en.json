@@ -1275,6 +1275,8 @@
   "nyahMoPayrollSocialTaxDesc": "Dr 2 11 510 — Cr 2 11 660",
   "nyahMoPayrollIncomeTax": "Income tax withholding",
   "nyahMoPayrollIncomeTaxDesc": "Dr 2 11 510 — Cr 2 11 670",
+  "nyahMoSocialInsuranceLeave": "Maternity leave and sick leave certificate",
+  "nyahMoSocialInsuranceLeaveDesc": "Dr 2 11 680 — Cr 2 11 510",
   "nyahMoDepreciation": "Depreciation accrual",
   "nyahMoDepreciationDesc": "Dr 5 13 100 — Cr 1 42 300",
   "nyahMoFoodConsumption": "Food products consumption",

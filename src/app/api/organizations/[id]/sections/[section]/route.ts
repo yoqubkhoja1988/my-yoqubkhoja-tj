@@ -4,7 +4,7 @@ import {
 } from '@/lib/finance-payroll-ledger';
 import {
   applyPayrollLedgerTimesheetSync,
-  rebuildPayrollMemorialJournalInFinance,
+  rebuildBudgetMemorialJournalInFinance,
 } from '@/lib/payroll-accounting';
 import {
   getOrganizationSection,
@@ -93,11 +93,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     if (storageSlug === 'finance') {
       contentToSave = mergeOrganizationSectionContent(previousFinance, body);
-      if (
-        isBudgetFundedOrganization(id) &&
-        contentToSave.payrollLedgers?.some((ledger) => ledger.preparedAt)
-      ) {
-        contentToSave = rebuildPayrollMemorialJournalInFinance(contentToSave);
+      if (isBudgetFundedOrganization(id)) {
+        const staff = await getOrganizationSection(id, 'staff');
+        contentToSave = rebuildBudgetMemorialJournalInFinance(contentToSave, staff);
       }
     } else {
       contentToSave = {

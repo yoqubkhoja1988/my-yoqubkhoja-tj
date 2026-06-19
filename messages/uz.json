@@ -1275,6 +1275,8 @@
   "nyahMoPayrollSocialTaxDesc": "Dt 2 11 510 — Kt 2 11 660",
   "nyahMoPayrollIncomeTax": "Daromad solig'ini ushlab qolish",
   "nyahMoPayrollIncomeTaxDesc": "Dt 2 11 510 — Kt 2 11 670",
+  "nyahMoSocialInsuranceLeave": "Homiladorlik ta'tili va kasallik varaqasi",
+  "nyahMoSocialInsuranceLeaveDesc": "Dt 2 11 680 — Kt 2 11 510",
   "nyahMoDepreciation": "Amortizatsiya hisoblash",
   "nyahMoDepreciationDesc": "Dt 5 13 100 — Kt 1 42 300",
   "nyahMoFoodConsumption": "Oziq-ovqat iste'moli",
