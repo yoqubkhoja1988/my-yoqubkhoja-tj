@@ -429,6 +429,8 @@ export interface OrganizationSectionContent {
       basisHint?: string | null;
     }
   >;
+  /** Амалиётҳои пинҳоншудаи шаблонӣ дар ордер (orderId → operationId[]) */
+  memorialOrderHiddenOperations?: Record<string, string[]>;
 }
 
 export interface BalanceSheetReportSettings {

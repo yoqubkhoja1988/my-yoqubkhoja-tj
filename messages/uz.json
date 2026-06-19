@@ -1226,6 +1226,8 @@
   "nyahMoCustomOperation": "Yangi operatsiya",
   "nyahMoAmountRequired": "Summani kiriting.",
   "nyahMoUpdate": "O'zgartirish",
+  "nyahMoHiddenRows": "Yashirin shablon qatorlari",
+  "nyahMoRestoreRow": "Tiklash",
   "nyahAllClasses": "Barcha sinflar",
   "nyahSearchAccounts": "Hisob qidirish...",
   "nyahColClass": "Sinf",

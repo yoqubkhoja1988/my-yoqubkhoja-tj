@@ -100,6 +100,9 @@ export default function FinanceBudgetAccountingPanel({
   const [memorialOperationOverrides, setMemorialOperationOverrides] = useState<
     Record<string, MemorialOrderOperationOverride>
   >(() => financeContent.memorialOrderOperationOverrides ?? {});
+  const [memorialHiddenOperations, setMemorialHiddenOperations] = useState<
+    Record<string, string[]>
+  >(() => financeContent.memorialOrderHiddenOperations ?? {});
   const [tab, setTab] = useState<TabId>('chart');
   const [classFilter, setClassFilter] = useState<NyahAccountClassId | ''>('');
   const [accountSearch, setAccountSearch] = useState('');
@@ -163,7 +166,8 @@ export default function FinanceBudgetAccountingPanel({
     nextSettings: typeof settings,
     nextEntries: BudgetAccountingJournalEntry[],
     nextCustomOps: Record<string, MemorialOrderOperation[]> = customMemorialOperations,
-    nextOperationOverrides: Record<string, MemorialOrderOperationOverride> = memorialOperationOverrides
+    nextOperationOverrides: Record<string, MemorialOrderOperationOverride> = memorialOperationOverrides,
+    nextHiddenOps: Record<string, string[]> = memorialHiddenOperations
   ) {
     setSaving(true);
     setError('');
@@ -174,6 +178,7 @@ export default function FinanceBudgetAccountingPanel({
       budgetAccountingJournal: nextEntries,
       memorialOrderCustomOperations: nextCustomOps,
       memorialOrderOperationOverrides: nextOperationOverrides,
+      memorialOrderHiddenOperations: nextHiddenOps,
     };
     try {
       const saved = await updateOrganizationSection(organizationId, 'finance', payload);
@@ -189,6 +194,8 @@ export default function FinanceBudgetAccountingPanel({
           saved.memorialOrderCustomOperations ?? payload.memorialOrderCustomOperations,
         memorialOrderOperationOverrides:
           saved.memorialOrderOperationOverrides ?? payload.memorialOrderOperationOverrides,
+        memorialOrderHiddenOperations:
+          saved.memorialOrderHiddenOperations ?? payload.memorialOrderHiddenOperations,
       });
       setSettings(resolveBudgetAccountingSettings(saved));
       setEntries(saved.budgetAccountingJournal ?? nextEntries);
@@ -197,6 +204,9 @@ export default function FinanceBudgetAccountingPanel({
       );
       setMemorialOperationOverrides(
         saved.memorialOrderOperationOverrides ?? nextOperationOverrides
+      );
+      setMemorialHiddenOperations(
+        saved.memorialOrderHiddenOperations ?? nextHiddenOps
       );
     } catch {
       setError(t('sectionSaveError'));
@@ -441,8 +451,10 @@ export default function FinanceBudgetAccountingPanel({
           entries={entries}
           customOperations={customMemorialOperations}
           operationOverrides={memorialOperationOverrides}
+          hiddenOperations={memorialHiddenOperations}
           onCustomOperationsChange={setCustomMemorialOperations}
           onOperationOverridesChange={setMemorialOperationOverrides}
+          onHiddenOperationsChange={setMemorialHiddenOperations}
           onEntriesChange={setEntries}
           onPersist={persist}
           saving={saving}

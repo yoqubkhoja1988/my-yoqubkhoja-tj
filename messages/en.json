@@ -1226,6 +1226,8 @@
   "nyahMoCustomOperation": "New operation",
   "nyahMoAmountRequired": "Enter an amount.",
   "nyahMoUpdate": "Update",
+  "nyahMoHiddenRows": "Hidden template rows",
+  "nyahMoRestoreRow": "Restore",
   "nyahAllClasses": "All classes",
   "nyahSearchAccounts": "Search account...",
   "nyahColClass": "Class",
