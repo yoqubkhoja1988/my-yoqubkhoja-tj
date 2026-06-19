@@ -406,6 +406,14 @@ export interface OrganizationSectionContent {
   budgetAccountingJournal?: BudgetAccountingJournalEntry[];
   /** Ҳисобот ба Агентии суғуртаи иҷтимоиӣ ва нафақа (АДСИН) */
   socialInsuranceAgencySettings?: SocialInsuranceAgencyReportSettings;
+  /** Танзимоти шакли №1 — тавозун (волияти молиявӣ) */
+  balanceSheetReport?: BalanceSheetReportSettings;
+}
+
+export interface BalanceSheetReportSettings {
+  fiscalYear?: string;
+  periodEnd?: string;
+  manualRows?: Record<string, { opening?: number; closing?: number }>;
 }
 
 export type ParentMembershipFeePeriodKind = 'monthly' | 'annual';

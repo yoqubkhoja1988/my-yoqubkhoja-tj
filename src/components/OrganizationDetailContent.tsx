@@ -32,6 +32,7 @@ type Props = {
   section: string;
   sectionContent: OrganizationSectionContent | null;
   staffContent?: OrganizationSectionContent | null;
+  financeContent?: OrganizationSectionContent | null;
   orgInfoContent?: OrganizationSectionContent | null;
 };
 
@@ -100,12 +101,14 @@ function SectionPanel({
   section,
   sectionContent,
   staffContent,
+  financeContent,
   canEdit,
 }: {
   organization: Organization;
   section: string;
   sectionContent: OrganizationSectionContent | null;
   staffContent?: OrganizationSectionContent | null;
+  financeContent?: OrganizationSectionContent | null;
   canEdit?: boolean;
 }) {
   const organizationId = organization.id;
@@ -139,6 +142,7 @@ function SectionPanel({
         section={section}
         content={sectionContent}
         staffContent={staffContent}
+        financeContent={financeContent}
         canEdit={canEdit}
       />
     </ContentCard>
@@ -150,6 +154,7 @@ export default function OrganizationDetailContent({
   section,
   sectionContent,
   staffContent,
+  financeContent = null,
   orgInfoContent = null,
 }: Props) {
   const t = useTranslations();
@@ -321,6 +326,7 @@ export default function OrganizationDetailContent({
                 section={activeSection}
                 sectionContent={sectionContent}
                 staffContent={staffContent}
+                financeContent={financeContent}
                 canEdit={canEdit}
               />
               )}

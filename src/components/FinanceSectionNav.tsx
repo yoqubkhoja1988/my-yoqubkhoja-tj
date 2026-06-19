@@ -23,6 +23,7 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-parent-membership-fee', labelKey: 'financeNavParentMembershipFee' },
   { id: 'finance-parent-food-payment', labelKey: 'financeNavParentFoodPayment' },
   { id: 'finance-budget-accounting', labelKey: 'financeNavBudgetAccounting' },
+  { id: 'finance-balance-sheet', labelKey: 'financeNavBalanceSheet' },
   { id: 'finance-contacts', labelKey: 'financeNavContacts' },
 ];
 
@@ -54,7 +55,7 @@ export default function FinanceSectionNav({ activeId, onSelect, organizationId }
       return false;
     }
     if (
-      link.id === 'finance-budget-accounting' &&
+      (link.id === 'finance-budget-accounting' || link.id === 'finance-balance-sheet') &&
       !supportsBudgetAccounting(organizationId)
     ) {
       return false;

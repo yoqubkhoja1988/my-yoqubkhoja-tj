@@ -137,6 +137,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         ...(body.budgetAccountingJournal !== undefined
           ? { budgetAccountingJournal: body.budgetAccountingJournal }
           : {}),
+        ...(body.socialInsuranceAgencySettings !== undefined
+          ? { socialInsuranceAgencySettings: body.socialInsuranceAgencySettings }
+          : {}),
+        ...(body.balanceSheetReport !== undefined
+          ? { balanceSheetReport: body.balanceSheetReport }
+          : {}),
         ...(body.reportHeader !== undefined ? { reportHeader: body.reportHeader } : {}),
         ...(body.contractCounterparties !== undefined
           ? { contractCounterparties: body.contractCounterparties }

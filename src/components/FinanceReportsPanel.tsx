@@ -1,6 +1,7 @@
 'use client';
 
 import FinanceReportForm5Panel from '@/components/FinanceReportForm5Panel';
+import FinanceReportForm1Panel from '@/components/FinanceReportForm1Panel';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import UserContentText from '@/components/UserContentText';
 import {
@@ -15,7 +16,8 @@ import {
   FINANCIAL_REPORT_FORM_ID_BY_VIEW,
   FinancialReportView,
 } from '@/lib/financial-reports-menu';
-import { SectionItem, SectionTable } from '@/types/organization-section';
+import { SectionItem, SectionTable, OrganizationSectionContent } from '@/types/organization-section';
+import { Organization } from '@/types/organization';
 import { useTranslations } from 'next-intl';
 import { type ReactNode, useMemo } from 'react';
 
@@ -25,7 +27,11 @@ type Props = {
   items?: SectionItem[];
   tables?: SectionTable[];
   editing?: boolean;
+  organizationId?: string;
+  organization?: Organization;
+  financeContent?: OrganizationSectionContent | null;
   onItemsChange?: (items: SectionItem[]) => void;
+  onFinanceContentChange?: (content: OrganizationSectionContent) => void;
   onForm5CellChange?: (
     tableIndex: number,
     rowIndex: number,
@@ -173,7 +179,11 @@ export default function FinanceReportsPanel({
   items = [],
   tables = [],
   editing = false,
+  organizationId,
+  organization,
+  financeContent,
   onItemsChange,
+  onFinanceContentChange,
   onForm5CellChange,
   onForm5AddRow,
   onInitForm5,
@@ -319,7 +329,23 @@ export default function FinanceReportsPanel({
 
       {view !== 'overview' && instructionBlock}
 
-      {formId && view !== 'form5' && renderSingleFormView(formId)}
+      {formId && view !== 'form5' && view !== 'form1' && renderSingleFormView(formId)}
+
+      {view === 'form1' && organizationId && financeContent && (
+        <div className="space-y-3">
+          <p className="text-xs text-[var(--text-muted)]">{t('financeReportForm1FinanceHint')}</p>
+          <FinanceReportForm1Panel
+            organizationId={organizationId}
+            organization={organization}
+            financeContent={financeContent}
+            onUpdate={onFinanceContentChange ?? (() => undefined)}
+          />
+        </div>
+      )}
+
+      {view === 'form1' && (!financeContent || !organizationId) && (
+        <p className="text-xs text-[var(--text-muted)]">{t('financeReportForm1FinanceMissing')}</p>
+      )}
 
       {view === 'form5' && (
         <div className="space-y-3">
