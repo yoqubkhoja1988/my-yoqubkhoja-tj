@@ -8,6 +8,7 @@ import {
   payrollLedgerPersonGroupKey,
   resolveEmploymentWorkType,
 } from '@/lib/finance-payroll-ledger';
+import { resolvePayrollWithholdings } from '@/lib/finance-payroll-withholdings';
 import {
   collectSocialInsuranceBankPayments,
   socialInsurancePurposeTj,
@@ -330,6 +331,8 @@ export function buildBankPaymentDocument(
     salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
     laborLeaves: financeContent.laborLeaves,
     payrollLedgers: financeContent.payrollLedgers,
+    payrollWithholdingTypes: resolvePayrollWithholdings(financeContent),
+    payrollWithholdingAssignments: financeContent.payrollWithholdingAssignments,
   });
 
   const employees = activeEmployees(staffContent.employees);

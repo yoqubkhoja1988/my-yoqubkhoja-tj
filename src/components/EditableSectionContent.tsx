@@ -922,6 +922,7 @@ export default function EditableSectionContent({
         <FinancePayrollWithholdingsPanel
           organizationId={organizationId}
           financeContent={displayData}
+          staffContent={liveStaffContent}
           onUpdate={setData}
         />
       )}

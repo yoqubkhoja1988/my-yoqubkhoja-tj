@@ -141,6 +141,7 @@ export default function FinancePayrollLedgerPanel({
       laborLeaves: financeContent.laborLeaves,
       payrollLedgers: financeContent.payrollLedgers,
       payrollWithholdingTypes: withholdingTypes,
+      payrollWithholdingAssignments: financeContent.payrollWithholdingAssignments,
     }),
     [
       organizationId,
@@ -148,6 +149,7 @@ export default function FinancePayrollLedgerPanel({
       financeContent.salaryAllowanceAdjustments,
       financeContent.laborLeaves,
       financeContent.payrollLedgers,
+      financeContent.payrollWithholdingAssignments,
       withholdingTypes,
     ]
   );

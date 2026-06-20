@@ -478,6 +478,7 @@ function buildLedgerMetrics(
     laborLeaves: financeContent.laborLeaves,
     payrollLedgers: financeContent.payrollLedgers,
     payrollWithholdingTypes: resolvePayrollWithholdings(financeContent),
+    payrollWithholdingAssignments: financeContent.payrollWithholdingAssignments,
   });
 
   const metrics = emptyMetrics();

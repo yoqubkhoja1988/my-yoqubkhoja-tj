@@ -166,6 +166,21 @@ export interface PayrollWithholdingType {
   enabled: boolean;
 }
 
+/** Боздошт барои корманд — маблағи моҳона */
+export interface PayrollWithholdingAssignment {
+  id: string;
+  employeeId: string;
+  withholdingTypeId: string;
+  amount: string;
+  /** YYYY-MM — моҳи оғоз */
+  effectiveFrom: string;
+  /** YYYY-MM — моҳи анҷом (холӣ = то ҳол) */
+  effectiveTo?: string;
+  /** Ҳукмнома, қарори суд ва ғ. */
+  documentRef?: string;
+  preparedAt?: string;
+}
+
 export interface PayrollLedger {
   month: string;
   entries: PayrollLedgerEntry[];
@@ -401,6 +416,8 @@ export interface OrganizationSectionContent {
   payrollLedgers?: PayrollLedger[];
   /** Намудҳои дигар боздошт аз музди меҳнат (пеш/баъд аз андоз) */
   payrollWithholdingTypes?: PayrollWithholdingType[];
+  /** Боздоштҳои муайян барои кормандон */
+  payrollWithholdingAssignments?: PayrollWithholdingAssignment[];
   positionHandovers?: PositionHandover[];
   salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[];
   laborLeaves?: LaborLeave[];

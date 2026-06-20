@@ -20,6 +20,7 @@ import {
 } from '@/lib/preschool-wage-scales';
 import { laborLeavePayForEmployee } from '@/lib/finance-labor-leave-pay';
 import {
+  mergeAssignmentWithholdings,
   migrateLegacyOtherDeductions,
   resolvePayrollWithholdings,
   sumWithholdingsByTiming,
@@ -32,6 +33,7 @@ import {
   OrganizationSectionContent,
   PayrollLedger,
   PayrollLedgerEntry,
+  PayrollWithholdingAssignment,
   PayrollWithholdingType,
   PositionHandover,
   SalaryAllowanceAdjustment,
@@ -468,7 +470,8 @@ export function buildLedgerEntry(
   payrollLedgers?: PayrollLedger[],
   organizationId?: string,
   salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[],
-  withholdingTypes: PayrollWithholdingType[] = []
+  withholdingTypes: PayrollWithholdingType[] = [],
+  withholdingAssignments: PayrollWithholdingAssignment[] = []
 ): PayrollLedgerEntry {
   const timesheet = mergeTimesheetForMonth(
     staffContent.timesheets,
@@ -485,6 +488,12 @@ export function buildLedgerEntry(
   const normDays = normWorkingDays(month);
   const wage = findEmployeeWage(staffContent, employee, organizationId);
   const base = saved ? migrateLegacyOtherDeductions(saved, withholdingTypes) : emptyEntry(employee.id);
+  const withAssignments = mergeAssignmentWithholdings(
+    base,
+    withholdingAssignments,
+    month,
+    withholdingTypes
+  );
   const workType = resolveEmploymentWorkType(employee);
   const handoverAllowance = handoverAllowanceForEmployee(
     positionHandovers,
@@ -514,7 +523,7 @@ export function buildLedgerEntry(
     const gross = handoverAllowance + retroAllowance + laborLeavePay;
     const deductions = autoDeductions(
       gross,
-      base,
+      withAssignments,
       workedDays,
       normDays,
       workType,
@@ -535,7 +544,7 @@ export function buildLedgerEntry(
   const gross = baseSalary + allowances + laborLeavePay;
   const deductions = autoDeductions(
     gross,
-    base,
+    withAssignments,
     workedDays,
     normDays,
     workType,
@@ -558,6 +567,7 @@ export type PayrollLedgerBuildContext = {
   payrollLedgers?: PayrollLedger[];
   salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[];
   payrollWithholdingTypes?: PayrollWithholdingType[];
+  payrollWithholdingAssignments?: PayrollWithholdingAssignment[];
 };
 
 export function buildPayrollLedger(
@@ -569,7 +579,8 @@ export function buildPayrollLedger(
   payrollLedgers?: PayrollLedger[],
   organizationId?: string,
   salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[],
-  withholdingTypes: PayrollWithholdingType[] = []
+  withholdingTypes: PayrollWithholdingType[] = [],
+  withholdingAssignments: PayrollWithholdingAssignment[] = []
 ): PayrollLedger {
   const savedMap = new Map((savedLedger?.entries ?? []).map((entry) => [entry.employeeId, entry]));
   const historyLedgers = payrollLedgers;
@@ -588,7 +599,8 @@ export function buildPayrollLedger(
         historyLedgers,
         organizationId,
         salaryAllowanceAdjustments,
-        withholdingTypes
+        withholdingTypes,
+        withholdingAssignments
       )
     ),
   };
@@ -599,9 +611,10 @@ export function recalculatePayrollLedger(
   staffContent: OrganizationSectionContent,
   context: PayrollLedgerBuildContext = {}
 ): PayrollLedger {
-  const { organizationId, positionHandovers, laborLeaves, payrollLedgers, salaryAllowanceAdjustments, payrollWithholdingTypes } =
+  const { organizationId, positionHandovers, laborLeaves, payrollLedgers, salaryAllowanceAdjustments, payrollWithholdingTypes, payrollWithholdingAssignments } =
     context;
   const withholdingTypes = payrollWithholdingTypes ?? [];
+  const withholdingAssignments = payrollWithholdingAssignments ?? [];
   return {
     ...ledger,
     entries: ledger.entries.map((entry) => {
@@ -617,7 +630,8 @@ export function recalculatePayrollLedger(
         payrollLedgers,
         organizationId,
         salaryAllowanceAdjustments,
-        withholdingTypes
+        withholdingTypes,
+        withholdingAssignments
       );
     }),
   };
@@ -639,7 +653,8 @@ export function mergePayrollLedgerForMonth(
     ledgers,
     context.organizationId,
     context.salaryAllowanceAdjustments,
-    context.payrollWithholdingTypes
+    context.payrollWithholdingTypes,
+    context.payrollWithholdingAssignments
   );
 }
 
@@ -697,7 +712,8 @@ export function syncPayrollLedgersAfterTimesheetChange(
       ledgers,
       context.organizationId,
       context.salaryAllowanceAdjustments,
-      context.payrollWithholdingTypes
+      context.payrollWithholdingTypes,
+      context.payrollWithholdingAssignments
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,
@@ -706,6 +722,31 @@ export function syncPayrollLedgersAfterTimesheetChange(
   }
 
   return ledgers;
+}
+
+export function syncLedgersAfterWithholdingAssignmentChange(
+  payrollLedgers: PayrollLedger[] | undefined,
+  assignments: PayrollWithholdingAssignment[] | undefined,
+  staffContent: OrganizationSectionContent,
+  months: string[],
+  financeContent: OrganizationSectionContent,
+  organizationId?: string
+): PayrollLedger[] {
+  const context: PayrollLedgerBuildContext = {
+    organizationId,
+    positionHandovers: financeContent.positionHandovers,
+    salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
+    laborLeaves: financeContent.laborLeaves,
+    payrollLedgers,
+    payrollWithholdingTypes: resolvePayrollWithholdings(financeContent),
+    payrollWithholdingAssignments: assignments,
+  };
+  return syncPayrollLedgersAfterTimesheetChange(
+    payrollLedgers,
+    staffContent,
+    months,
+    context
+  );
 }
 
 export {
