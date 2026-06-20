@@ -348,27 +348,20 @@ export default function FinancePayrollLedgerPanel({
         );
         const hamagi = calcLedgerHamagi(merged, rawGross, withholdingTypes);
         const workType = resolveEmploymentWorkType(employee);
-        const updated: PayrollLedgerEntry = { ...merged };
-
-        if (entry.fhea === '0,00' || !entry.fhea?.trim()) {
-          updated.fhea = formatAmount(hamagi * 0.01);
-        }
-        if (entry.kik === '0,00' || !entry.kik?.trim()) {
-          updated.kik = formatAmount(hamagi * 0.01);
-        }
-        if (entry.hhdt === '0,00' || !entry.hhdt?.trim()) {
-          updated.hhdt = formatAmount(hamagi * 0.01);
-        }
-        if (entry.tax === '0,00' || !entry.tax?.trim()) {
-          updated.tax = recomputeEntryIncomeTax(
+        const updated: PayrollLedgerEntry = {
+          ...merged,
+          fhea: formatAmount(hamagi * 0.01),
+          kik: formatAmount(hamagi * 0.01),
+          hhdt: formatAmount(hamagi * 0.01),
+          tax: recomputeEntryIncomeTax(
             merged,
             rawGross,
             workedDays,
             normDays,
             workType,
             withholdingTypes
-          );
-        }
+          ),
+        };
 
         return updated;
       }),
@@ -419,8 +412,11 @@ export default function FinancePayrollLedgerPanel({
         if (!employee) return merged;
         const { gross: hamagi } = calcEntryTotals(merged, withholdingTypes);
         const workType = resolveEmploymentWorkType(employee);
-        const updated: PayrollLedgerEntry = {
+        return {
           ...merged,
+          fhea: formatAmount(hamagi * 0.01),
+          kik: formatAmount(hamagi * 0.01),
+          hhdt: formatAmount(hamagi * 0.01),
           tax: recomputeEntryIncomeTax(
             merged,
             rawGross,
@@ -430,16 +426,6 @@ export default function FinancePayrollLedgerPanel({
             withholdingTypes
           ),
         };
-        if (entry.fhea === '0,00' || !entry.fhea?.trim()) {
-          updated.fhea = formatAmount(hamagi * 0.01);
-        }
-        if (entry.kik === '0,00' || !entry.kik?.trim()) {
-          updated.kik = formatAmount(hamagi * 0.01);
-        }
-        if (entry.hhdt === '0,00' || !entry.hhdt?.trim()) {
-          updated.hhdt = formatAmount(hamagi * 0.01);
-        }
-        return updated;
       }),
     }));
   }

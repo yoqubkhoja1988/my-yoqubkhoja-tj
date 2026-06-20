@@ -447,28 +447,12 @@ function autoDeductions(
     ? sumWithholdingsByTiming(entry, withholdingTypes, 'pre_tax')
     : 0;
   const hamagiBase = Math.max(0, gross - preTaxOther);
-  const defaultFhea = hamagiBase * 0.01;
-  const defaultKik = hamagiBase * 0.01;
-  const defaultHhdt = hamagiBase * 0.01;
-  const fhea =
-    entry && entry.fhea !== ZERO
-      ? (parseAmount(entry.fhea) ?? defaultFhea)
-      : defaultFhea;
-  const kik =
-    entry && entry.kik !== ZERO ? (parseAmount(entry.kik) ?? defaultKik) : defaultKik;
-  const hhdt =
-    entry && entry.hhdt !== ZERO ? (parseAmount(entry.hhdt) ?? defaultHhdt) : defaultHhdt;
-  const tax =
-    entry && entry.tax !== ZERO
-      ? (parseAmount(entry.tax) ??
-          calcIncomeTax(hamagiBase, workedDays, normDays, workType, 0))
-      : calcIncomeTax(hamagiBase, workedDays, normDays, workType, 0);
 
   return {
-    fhea: formatAmount(fhea),
-    kik: formatAmount(kik),
-    hhdt: formatAmount(hhdt),
-    tax: formatAmount(tax),
+    fhea: formatAmount(hamagiBase * 0.01),
+    kik: formatAmount(hamagiBase * 0.01),
+    hhdt: formatAmount(hamagiBase * 0.01),
+    tax: formatAmount(calcIncomeTax(hamagiBase, workedDays, normDays, workType, 0)),
     withholdingAmounts: entry?.withholdingAmounts,
   };
 }
