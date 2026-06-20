@@ -539,9 +539,16 @@ export interface ParentFoodPayment {
   notes?: string;
 }
 
+export type BudgetAccountingOpeningBalance = {
+  debit?: number;
+  credit?: number;
+};
+
 export interface BudgetAccountingSettings {
   fiscalYear: string;
   nextEntryNumber?: number;
+  /** Бақияи ҳисобҳо аз аввали соли молиявӣ (код → дебет/кредит) */
+  openingBalances?: Record<string, BudgetAccountingOpeningBalance>;
 }
 
 export interface BudgetAccountingJournalLine {

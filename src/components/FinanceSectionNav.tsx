@@ -4,6 +4,7 @@ import { FinanceSectionId } from '@/lib/finance-section-nav';
 import { supportsLocalPayrollRequirement } from '@/lib/finance-local-payroll-requirement';
 import { supportsParentMembershipFee } from '@/lib/finance-parent-membership-fee';
 import { supportsParentFoodPayment } from '@/lib/finance-parent-food-payment';
+import { supportsBudgetAccounting } from '@/lib/budget-accounting-settings';
 import { useTranslations } from 'next-intl';
 
 const links: { id: FinanceSectionId; labelKey: string }[] = [
@@ -22,6 +23,7 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-social-insurance-agency', labelKey: 'financeNavSocialInsuranceAgency' },
   { id: 'finance-parent-membership-fee', labelKey: 'financeNavParentMembershipFee' },
   { id: 'finance-parent-food-payment', labelKey: 'financeNavParentFoodPayment' },
+  { id: 'finance-nyah-opening-balances', labelKey: 'financeNavNyahOpeningBalances' },
   { id: 'finance-contacts', labelKey: 'financeNavContacts' },
 ];
 
@@ -49,6 +51,12 @@ export default function FinanceSectionNav({ activeId, onSelect, organizationId }
     if (
       link.id === 'finance-parent-food-payment' &&
       !supportsParentFoodPayment(organizationId)
+    ) {
+      return false;
+    }
+    if (
+      link.id === 'finance-nyah-opening-balances' &&
+      !supportsBudgetAccounting(organizationId)
     ) {
       return false;
     }

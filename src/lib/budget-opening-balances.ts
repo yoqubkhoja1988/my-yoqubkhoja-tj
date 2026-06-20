@@ -1,0 +1,122 @@
+import {
+  findNyahAccount,
+  isValidNyahAccountCode,
+  normalizeAccountCode,
+  resolveNyahAccountName,
+} from '@/lib/budget-unified-chart-of-accounts';
+import { formatAmount, parseAmount } from '@/lib/staff-table-calc';
+import {
+  BudgetAccountingOpeningBalance,
+  BudgetAccountingSettings,
+} from '@/types/organization-section';
+
+export type NyahOpeningBalanceRow = {
+  accountCode: string;
+  accountName: string;
+  debit: number;
+  credit: number;
+};
+
+export type NyahOpeningBalanceSummary = {
+  totalDebit: number;
+  totalCredit: number;
+  difference: number;
+  balanced: boolean;
+  rowCount: number;
+};
+
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function normalizeSide(value: number | undefined): number {
+  if (value === undefined || !Number.isFinite(value) || value <= 0) return 0;
+  return roundMoney(value);
+}
+
+export function formatOpeningBalanceAmount(value: number): string {
+  return formatAmount(value);
+}
+
+export function parseOpeningBalanceAmount(value: string): number {
+  return normalizeSide(parseAmount(value) ?? 0);
+}
+
+export function openingBalanceRows(
+  settings: BudgetAccountingSettings
+): NyahOpeningBalanceRow[] {
+  const map = settings.openingBalances ?? {};
+  return Object.entries(map)
+    .map(([accountCode, entry]) => {
+      const normalized = normalizeAccountCode(accountCode);
+      const account = findNyahAccount(normalized);
+      return {
+        accountCode: normalized,
+        accountName: account ? resolveNyahAccountName(account) : normalized,
+        debit: normalizeSide(entry.debit),
+        credit: normalizeSide(entry.credit),
+      };
+    })
+    .sort((a, b) => a.accountCode.localeCompare(b.accountCode));
+}
+
+export function addOpeningBalanceAccount(
+  map: Record<string, BudgetAccountingOpeningBalance>,
+  accountCode: string
+): Record<string, BudgetAccountingOpeningBalance> {
+  const normalized = normalizeAccountCode(accountCode);
+  if (!normalized || !isValidNyahAccountCode(normalized) || map[normalized]) {
+    return map;
+  }
+  return { ...map, [normalized]: {} };
+}
+
+export function summarizeOpeningBalances(
+  rows: NyahOpeningBalanceRow[]
+): NyahOpeningBalanceSummary {
+  const totalDebit = roundMoney(rows.reduce((sum, row) => sum + row.debit, 0));
+  const totalCredit = roundMoney(rows.reduce((sum, row) => sum + row.credit, 0));
+  const difference = roundMoney(Math.abs(totalDebit - totalCredit));
+  return {
+    totalDebit,
+    totalCredit,
+    difference,
+    balanced: difference < 0.01,
+    rowCount: rows.length,
+  };
+}
+
+export function upsertOpeningBalance(
+  map: Record<string, BudgetAccountingOpeningBalance>,
+  accountCode: string,
+  patch: BudgetAccountingOpeningBalance
+): Record<string, BudgetAccountingOpeningBalance> {
+  const normalized = normalizeAccountCode(accountCode);
+  if (!normalized || !isValidNyahAccountCode(normalized)) return map;
+
+  const debit = normalizeSide(patch.debit);
+  const credit = normalizeSide(patch.credit);
+  if (debit <= 0 && credit <= 0) {
+    const next = { ...map };
+    delete next[normalized];
+    return next;
+  }
+
+  return {
+    ...map,
+    [normalized]: {
+      ...(debit > 0 ? { debit } : {}),
+      ...(credit > 0 ? { credit } : {}),
+    },
+  };
+}
+
+export function removeOpeningBalance(
+  map: Record<string, BudgetAccountingOpeningBalance>,
+  accountCode: string
+): Record<string, BudgetAccountingOpeningBalance> {
+  const normalized = normalizeAccountCode(accountCode);
+  const next = { ...map };
+  delete next[normalized];
+  return next;
+}
