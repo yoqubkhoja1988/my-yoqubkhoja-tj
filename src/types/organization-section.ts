@@ -147,9 +147,23 @@ export interface PayrollLedgerEntry {
   fhea: string;
   kik: string;
   hhdt: string;
-  /** Дигар боздоштҳо */
+  /** @deprecated Истифодаи withholdingAmounts — барои мувофиқат бо китобҳои қадим */
   otherDeductions?: string;
+  /** Маблағи боздоштҳо аз рӯи id-и намуд (сомонӣ, формати «1 234,56») */
+  withholdingAmounts?: Record<string, string>;
   tax: string;
+}
+
+/** Намуди дигар боздошт аз музди меҳнат */
+export type PayrollWithholdingTiming = 'pre_tax' | 'post_tax';
+
+export interface PayrollWithholdingType {
+  id: string;
+  name: string;
+  timing: PayrollWithholdingTiming;
+  /** Асоси ҳуқуқӣ (қонун, қарор, ҳукмнома) */
+  legalBasis: string;
+  enabled: boolean;
 }
 
 export interface PayrollLedger {
@@ -385,6 +399,8 @@ export interface OrganizationSectionContent {
   vacancyNotice?: VacancyNoticeInfo;
   timesheets?: StaffTimesheet[];
   payrollLedgers?: PayrollLedger[];
+  /** Намудҳои дигар боздошт аз музди меҳнат (пеш/баъд аз андоз) */
+  payrollWithholdingTypes?: PayrollWithholdingType[];
   positionHandovers?: PositionHandover[];
   salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[];
   laborLeaves?: LaborLeave[];

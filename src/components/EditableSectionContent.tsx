@@ -27,6 +27,7 @@ import { Organization } from '@/types/organization';
 import FinanceBudgetPanel from './FinanceBudgetPanel';
 import FinanceOverviewStats from './FinanceOverviewStats';
 import FinancePayrollLedgerPanel from './FinancePayrollLedgerPanel';
+import FinancePayrollWithholdingsPanel from './FinancePayrollWithholdingsPanel';
 import FinanceBankPaymentPanel from './FinanceBankPaymentPanel';
 import FinanceLocalPayrollRequirementPanel from './FinanceLocalPayrollRequirementPanel';
 import FinancePayrollPanel from './FinancePayrollPanel';
@@ -913,6 +914,14 @@ export default function EditableSectionContent({
           preferredMonth={payrollLedgerMonth}
           onPreferredMonthApplied={() => setPayrollLedgerMonth(null)}
           onStaffRefreshed={setLiveStaffContent}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' && activeFinanceSection === 'finance-payroll-withholdings' && (
+        <FinancePayrollWithholdingsPanel
+          organizationId={organizationId}
+          financeContent={displayData}
           onUpdate={setData}
         />
       )}

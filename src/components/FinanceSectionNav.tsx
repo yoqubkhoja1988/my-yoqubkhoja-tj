@@ -14,6 +14,7 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-position-handover', labelKey: 'financeNavPositionHandover' },
   { id: 'finance-allowance-adjustment', labelKey: 'financeNavAllowance' },
   { id: 'finance-payroll-ledger', labelKey: 'financeNavPayrollLedger' },
+  { id: 'finance-payroll-withholdings', labelKey: 'financeNavPayrollWithholdings' },
   { id: 'finance-local-payroll-requirement', labelKey: 'financeNavLocalPayrollRequirement' },
   { id: 'finance-bank-payment', labelKey: 'financeNavBankPayment' },
   { id: 'finance-labor-leave', labelKey: 'financeNavLaborLeave' },

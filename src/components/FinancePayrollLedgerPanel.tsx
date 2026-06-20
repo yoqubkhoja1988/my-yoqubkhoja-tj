@@ -9,12 +9,18 @@ import {
   mergePayrollLedgerForMonth,
   payrollLedgerPersonGroupKey,
   recalculatePayrollLedger,
+  recomputeEntryIncomeTax,
   removePayrollLedger,
   persistPayrollLedgerInFinance,
   removePayrollLedgerInFinance,
   resolveEmploymentWorkType,
   resolvePayrollLedgerMonth,
 } from '@/lib/finance-payroll-ledger';
+import {
+  resolvePayrollWithholdings,
+  visiblePayrollWithholdings,
+  withholdingAmount,
+} from '@/lib/finance-payroll-withholdings';
 import { summarizePayrollLedger } from '@/lib/payroll-accounting';
 import {
   fetchOrganizationSection,
@@ -29,8 +35,11 @@ import { printDocument } from '@/lib/print-document';
 import { formatAmount, parseAmount } from '@/lib/staff-table-calc';
 import {
   activeEmployees,
+  countNormWorkingDays,
+  countPayrollWorkedDays,
   currentMonthKey,
   formatMonthLabel,
+  mergeTimesheetForMonth,
   shiftMonth,
 } from '@/lib/staff-timesheet';
 import { Organization } from '@/types/organization';
@@ -114,6 +123,37 @@ export default function FinancePayrollLedgerPanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const withholdingTypes = useMemo(
+    () => resolvePayrollWithholdings(financeContent),
+    [financeContent.payrollWithholdingTypes]
+  );
+
+  const visibleWithholdings = useMemo(
+    () => visiblePayrollWithholdings(withholdingTypes, ledger, editing),
+    [withholdingTypes, ledger, editing]
+  );
+
+  const ledgerBuildContext = useMemo(
+    () => ({
+      organizationId,
+      positionHandovers: financeContent.positionHandovers,
+      salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
+      laborLeaves: financeContent.laborLeaves,
+      payrollLedgers: financeContent.payrollLedgers,
+      payrollWithholdingTypes: withholdingTypes,
+    }),
+    [
+      organizationId,
+      financeContent.positionHandovers,
+      financeContent.salaryAllowanceAdjustments,
+      financeContent.laborLeaves,
+      financeContent.payrollLedgers,
+      withholdingTypes,
+    ]
+  );
+
+  const deductionSubCols = 5 + visibleWithholdings.length;
+
   useEffect(() => {
     if (!preferredMonth) return;
     setMonth(preferredMonth);
@@ -123,13 +163,12 @@ export default function FinancePayrollLedgerPanel({
 
   useEffect(() => {
     if (!staffContent) return;
-    const merged = mergePayrollLedgerForMonth(financeContent.payrollLedgers, month, staffContent, {
-      organizationId,
-      positionHandovers: financeContent.positionHandovers,
-      salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
-      laborLeaves: financeContent.laborLeaves,
-      payrollLedgers: financeContent.payrollLedgers,
-    });
+    const merged = mergePayrollLedgerForMonth(
+      financeContent.payrollLedgers,
+      month,
+      staffContent,
+      ledgerBuildContext
+    );
     setLedger(merged);
     setEditing(!hasStoredPayrollLedger(financeContent.payrollLedgers, month));
   }, [
@@ -137,9 +176,11 @@ export default function FinancePayrollLedgerPanel({
     financeContent.positionHandovers,
     financeContent.salaryAllowanceAdjustments,
     financeContent.laborLeaves,
+    financeContent.payrollWithholdingTypes,
     staffContent,
     staffContent?.timesheets,
     month,
+    ledgerBuildContext,
   ]);
 
   const monthLabel = formatMonthLabel(month, locale);
@@ -180,6 +221,13 @@ export default function FinancePayrollLedgerPanel({
           total.tax += parseAmount(item.tax) ?? 0;
         }
 
+        const withholdingAmounts: Record<string, string> = {};
+        for (const type of withholdingTypes) {
+          withholdingAmounts[type.id] = formatAmount(
+            entries.reduce((sum, item) => sum + withholdingAmount(item, type.id), 0)
+          );
+        }
+
         return {
           employeeId: entries[0]?.employeeId ?? '',
           baseSalary: formatAmount(total.baseSalary),
@@ -189,6 +237,7 @@ export default function FinancePayrollLedgerPanel({
           kik: formatAmount(total.kik),
           hhdt: formatAmount(total.hhdt),
           tax: formatAmount(total.tax),
+          withholdingAmounts,
         };
       }
 
@@ -205,7 +254,7 @@ export default function FinancePayrollLedgerPanel({
             employees: [employee],
             entryIds: [sourceEntry.employeeId],
             entry: sourceEntry,
-            totals: calcEntryTotals(sourceEntry),
+            totals: calcEntryTotals(sourceEntry, withholdingTypes),
           });
           continue;
         }
@@ -220,13 +269,13 @@ export default function FinancePayrollLedgerPanel({
           employees,
           entryIds,
           entry: mergedEntry,
-          totals: calcEntryTotals(mergedEntry),
+          totals: calcEntryTotals(mergedEntry, withholdingTypes),
         });
       }
 
       return [...grouped.values()];
     },
-    [ledger.entries, employeeMap]
+    [ledger.entries, employeeMap, withholdingTypes]
   );
 
   const summary = useMemo(() => {
@@ -246,8 +295,8 @@ export default function FinancePayrollLedgerPanel({
   }, [rows]);
 
   const payrollAccountingSummary = useMemo(
-    () => summarizePayrollLedger(ledger),
-    [ledger]
+    () => summarizePayrollLedger(ledger, withholdingTypes),
+    [ledger, withholdingTypes]
   );
 
   const showEmployerCharges = isBudgetFundedOrganization(organizationId);
@@ -258,6 +307,53 @@ export default function FinancePayrollLedgerPanel({
       entries: current.entries.map((entry) =>
         entry.employeeId === employeeId ? { ...entry, [field]: value } : entry
       ),
+    }));
+  }
+
+  function patchWithholding(employeeId: string, typeId: string, value: string) {
+    if (!staffContent) return;
+    const withholdingType = withholdingTypes.find((item) => item.id === typeId);
+    const timesheet = mergeTimesheetForMonth(
+      staffContent.timesheets,
+      month,
+      staffContent.employees ?? []
+    );
+    const sheetEntry = timesheet.entries.find((item) => item.employeeId === employeeId);
+    const workedDays = sheetEntry
+      ? countPayrollWorkedDays(sheetEntry, month, {
+          laborLeaves: financeContent.laborLeaves,
+          employeeId,
+        })
+      : 0;
+    const normDays = countNormWorkingDays(month);
+
+    setLedger((current) => ({
+      ...current,
+      entries: current.entries.map((entry) => {
+        if (entry.employeeId !== employeeId) return entry;
+        const next: PayrollLedgerEntry = {
+          ...entry,
+          withholdingAmounts: {
+            ...(entry.withholdingAmounts ?? {}),
+            [typeId]: value,
+          },
+        };
+        if (withholdingType?.timing !== 'pre_tax') return next;
+        const employee = employeeMap.get(employeeId);
+        if (!employee) return next;
+        const gross = calcEntryTotals(next, withholdingTypes).gross;
+        return {
+          ...next,
+          tax: recomputeEntryIncomeTax(
+            next,
+            gross,
+            workedDays,
+            normDays,
+            resolveEmploymentWorkType(employee),
+            withholdingTypes
+          ),
+        };
+      }),
     }));
   }
 
@@ -317,12 +413,7 @@ export default function FinancePayrollLedgerPanel({
   async function handleSave() {
     if (!staffContent) return;
     const nextLedger = {
-      ...recalculatePayrollLedger(ledger, staffContent, {
-        organizationId,
-        positionHandovers: financeContent.positionHandovers,
-        laborLeaves: financeContent.laborLeaves,
-        payrollLedgers: financeContent.payrollLedgers,
-      }),
+      ...recalculatePayrollLedger(ledger, staffContent, ledgerBuildContext),
       preparedAt: new Date().toISOString().slice(0, 10),
     };
     setLedger(nextLedger);
@@ -358,6 +449,7 @@ export default function FinancePayrollLedgerPanel({
         salaryAllowanceAdjustments: financeBase.salaryAllowanceAdjustments,
         laborLeaves: financeBase.laborLeaves,
         payrollLedgers: financeBase.payrollLedgers,
+        payrollWithholdingTypes: resolvePayrollWithholdings(financeBase),
       }
     );
     setLedger(merged);
@@ -416,6 +508,7 @@ export default function FinancePayrollLedgerPanel({
           salaryAllowanceAdjustments: saved.salaryAllowanceAdjustments,
           laborLeaves: saved.laborLeaves,
           payrollLedgers: saved.payrollLedgers,
+          payrollWithholdingTypes: resolvePayrollWithholdings(saved),
         })
       );
     }
@@ -563,7 +656,7 @@ export default function FinancePayrollLedgerPanel({
                   <th colSpan={4} className="border border-slate-300 px-2 py-2">
                     {t('payrollLedgerColAccrued')}
                   </th>
-                  <th colSpan={5} className="border border-slate-300 px-2 py-2">
+                  <th colSpan={deductionSubCols} className="border border-slate-300 px-2 py-2">
                     {t('payrollLedgerColDeductions')}
                   </th>
                   <th rowSpan={2} className="border border-slate-300 px-2 py-2">
@@ -578,6 +671,20 @@ export default function FinancePayrollLedgerPanel({
                   <th className="border border-slate-300 px-2 py-2">ФҲИА</th>
                   <th className="border border-slate-300 px-2 py-2">КИК</th>
                   <th className="border border-slate-300 px-2 py-2">ҲҲДТ</th>
+                  {visibleWithholdings.map((type) => (
+                    <th
+                      key={type.id}
+                      className="min-w-[5rem] border border-slate-300 px-2 py-2"
+                      title={type.legalBasis}
+                    >
+                      <span className="block">{type.name}</span>
+                      <span className="mt-0.5 block text-[9px] font-normal text-slate-500">
+                        {type.timing === 'pre_tax'
+                          ? t('payrollWithholdingsTimingPreTaxShort')
+                          : t('payrollWithholdingsTimingPostTaxShort')}
+                      </span>
+                    </th>
+                  ))}
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColTax')}</th>
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerTotal')}</th>
                 </tr>
@@ -674,6 +781,19 @@ export default function FinancePayrollLedgerPanel({
                         onChange={canPatch ? (value) => patchEntry(entryIds[0], 'hhdt', value) : undefined}
                       />
                     </td>
+                    {visibleWithholdings.map((type) => (
+                      <td key={type.id} className="border border-slate-300 px-2 py-2 text-center">
+                        <AmountInput
+                          editing={canPatch}
+                          value={entry.withholdingAmounts?.[type.id] ?? '0,00'}
+                          onChange={
+                            canPatch
+                              ? (value) => patchWithholding(entryIds[0], type.id, value)
+                              : undefined
+                          }
+                        />
+                      </td>
+                    ))}
                     <td className="border border-slate-300 px-2 py-2 text-center">
                       <AmountInput
                         editing={canPatch}
@@ -714,6 +834,16 @@ export default function FinancePayrollLedgerPanel({
                   <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.hhdt)}
                   </td>
+                  {visibleWithholdings.map((type) => (
+                    <td key={type.id} className="border border-slate-300 px-2 py-2 text-center">
+                      {formatLedgerAmount(
+                        rows.reduce(
+                          (sum, row) => sum + withholdingAmount(row.entry, type.id),
+                          0
+                        )
+                      )}
+                    </td>
+                  ))}
                   <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.tax)}
                   </td>

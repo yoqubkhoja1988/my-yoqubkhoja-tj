@@ -9,6 +9,7 @@ import {
   formatLedgerAmount,
   mergePayrollLedgerForMonth,
 } from '@/lib/finance-payroll-ledger';
+import { resolvePayrollWithholdings } from '@/lib/finance-payroll-withholdings';
 import {
   isFoodSafetyCenterOrganization,
   isKindergartenOrganization,
@@ -476,6 +477,7 @@ function buildLedgerMetrics(
     salaryAllowanceAdjustments: financeContent.salaryAllowanceAdjustments,
     laborLeaves: financeContent.laborLeaves,
     payrollLedgers: financeContent.payrollLedgers,
+    payrollWithholdingTypes: resolvePayrollWithholdings(financeContent),
   });
 
   const metrics = emptyMetrics();
@@ -487,7 +489,7 @@ function buildLedgerMetrics(
     const department = resolveEmployeeDepartment(employee, staffContent);
     if (!departmentBelongsToGroup(department, groupId, organizationId)) continue;
 
-    const totals = calcEntryTotals(entry);
+    const totals = calcEntryTotals(entry, resolvePayrollWithholdings(financeContent));
     if (totals.gross > 0) {
       metrics.actualUnits += 1;
     }
@@ -496,6 +498,7 @@ function buildLedgerMetrics(
     metrics.fhea1 += totals.fhea;
     metrics.unionFee += totals.kik;
     metrics.hhdt += totals.hhdt;
+    metrics.otherDeductions += totals.otherDeductions;
     metrics.totalDeductions += totals.deductions;
     metrics.netPay += totals.netPay;
   }

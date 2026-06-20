@@ -19,6 +19,12 @@ import {
   usesPreschoolWageScales,
 } from '@/lib/preschool-wage-scales';
 import { laborLeavePayForEmployee } from '@/lib/finance-labor-leave-pay';
+import {
+  migrateLegacyOtherDeductions,
+  resolvePayrollWithholdings,
+  sumWithholdingsByTiming,
+  totalOtherWithholdings,
+} from '@/lib/finance-payroll-withholdings';
 import { allowanceAdjustmentForEmployee } from '@/lib/finance-allowance-calc';
 import {
   EmploymentWorkType,
@@ -26,6 +32,7 @@ import {
   OrganizationSectionContent,
   PayrollLedger,
   PayrollLedgerEntry,
+  PayrollWithholdingType,
   PositionHandover,
   SalaryAllowanceAdjustment,
   StaffEmployee,
@@ -67,11 +74,12 @@ export function payrollLedgerPersonGroupKey(employee: StaffEmployee): string {
   return `name:${normalizeEmployeeFullName(employee.fullName)}`;
 }
 
-/** Кори асосӣ: (Ҳамагӣ − 1% − 156) × 12% */
+/** Кори асосӣ: (Ҳамагӣ − 1% − 156 − боздоштҳои пеш аз андоз) × 12% */
 export function calcPrimaryIncomeTax(
   gross: number,
   workedDays?: number,
-  normDays?: number
+  normDays?: number,
+  preTaxOtherDeductions = 0
 ): number {
   const standardDeduction =
     workedDays !== undefined && normDays !== undefined && normDays > 0
@@ -79,14 +87,17 @@ export function calcPrimaryIncomeTax(
       : TAX_STANDARD_DEDUCTION;
   const taxable = Math.max(
     0,
-    gross - gross * TAX_SOCIAL_PERCENT - standardDeduction
+    gross - gross * TAX_SOCIAL_PERCENT - standardDeduction - preTaxOtherDeductions
   );
   return taxable * PRIMARY_TAX_RATE;
 }
 
-/** Кори иловагӣ: (Ҳамагӣ − 1%) × 15% */
-export function calcSecondaryIncomeTax(gross: number): number {
-  const taxable = Math.max(0, gross - gross * TAX_SOCIAL_PERCENT);
+/** Кори иловагӣ: (Ҳамагӣ − 1% − боздоштҳои пеш аз андоз) × 15% */
+export function calcSecondaryIncomeTax(
+  gross: number,
+  preTaxOtherDeductions = 0
+): number {
+  const taxable = Math.max(0, gross - gross * TAX_SOCIAL_PERCENT - preTaxOtherDeductions);
   return taxable * SECONDARY_TAX_RATE;
 }
 
@@ -94,12 +105,13 @@ export function calcIncomeTax(
   gross: number,
   workedDays?: number,
   normDays?: number,
-  workType: EmploymentWorkType = 'primary'
+  workType: EmploymentWorkType = 'primary',
+  preTaxOtherDeductions = 0
 ): number {
   if (workType === 'secondary') {
-    return calcSecondaryIncomeTax(gross);
+    return calcSecondaryIncomeTax(gross, preTaxOtherDeductions);
   }
-  return calcPrimaryIncomeTax(gross, workedDays, normDays);
+  return calcPrimaryIncomeTax(gross, workedDays, normDays, preTaxOtherDeductions);
 }
 
 
@@ -361,7 +373,23 @@ function emptyEntry(employeeId: string): PayrollLedgerEntry {
   };
 }
 
-export function calcEntryTotals(entry: PayrollLedgerEntry) {
+export function recomputeEntryIncomeTax(
+  entry: PayrollLedgerEntry,
+  gross: number,
+  workedDays: number,
+  normDays: number,
+  workType: EmploymentWorkType,
+  withholdingTypes: PayrollWithholdingType[] = []
+): string {
+  const migrated = migrateLegacyOtherDeductions(entry, withholdingTypes);
+  const preTax = sumWithholdingsByTiming(migrated, withholdingTypes, 'pre_tax');
+  return formatAmount(calcIncomeTax(gross, workedDays, normDays, workType, preTax));
+}
+
+export function calcEntryTotals(
+  entry: PayrollLedgerEntry,
+  withholdingTypes: PayrollWithholdingType[] = []
+) {
   const baseSalary = parseAmount(entry.baseSalary) ?? 0;
   const allowances = parseAmount(entry.allowances) ?? 0;
   const laborLeavePay = parseAmount(entry.laborLeavePay ?? '') ?? 0;
@@ -369,9 +397,11 @@ export function calcEntryTotals(entry: PayrollLedgerEntry) {
   const fhea = parseAmount(entry.fhea) ?? 0;
   const kik = parseAmount(entry.kik) ?? 0;
   const hhdt = parseAmount(entry.hhdt) ?? 0;
-  const otherDeductions = parseAmount(entry.otherDeductions ?? '') ?? 0;
+  const preTaxOther = sumWithholdingsByTiming(entry, withholdingTypes, 'pre_tax');
+  const postTaxOther = sumWithholdingsByTiming(entry, withholdingTypes, 'post_tax');
+  const otherDeductions = totalOtherWithholdings(entry, withholdingTypes);
   const tax = parseAmount(entry.tax) ?? 0;
-  const deductions = fhea + kik + hhdt + otherDeductions + tax;
+  const deductions = fhea + kik + hhdt + preTaxOther + postTaxOther + tax;
 
   return {
     baseSalary,
@@ -381,6 +411,8 @@ export function calcEntryTotals(entry: PayrollLedgerEntry) {
     fhea,
     kik,
     hhdt,
+    preTaxOther,
+    postTaxOther,
     otherDeductions,
     tax,
     deductions,
@@ -393,29 +425,36 @@ function autoDeductions(
   saved: PayrollLedgerEntry | undefined,
   workedDays: number | undefined,
   normDays: number | undefined,
-  workType: EmploymentWorkType
+  workType: EmploymentWorkType,
+  withholdingTypes: PayrollWithholdingType[] = []
 ) {
   const defaultFhea = gross * 0.01;
   const defaultKik = gross * 0.01;
   const defaultHhdt = gross * 0.01;
+  const entry = saved ? migrateLegacyOtherDeductions(saved, withholdingTypes) : undefined;
+  const preTaxOther = entry
+    ? sumWithholdingsByTiming(entry, withholdingTypes, 'pre_tax')
+    : 0;
   const fhea =
-    saved && saved.fhea !== ZERO
-      ? (parseAmount(saved.fhea) ?? defaultFhea)
+    entry && entry.fhea !== ZERO
+      ? (parseAmount(entry.fhea) ?? defaultFhea)
       : defaultFhea;
   const kik =
-    saved && saved.kik !== ZERO ? (parseAmount(saved.kik) ?? defaultKik) : defaultKik;
+    entry && entry.kik !== ZERO ? (parseAmount(entry.kik) ?? defaultKik) : defaultKik;
   const hhdt =
-    saved && saved.hhdt !== ZERO ? (parseAmount(saved.hhdt) ?? defaultHhdt) : defaultHhdt;
+    entry && entry.hhdt !== ZERO ? (parseAmount(entry.hhdt) ?? defaultHhdt) : defaultHhdt;
   const tax =
-    saved && saved.tax !== ZERO
-      ? (parseAmount(saved.tax) ?? calcIncomeTax(gross, workedDays, normDays, workType))
-      : calcIncomeTax(gross, workedDays, normDays, workType);
+    entry && entry.tax !== ZERO
+      ? (parseAmount(entry.tax) ??
+          calcIncomeTax(gross, workedDays, normDays, workType, preTaxOther))
+      : calcIncomeTax(gross, workedDays, normDays, workType, preTaxOther);
 
   return {
     fhea: formatAmount(fhea),
     kik: formatAmount(kik),
     hhdt: formatAmount(hhdt),
     tax: formatAmount(tax),
+    withholdingAmounts: entry?.withholdingAmounts,
   };
 }
 
@@ -428,7 +467,8 @@ export function buildLedgerEntry(
   laborLeaves?: LaborLeave[],
   payrollLedgers?: PayrollLedger[],
   organizationId?: string,
-  salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[]
+  salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[],
+  withholdingTypes: PayrollWithholdingType[] = []
 ): PayrollLedgerEntry {
   const timesheet = mergeTimesheetForMonth(
     staffContent.timesheets,
@@ -444,7 +484,7 @@ export function buildLedgerEntry(
     : 0;
   const normDays = normWorkingDays(month);
   const wage = findEmployeeWage(staffContent, employee, organizationId);
-  const base = saved ?? emptyEntry(employee.id);
+  const base = saved ? migrateLegacyOtherDeductions(saved, withholdingTypes) : emptyEntry(employee.id);
   const workType = resolveEmploymentWorkType(employee);
   const handoverAllowance = handoverAllowanceForEmployee(
     positionHandovers,
@@ -472,7 +512,14 @@ export function buildLedgerEntry(
     if (handoverAllowance <= 0 && retroAllowance <= 0 && laborLeavePay <= 0) return base;
 
     const gross = handoverAllowance + retroAllowance + laborLeavePay;
-    const deductions = autoDeductions(gross, saved, workedDays, normDays, workType);
+    const deductions = autoDeductions(
+      gross,
+      base,
+      workedDays,
+      normDays,
+      workType,
+      withholdingTypes
+    );
     return {
       employeeId: employee.id,
       baseSalary: ZERO,
@@ -486,7 +533,14 @@ export function buildLedgerEntry(
   const nightAllowance = proportional(wage.allowances, workedDays, normDays);
   const allowances = nightAllowance + handoverAllowance + retroAllowance;
   const gross = baseSalary + allowances + laborLeavePay;
-  const deductions = autoDeductions(gross, saved, workedDays, normDays, workType);
+  const deductions = autoDeductions(
+    gross,
+    base,
+    workedDays,
+    normDays,
+    workType,
+    withholdingTypes
+  );
 
   return {
     employeeId: employee.id,
@@ -503,6 +557,7 @@ export type PayrollLedgerBuildContext = {
   laborLeaves?: LaborLeave[];
   payrollLedgers?: PayrollLedger[];
   salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[];
+  payrollWithholdingTypes?: PayrollWithholdingType[];
 };
 
 export function buildPayrollLedger(
@@ -513,7 +568,8 @@ export function buildPayrollLedger(
   laborLeaves?: LaborLeave[],
   payrollLedgers?: PayrollLedger[],
   organizationId?: string,
-  salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[]
+  salaryAllowanceAdjustments?: SalaryAllowanceAdjustment[],
+  withholdingTypes: PayrollWithholdingType[] = []
 ): PayrollLedger {
   const savedMap = new Map((savedLedger?.entries ?? []).map((entry) => [entry.employeeId, entry]));
   const historyLedgers = payrollLedgers;
@@ -531,7 +587,8 @@ export function buildPayrollLedger(
         laborLeaves,
         historyLedgers,
         organizationId,
-        salaryAllowanceAdjustments
+        salaryAllowanceAdjustments,
+        withholdingTypes
       )
     ),
   };
@@ -542,8 +599,9 @@ export function recalculatePayrollLedger(
   staffContent: OrganizationSectionContent,
   context: PayrollLedgerBuildContext = {}
 ): PayrollLedger {
-  const { organizationId, positionHandovers, laborLeaves, payrollLedgers, salaryAllowanceAdjustments } =
+  const { organizationId, positionHandovers, laborLeaves, payrollLedgers, salaryAllowanceAdjustments, payrollWithholdingTypes } =
     context;
+  const withholdingTypes = payrollWithholdingTypes ?? [];
   return {
     ...ledger,
     entries: ledger.entries.map((entry) => {
@@ -558,7 +616,8 @@ export function recalculatePayrollLedger(
         laborLeaves,
         payrollLedgers,
         organizationId,
-        salaryAllowanceAdjustments
+        salaryAllowanceAdjustments,
+        withholdingTypes
       );
     }),
   };
@@ -579,7 +638,8 @@ export function mergePayrollLedgerForMonth(
     context.laborLeaves,
     ledgers,
     context.organizationId,
-    context.salaryAllowanceAdjustments
+    context.salaryAllowanceAdjustments,
+    context.payrollWithholdingTypes
   );
 }
 
@@ -636,7 +696,8 @@ export function syncPayrollLedgersAfterTimesheetChange(
       context.laborLeaves,
       ledgers,
       context.organizationId,
-      context.salaryAllowanceAdjustments
+      context.salaryAllowanceAdjustments,
+      context.payrollWithholdingTypes
     );
     ledgers = upsertPayrollLedger(ledgers, {
       ...updated,

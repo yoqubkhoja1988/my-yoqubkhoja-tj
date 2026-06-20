@@ -24,6 +24,7 @@ import {
   upsertPayrollLedger,
   type PayrollLedgerBuildContext,
 } from '@/lib/finance-payroll-ledger';
+import { resolvePayrollWithholdings } from '@/lib/finance-payroll-withholdings';
 import { isBudgetFundedOrganization } from '@/lib/organization-scope';
 import { resolveBudgetAccountingSettings } from '@/lib/budget-accounting-journal';
 import { isStateInsuranceLeaveType, leaveMonthsAffected } from '@/lib/finance-labor-leave-pay';
@@ -34,6 +35,7 @@ import {
   BudgetAccountingSettings,
   OrganizationSectionContent,
   PayrollLedger,
+  PayrollWithholdingType,
 } from '@/types/organization-section';
 
 /** Андози иҷтимоӣ аз корманд (ФҲИА 1%) */
@@ -72,7 +74,10 @@ export function calcSanatoriumFromEmployerFhea(employerFhea25: number): number {
   return roundPayrollMoney(employerFhea25 * PAYROLL_SANATORIUM_RATE);
 }
 
-export function summarizePayrollLedger(ledger: PayrollLedger): PayrollLedgerSummary {
+export function summarizePayrollLedger(
+  ledger: PayrollLedger,
+  withholdingTypes: PayrollWithholdingType[] = []
+): PayrollLedgerSummary {
   let gross = 0;
   let fheaEmployee = 0;
   let unionFee = 0;
@@ -82,7 +87,7 @@ export function summarizePayrollLedger(ledger: PayrollLedger): PayrollLedgerSumm
   let netPay = 0;
 
   for (const entry of ledger.entries) {
-    const totals = calcEntryTotals(entry);
+    const totals = calcEntryTotals(entry, withholdingTypes);
     gross += totals.gross;
     fheaEmployee += totals.fhea;
     unionFee += totals.kik;
@@ -223,9 +228,10 @@ export function buildPayrollMemorialJournalEntries(
   ledger: PayrollLedger,
   settings: BudgetAccountingSettings,
   existingEntries: BudgetAccountingJournalEntry[] | undefined,
-  startEntryNumber: number
+  startEntryNumber: number,
+  withholdingTypes: PayrollWithholdingType[] = []
 ): BudgetAccountingJournalEntry[] {
-  const summary = summarizePayrollLedger(ledger);
+  const summary = summarizePayrollLedger(ledger, withholdingTypes);
   const specs = buildMemorialSpecs(summary);
   if (specs.length === 0) return [];
 
@@ -259,7 +265,8 @@ export function removePayrollMemorialJournalEntries(
 export function syncPayrollMemorialJournal(
   ledger: PayrollLedger,
   settings: BudgetAccountingSettings,
-  journal: BudgetAccountingJournalEntry[] | undefined
+  journal: BudgetAccountingJournalEntry[] | undefined,
+  withholdingTypes: PayrollWithholdingType[] = []
 ): {
   entries: BudgetAccountingJournalEntry[];
   settings: BudgetAccountingSettings;
@@ -271,7 +278,8 @@ export function syncPayrollMemorialJournal(
     ledger,
     settings,
     withoutMonth,
-    startNumber
+    startNumber,
+    withholdingTypes
   );
 
   const merged = [...withoutMonth, ...newEntries].sort((a, b) => {
@@ -313,9 +321,11 @@ export function rebuildBudgetMemorialJournalInFinance(
     hasStoredPayrollLedger(financeContent.payrollLedgers, ledger.month)
   );
 
+  const withholdingTypes = resolvePayrollWithholdings(financeContent);
+
   for (const ledger of [...ledgers].sort((a, b) => a.month.localeCompare(b.month))) {
     if (!ledger.preparedAt) continue;
-    const synced = syncPayrollMemorialJournal(ledger, settings, journal);
+    const synced = syncPayrollMemorialJournal(ledger, settings, journal, withholdingTypes);
     journal = synced.entries;
     settings = synced.settings;
   }
