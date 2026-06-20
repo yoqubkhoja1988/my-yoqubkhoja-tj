@@ -21,7 +21,6 @@ import { analyzeFinance } from '@/lib/finance-analytics';
 import { supportsLocalPayrollRequirement } from '@/lib/finance-local-payroll-requirement';
 import { supportsParentMembershipFee } from '@/lib/finance-parent-membership-fee';
 import { supportsParentFoodPayment } from '@/lib/finance-parent-food-payment';
-import { supportsBudgetAccounting } from '@/lib/budget-accounting-journal';
 import { analyzeStaffing } from '@/lib/staff-analytics';
 import { Organization } from '@/types/organization';
 import FinanceBudgetPanel from './FinanceBudgetPanel';
@@ -37,8 +36,6 @@ import FinanceSickLeavePanel from './FinanceSickLeavePanel';
 import FinanceSocialInsuranceAgencyPanel from './FinanceSocialInsuranceAgencyPanel';
 import FinanceParentMembershipFeePanel from './FinanceParentMembershipFeePanel';
 import FinanceParentFoodPaymentPanel from './FinanceParentFoodPaymentPanel';
-import FinanceBudgetAccountingPanel from './FinanceBudgetAccountingPanel';
-import FinanceReportForm1Panel from './FinanceReportForm1Panel';
 import FinanceAllowanceAdjustmentPanel from './FinanceAllowanceAdjustmentPanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
 import OrganizationContractsPanel from './OrganizationContractsPanel';
@@ -129,7 +126,6 @@ type Props = {
   section: string;
   content: OrganizationSectionContent;
   staffContent?: OrganizationSectionContent | null;
-  financeContent?: OrganizationSectionContent | null;
   canEdit?: boolean;
 };
 
@@ -140,7 +136,6 @@ export default function EditableSectionContent({
   section,
   content,
   staffContent,
-  financeContent = null,
   canEdit = false,
 }: Props) {
   const t = useTranslations();
@@ -686,9 +681,7 @@ export default function EditableSectionContent({
             editing={editing && !!draft}
             organizationId={organizationId}
             organization={organization}
-            financeContent={financeContent}
             onItemsChange={editing && draft ? updateDraftItems : undefined}
-            onFinanceContentChange={() => undefined}
             onForm5CellChange={editing && draft ? updateForm5Cell : undefined}
             onForm5AddRow={editing && draft ? addForm5Row : undefined}
             onInitForm5={editing && draft ? initForm5InDraft : undefined}
@@ -1014,29 +1007,6 @@ export default function EditableSectionContent({
           organization={organization}
           financeContent={displayData}
           staffContent={liveStaffContent}
-          onUpdate={setData}
-        />
-      )}
-
-      {section === 'finance' &&
-        activeFinanceSection === 'finance-budget-accounting' &&
-        supportsBudgetAccounting(organizationId) && (
-        <FinanceBudgetAccountingPanel
-          organizationId={organizationId}
-          organization={organization}
-          financeContent={displayData}
-          staffContent={liveStaffContent}
-          onUpdate={setData}
-        />
-      )}
-
-      {section === 'finance' &&
-        activeFinanceSection === 'finance-balance-sheet' &&
-        supportsBudgetAccounting(organizationId) && (
-        <FinanceReportForm1Panel
-          organizationId={organizationId}
-          organization={organization}
-          financeContent={displayData}
           onUpdate={setData}
         />
       )}

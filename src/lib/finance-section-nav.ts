@@ -14,8 +14,6 @@ export const FINANCE_SECTION_IDS = [
   'finance-social-insurance-agency',
   'finance-parent-membership-fee',
   'finance-parent-food-payment',
-  'finance-budget-accounting',
-  'finance-balance-sheet',
   'finance-contacts',
 ] as const;
 

@@ -1,7 +1,6 @@
 'use client';
 
 import FinanceReportForm5Panel from '@/components/FinanceReportForm5Panel';
-import FinanceReportForm1Panel from '@/components/FinanceReportForm1Panel';
 import OrganizationReportDocumentHeader from '@/components/OrganizationReportDocumentHeader';
 import UserContentText from '@/components/UserContentText';
 import {
@@ -29,9 +28,7 @@ type Props = {
   editing?: boolean;
   organizationId?: string;
   organization?: Organization;
-  financeContent?: OrganizationSectionContent | null;
   onItemsChange?: (items: SectionItem[]) => void;
-  onFinanceContentChange?: (content: OrganizationSectionContent) => void;
   onForm5CellChange?: (
     tableIndex: number,
     rowIndex: number,
@@ -44,7 +41,6 @@ type Props = {
 
 const VIEW_TITLE_KEYS: Partial<Record<FinancialReportView, string>> = {
   overview: 'financeReportsTitle',
-  form1: 'actFinancialReportsForm1',
   form2: 'actFinancialReportsForm2',
   form3: 'actFinancialReportsForm3',
   form4: 'actFinancialReportsForm4',
@@ -181,9 +177,7 @@ export default function FinanceReportsPanel({
   editing = false,
   organizationId,
   organization,
-  financeContent,
   onItemsChange,
-  onFinanceContentChange,
   onForm5CellChange,
   onForm5AddRow,
   onInitForm5,
@@ -329,23 +323,7 @@ export default function FinanceReportsPanel({
 
       {view !== 'overview' && instructionBlock}
 
-      {formId && view !== 'form5' && view !== 'form1' && renderSingleFormView(formId)}
-
-      {view === 'form1' && organizationId && financeContent && (
-        <div className="space-y-3">
-          <p className="text-xs text-[var(--text-muted)]">{t('financeReportForm1FinanceHint')}</p>
-          <FinanceReportForm1Panel
-            organizationId={organizationId}
-            organization={organization}
-            financeContent={financeContent}
-            onUpdate={onFinanceContentChange ?? (() => undefined)}
-          />
-        </div>
-      )}
-
-      {view === 'form1' && (!financeContent || !organizationId) && (
-        <p className="text-xs text-[var(--text-muted)]">{t('financeReportForm1FinanceMissing')}</p>
-      )}
+      {formId && view !== 'form5' && renderSingleFormView(formId)}
 
       {view === 'form5' && (
         <div className="space-y-3">

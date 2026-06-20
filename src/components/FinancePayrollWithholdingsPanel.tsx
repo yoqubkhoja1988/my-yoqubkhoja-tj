@@ -12,7 +12,6 @@ import {
   upsertPayrollWithholdingAssignment,
 } from '@/lib/finance-payroll-withholdings';
 import { syncLedgersAfterWithholdingAssignmentChange } from '@/lib/finance-payroll-ledger';
-import { rebuildBudgetMemorialJournalInFinance } from '@/lib/payroll-accounting';
 import { updateOrganizationSection } from '@/lib/organization-sections';
 import { activeEmployees } from '@/lib/staff-timesheet';
 import { useOrganizationAccess } from '@/contexts/organization-access-context';
@@ -185,10 +184,6 @@ export default function FinancePayrollWithholdingsPanel({
       payrollLedgers,
     };
 
-    if (staffContent) {
-      payload = rebuildBudgetMemorialJournalInFinance(payload, staffContent);
-    }
-
     const saved = await persistFinance(payload);
     if (!saved) return false;
 
@@ -255,15 +250,12 @@ export default function FinancePayrollWithholdingsPanel({
       );
     }
 
-    let payload: OrganizationSectionContent = {
+    const payload: OrganizationSectionContent = {
       ...financeContent,
       summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
       payrollWithholdingAssignments: nextAssignments,
       payrollLedgers,
     };
-    if (staffContent) {
-      payload = rebuildBudgetMemorialJournalInFinance(payload, staffContent);
-    }
 
     const saved = await persistFinance(payload);
     if (!saved) return;

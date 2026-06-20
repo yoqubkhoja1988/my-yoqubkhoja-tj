@@ -6,7 +6,6 @@ export const FINANCIAL_REPORTS_STORAGE_SLUG = 'financial-reports';
 
 export type FinancialReportView =
   | 'overview'
-  | 'form1'
   | 'form2'
   | 'form3'
   | 'form4'
@@ -18,7 +17,6 @@ export type FinancialReportView =
 
 export const FINANCIAL_REPORT_SECTION_SLUGS = [
   'financial-reports',
-  'financial-reports-form1',
   'financial-reports-form2',
   'financial-reports-form3',
   'financial-reports-form4',
@@ -31,7 +29,6 @@ export const FINANCIAL_REPORT_SECTION_SLUGS = [
 
 const VIEW_BY_SLUG: Record<string, FinancialReportView> = {
   'financial-reports': 'overview',
-  'financial-reports-form1': 'form1',
   'financial-reports-form2': 'form2',
   'financial-reports-form3': 'form3',
   'financial-reports-form4': 'form4',
@@ -57,7 +54,6 @@ export function resolveFinancialReportView(slug: string): FinancialReportView {
 export const FINANCIAL_REPORT_FORM_ID_BY_VIEW: Partial<
   Record<FinancialReportView, string>
 > = {
-  form1: 'form-1',
   form2: 'form-2',
   form3: 'form-3',
   form4: 'form-4',
@@ -79,12 +75,6 @@ export function getFinancialReportMenuDirections(): ActivityDirection[] {
       slug: 'financial-reports',
       icon: '📊',
       labelKey: 'actFinancialReportsOverview',
-      groupKey: 'actGroupFinancialReports',
-    },
-    {
-      slug: 'financial-reports-form1',
-      icon: '📑',
-      labelKey: 'actFinancialReportsForm1',
       groupKey: 'actGroupFinancialReports',
     },
     {

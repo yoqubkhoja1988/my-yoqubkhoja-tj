@@ -66,18 +66,12 @@ export default async function OrganizationSectionPage({
       ? await getOrganizationSection(id, 'staff')
       : null;
 
-  const financeContent =
-    section === 'financial-reports-form1'
-      ? await getOrganizationSection(id, 'finance')
-      : null;
-
   return (
     <OrganizationDetailContent
       organization={organization}
       section={section}
       sectionContent={sectionContent}
       staffContent={staffContent}
-      financeContent={financeContent}
       orgInfoContent={orgInfoContent}
     />
   );

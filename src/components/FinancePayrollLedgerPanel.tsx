@@ -430,21 +430,16 @@ export default function FinancePayrollLedgerPanel({
     }));
   }
 
-  const [postingNotice, setPostingNotice] = useState('');
-
   async function persist(nextLedger: PayrollLedger) {
     setSaving(true);
     setError('');
-    setPostingNotice('');
 
-    const { content: payload, postedCount } = persistPayrollLedgerInFinance(
+    const { content: payload } = persistPayrollLedgerInFinance(
       {
         ...financeContent,
         summary: financeContent.summary?.trim() || t('financeDefaultSummary'),
       },
-      nextLedger,
-      organizationId,
-      staffContent
+      nextLedger
     );
 
     const saved = await updateOrganizationSection(organizationId, 'finance', payload);
@@ -453,30 +448,6 @@ export default function FinancePayrollLedgerPanel({
     if (!saved) {
       setError(t('sectionSaveError'));
       return;
-    }
-
-    if (isBudgetFundedOrganization(organizationId) && nextLedger.preparedAt) {
-      if (postedCount > 0) {
-        setPostingNotice(
-          `Гузарониши мемориалӣ: ${postedCount} амалиёт ба ҷадвали НЯҲ сабт шуд.`
-        );
-      } else {
-        const journalCount =
-          saved.budgetAccountingJournal?.filter(
-            (entry) =>
-              entry.sourcePayrollMonth === nextLedger.month ||
-              entry.sourceSocialInsuranceMonth === nextLedger.month
-          ).length ?? 0;
-        if (journalCount > 0) {
-          setPostingNotice(
-            `Гузарониши мемориалӣ: ${journalCount} амалиёт ба ҷадвали НЯҲ сабт шуд.`
-          );
-        } else {
-          setPostingNotice(
-            'Китоб сабт шуд, аммо гузарониши мемориалӣ иҷро нашуд — маблағи ҳисобшуда сифр аст.'
-          );
-        }
-      }
     }
 
     onUpdate(saved);
@@ -535,9 +506,7 @@ export default function FinancePayrollLedgerPanel({
           ...financeBase,
           summary: financeBase.summary?.trim() || t('financeDefaultSummary'),
         },
-        merged,
-        organizationId,
-        freshStaff
+        merged
       );
       const saved = await updateOrganizationSection(organizationId, 'finance', payload);
       setSaving(false);
@@ -678,12 +647,6 @@ export default function FinancePayrollLedgerPanel({
       {error && (
         <p className="rounded-lg border border-[var(--danger)]/50 bg-red-500/10 px-3 py-2 text-xs text-red-300 print:hidden">
           {error}
-        </p>
-      )}
-
-      {postingNotice && !error && (
-        <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200 print:hidden">
-          {postingNotice}
         </p>
       )}
 

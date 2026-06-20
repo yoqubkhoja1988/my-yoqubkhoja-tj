@@ -2,10 +2,7 @@ import {
   affectedTimesheetMonths,
   hasStoredPayrollLedger,
 } from '@/lib/finance-payroll-ledger';
-import {
-  applyPayrollLedgerTimesheetSync,
-  rebuildBudgetMemorialJournalInFinance,
-} from '@/lib/payroll-accounting';
+import { applyPayrollLedgerTimesheetSync } from '@/lib/payroll-accounting';
 import {
   getOrganizationSection,
   writeOrganizationSection,
@@ -16,7 +13,7 @@ import {
 } from '@/lib/staff-timesheet-leave-sync';
 import { mergeOrganizationSectionContent } from '@/lib/organization-section-merge';
 import { requireSession } from '@/lib/api-guard';
-import { validateOrganizationSectionIsolation, isBudgetFundedOrganization } from '@/lib/organization-scope';
+import { validateOrganizationSectionIsolation } from '@/lib/organization-scope';
 import {
   DEFAULT_FINANCIAL_REPORTS_CONTENT,
   isFinancialReportSection,
@@ -93,10 +90,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     if (storageSlug === 'finance') {
       contentToSave = mergeOrganizationSectionContent(previousFinance, body);
-      if (isBudgetFundedOrganization(id)) {
-        const staff = await getOrganizationSection(id, 'staff');
-        contentToSave = rebuildBudgetMemorialJournalInFinance(contentToSave, staff);
-      }
     } else {
       contentToSave = {
         summary: body.summary.trim(),
