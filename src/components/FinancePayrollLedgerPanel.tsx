@@ -10,6 +10,7 @@ import {
   payrollLedgerPersonGroupKey,
   recalculatePayrollLedger,
   recomputeEntryIncomeTax,
+  calcLedgerHamagi,
   removePayrollLedger,
   persistPayrollLedgerInFinance,
   removePayrollLedgerInFinance,
@@ -307,11 +308,62 @@ export default function FinancePayrollLedgerPanel({
   const showEmployerCharges = isBudgetFundedOrganization(organizationId);
 
   function patchEntry(employeeId: string, field: keyof PayrollLedgerEntry, value: string) {
+    const affectsHamagi =
+      field === 'baseSalary' || field === 'allowances' || field === 'laborLeavePay';
+
     setLedger((current) => ({
       ...current,
-      entries: current.entries.map((entry) =>
-        entry.employeeId === employeeId ? { ...entry, [field]: value } : entry
-      ),
+      entries: current.entries.map((entry) => {
+        if (entry.employeeId !== employeeId) return entry;
+        const next = { ...entry, [field]: value };
+        if (!affectsHamagi || !staffContent) return next;
+
+        const employee = employeeMap.get(employeeId);
+        if (!employee) return next;
+
+        const timesheet = mergeTimesheetForMonth(
+          staffContent.timesheets,
+          month,
+          staffContent.employees ?? []
+        );
+        const sheetEntry = timesheet.entries.find((item) => item.employeeId === employeeId);
+        const workedDays = sheetEntry
+          ? countPayrollWorkedDays(sheetEntry, month, {
+              laborLeaves: financeContent.laborLeaves,
+              employeeId,
+            })
+          : 0;
+        const normDays = countNormWorkingDays(month);
+        const rawGross =
+          (parseAmount(next.baseSalary) ?? 0) +
+          (parseAmount(next.allowances) ?? 0) +
+          (parseAmount(next.laborLeavePay ?? '') ?? 0);
+        const hamagi = calcLedgerHamagi(next, rawGross, withholdingTypes);
+        const workType = resolveEmploymentWorkType(employee);
+        const updated: PayrollLedgerEntry = { ...next };
+
+        if (entry.fhea === '0,00' || !entry.fhea?.trim()) {
+          updated.fhea = formatAmount(hamagi * 0.01);
+        }
+        if (entry.kik === '0,00' || !entry.kik?.trim()) {
+          updated.kik = formatAmount(hamagi * 0.01);
+        }
+        if (entry.hhdt === '0,00' || !entry.hhdt?.trim()) {
+          updated.hhdt = formatAmount(hamagi * 0.01);
+        }
+        if (entry.tax === '0,00' || !entry.tax?.trim()) {
+          updated.tax = recomputeEntryIncomeTax(
+            next,
+            rawGross,
+            workedDays,
+            normDays,
+            workType,
+            withholdingTypes
+          );
+        }
+
+        return updated;
+      }),
     }));
   }
 
@@ -347,6 +399,7 @@ export default function FinancePayrollLedgerPanel({
         const employee = employeeMap.get(employeeId);
         if (!employee) return next;
         const { rawGross, gross: hamagi } = calcEntryTotals(next, withholdingTypes);
+        const workType = resolveEmploymentWorkType(employee);
         const updated: PayrollLedgerEntry = {
           ...next,
           tax: recomputeEntryIncomeTax(
@@ -354,7 +407,7 @@ export default function FinancePayrollLedgerPanel({
             rawGross,
             workedDays,
             normDays,
-            resolveEmploymentWorkType(employee),
+            workType,
             withholdingTypes
           ),
         };

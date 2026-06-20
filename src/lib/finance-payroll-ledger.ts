@@ -76,7 +76,7 @@ export function payrollLedgerPersonGroupKey(employee: StaffEmployee): string {
   return `name:${normalizeEmployeeFullName(employee.fullName)}`;
 }
 
-/** Кори асосӣ: (Ҳамагӣ − 1% − 156 − боздоштҳои пеш аз андоз) × 12% */
+/** Кори асосӣ: (Ҳамагӣ − 1% − 156) × 12% — Ҳамагӣ = сутуни ҳамагӣ пас аз боздоштҳои пеш аз андоз */
 export function calcPrimaryIncomeTax(
   gross: number,
   workedDays?: number,
@@ -94,7 +94,7 @@ export function calcPrimaryIncomeTax(
   return taxable * PRIMARY_TAX_RATE;
 }
 
-/** Кори иловагӣ: (Ҳамагӣ − 1% − боздоштҳои пеш аз андоз) × 15% */
+/** Кори иловагӣ: (Ҳамагӣ − 1%) × 15% */
 export function calcSecondaryIncomeTax(
   gross: number,
   preTaxOtherDeductions = 0
@@ -377,15 +377,25 @@ function emptyEntry(employeeId: string): PayrollLedgerEntry {
 
 export function recomputeEntryIncomeTax(
   entry: PayrollLedgerEntry,
-  gross: number,
+  rawGross: number,
   workedDays: number,
   normDays: number,
   workType: EmploymentWorkType,
   withholdingTypes: PayrollWithholdingType[] = []
 ): string {
+  const hamagi = calcLedgerHamagi(entry, rawGross, withholdingTypes);
+  return formatAmount(calcIncomeTax(hamagi, workedDays, normDays, workType, 0));
+}
+
+/** Ҳамагӣ дар китоб — маош + иловапулӣ + рухсатӣ − боздоштҳои пеш аз андоз */
+export function calcLedgerHamagi(
+  entry: PayrollLedgerEntry,
+  rawGross: number,
+  withholdingTypes: PayrollWithholdingType[] = []
+): number {
   const migrated = migrateLegacyOtherDeductions(entry, withholdingTypes);
   const preTax = sumWithholdingsByTiming(migrated, withholdingTypes, 'pre_tax');
-  return formatAmount(calcIncomeTax(gross, workedDays, normDays, workType, preTax));
+  return Math.max(0, rawGross - preTax);
 }
 
 export function calcEntryTotals(
@@ -451,8 +461,8 @@ function autoDeductions(
   const tax =
     entry && entry.tax !== ZERO
       ? (parseAmount(entry.tax) ??
-          calcIncomeTax(gross, workedDays, normDays, workType, preTaxOther))
-      : calcIncomeTax(gross, workedDays, normDays, workType, preTaxOther);
+          calcIncomeTax(hamagiBase, workedDays, normDays, workType, 0))
+      : calcIncomeTax(hamagiBase, workedDays, normDays, workType, 0);
 
   return {
     fhea: formatAmount(fhea),
