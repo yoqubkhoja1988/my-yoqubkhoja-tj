@@ -2,7 +2,7 @@ import {
   calcLeaveCalendarDays,
   employeeMonthlyAccrued,
 } from '@/lib/finance-labor-leave-pay';
-import { countNormWorkingDays, shiftMonth } from '@/lib/staff-timesheet';
+import { countNormWorkingDays, isValidMonthKey, monthsBackFrom, shiftMonth } from '@/lib/staff-timesheet';
 import {
   LaborLeave,
   LaborLeaveCalculationBasis,
@@ -90,23 +90,19 @@ export function getMaternityBenefitSalaryMonths(
 ): string[] {
   const leaveMonth = startDate.slice(0, 7);
   const basis = options?.basis ?? 'twelve_months';
+  const anchor = isValidMonthKey(leaveMonth) ? shiftMonth(leaveMonth, -1) : '';
   let months: string[] = [];
 
-  if (basis === 'since_last_raise' && options?.lastSalaryRaiseDate) {
-    const raiseMonth = options.lastSalaryRaiseDate.slice(0, 7);
-    let current = shiftMonth(leaveMonth, -1);
-    while (current >= raiseMonth && months.length < MATERNITY_BENEFIT_MONTHS) {
-      months.push(current);
-      current = shiftMonth(current, -1);
+  const raiseDate = options?.lastSalaryRaiseDate?.trim();
+  if (basis === 'since_last_raise' && raiseDate && isValidMonthKey(anchor)) {
+    const raiseMonth = raiseDate.slice(0, 7);
+    if (isValidMonthKey(raiseMonth) && raiseMonth <= anchor) {
+      months = monthsBackFrom(anchor, MATERNITY_BENEFIT_MONTHS, raiseMonth);
     }
-    months.reverse();
   }
 
-  if (months.length === 0) {
-    for (let index = 1; index <= MATERNITY_BENEFIT_MONTHS; index++) {
-      months.push(shiftMonth(leaveMonth, -index));
-    }
-    months.sort();
+  if (months.length === 0 && isValidMonthKey(anchor)) {
+    months = monthsBackFrom(anchor, MATERNITY_BENEFIT_MONTHS);
   }
 
   if (options?.hiredAt) {

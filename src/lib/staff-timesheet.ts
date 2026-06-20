@@ -88,6 +88,55 @@ export function shiftMonth(monthKey: string, delta: number): string {
   return currentMonthKey(date);
 }
 
+const MAX_MONTH_ITERATIONS = 600;
+
+export function isValidMonthKey(value: string): boolean {
+  return /^\d{4}-\d{2}$/.test(value);
+}
+
+/** Моҳҳо аз toMonth то fromMonth (YYYY-MM), ҳамроҳ */
+export function monthsBetweenInclusive(fromMonth: string, toMonth: string): string[] {
+  if (!isValidMonthKey(fromMonth) || !isValidMonthKey(toMonth) || fromMonth > toMonth) {
+    return [];
+  }
+
+  const months: string[] = [];
+  let current = toMonth;
+  let guard = 0;
+
+  while (current >= fromMonth && guard < MAX_MONTH_ITERATIONS) {
+    months.push(current);
+    if (current === fromMonth) break;
+    current = shiftMonth(current, -1);
+    guard += 1;
+  }
+
+  return months;
+}
+
+/** Моҳҳо аз anchor ба ақиб — ҳадди аксар count, нақартар аз notBeforeMonth */
+export function monthsBackFrom(
+  anchor: string,
+  count: number,
+  notBeforeMonth?: string
+): string[] {
+  if (!isValidMonthKey(anchor) || count <= 0) return [];
+
+  const months: string[] = [];
+  let current = anchor;
+
+  for (let index = 0; index < count; index++) {
+    if (notBeforeMonth && isValidMonthKey(notBeforeMonth) && current < notBeforeMonth) {
+      break;
+    }
+    months.push(current);
+    if (notBeforeMonth && current === notBeforeMonth) break;
+    current = shiftMonth(current, -1);
+  }
+
+  return months;
+}
+
 export function formatMonthLabel(monthKey: string, locale: string): string {
   const [year, month] = monthKey.split('-').map(Number);
   const date = new Date(year, month - 1, 1);

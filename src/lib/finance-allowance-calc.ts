@@ -8,6 +8,7 @@ import {
   countPayrollWorkedDays,
   getDaysInMonth,
   mergeTimesheetForMonth,
+  monthsBetweenInclusive,
   resolveTimesheetMark,
   shiftMonth,
 } from '@/lib/staff-timesheet';
@@ -24,17 +25,6 @@ import {
 function proportional(part: number, worked: number, norm: number): number {
   if (norm <= 0) return 0;
   return worked >= norm ? part : (part * worked) / norm;
-}
-
-function monthsBetweenInclusive(fromMonth: string, toMonth: string): string[] {
-  const months: string[] = [];
-  let current = toMonth;
-  while (current >= fromMonth) {
-    months.push(current);
-    if (current === fromMonth) break;
-    current = shiftMonth(current, -1);
-  }
-  return months;
 }
 
 function effectiveStartDay(effectiveDate: string): number {

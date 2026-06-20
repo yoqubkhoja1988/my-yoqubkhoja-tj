@@ -1,6 +1,6 @@
 import { getHolidayLabelKey } from '@/lib/staff-holidays';
 import { detectStaffColumns, isTotalRow, parseAmount } from '@/lib/staff-table-calc';
-import { shiftMonth } from '@/lib/staff-timesheet';
+import { isValidMonthKey, monthsBackFrom, shiftMonth } from '@/lib/staff-timesheet';
 import {
   LaborLeave,
   LaborLeaveCalculationBasis,
@@ -64,17 +64,6 @@ export function calcLeaveCalendarDays(startDate: string, endDate: string): {
   return { calendarDays, holidaysExcluded };
 }
 
-function monthsBetweenInclusive(fromMonth: string, toMonth: string): string[] {
-  const months: string[] = [];
-  let current = toMonth;
-  while (current >= fromMonth) {
-    months.push(current);
-    if (current === fromMonth) break;
-    current = shiftMonth(current, -1);
-  }
-  return months;
-}
-
 /** Моҳҳо барои ҳисоби миёнаи маош (қоидаи 15-ум ва ПҚҶ №313) */
 export function getSalaryMonthsForLeaveCalc(
   startDate: string,
@@ -90,18 +79,23 @@ export function getSalaryMonthsForLeaveCalc(
   const includesLeaveMonth = Number.isFinite(day) && day >= 15;
   const anchor = includesLeaveMonth ? leaveMonth : shiftMonth(leaveMonth, -1);
 
+  if (!isValidMonthKey(anchor)) {
+    return { months: [], includesLeaveMonth };
+  }
+
   const basis = options?.basis ?? 'twelve_months';
   let months: string[] = [];
 
-  if (basis === 'since_last_raise' && options?.lastSalaryRaiseDate) {
-    const raiseMonth = options.lastSalaryRaiseDate.slice(0, 7);
-    months = monthsBetweenInclusive(raiseMonth, anchor).slice(0, periodMonths);
+  const raiseDate = options?.lastSalaryRaiseDate?.trim();
+  if (basis === 'since_last_raise' && raiseDate) {
+    const raiseMonth = raiseDate.slice(0, 7);
+    if (isValidMonthKey(raiseMonth) && raiseMonth <= anchor) {
+      months = monthsBackFrom(anchor, periodMonths, raiseMonth);
+    }
   }
 
   if (months.length === 0) {
-    for (let index = 0; index < periodMonths; index++) {
-      months.push(shiftMonth(anchor, -index));
-    }
+    months = monthsBackFrom(anchor, periodMonths);
   }
 
   if (options?.hiredAt) {
@@ -312,13 +306,22 @@ export function leaveDaysInMonth(leave: LaborLeave, month: string): number {
 
 /** Ҳамаи моҳҳое, ки рухсат ба онҳо расидааст */
 export function leaveMonthsAffected(leave: LaborLeave): string[] {
-  const months: string[] = [];
-  let current = leave.startDate.slice(0, 7);
+  const startMonth = leave.startDate.slice(0, 7);
   const endMonth = leave.endDate.slice(0, 7);
-  while (current <= endMonth) {
+  if (!isValidMonthKey(startMonth) || !isValidMonthKey(endMonth) || startMonth > endMonth) {
+    return [];
+  }
+
+  const months: string[] = [];
+  let current = startMonth;
+  let guard = 0;
+
+  while (current <= endMonth && guard < 600) {
     months.push(current);
     if (current === endMonth) break;
     current = shiftMonth(current, 1);
+    guard += 1;
   }
+
   return months;
 }

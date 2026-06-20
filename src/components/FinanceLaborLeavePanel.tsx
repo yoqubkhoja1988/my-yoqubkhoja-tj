@@ -44,7 +44,7 @@ import {
   StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Props = {
   organizationId: string;
@@ -106,6 +106,7 @@ export default function FinanceLaborLeavePanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
+  const defaultReasonRef = useRef(t('laborLeaveDefaultReason'));
 
   const departmentOptions = useMemo(() => {
     const labels = staffingDepartments.map((item) => item.label);
@@ -133,13 +134,18 @@ export default function FinanceLaborLeavePanel({
       return;
     }
     setSelectedId(null);
-    setDraft({
-      ...createLaborLeave(),
-      orderNumber: nextLaborLeaveOrderNumber(financeContent.laborLeaves),
-      reason: t('laborLeaveDefaultReason'),
+    setDraft((current) => {
+      if (!selectedId && editing && current.employeeId === '') {
+        return current;
+      }
+      return {
+        ...createLaborLeave(),
+        orderNumber: nextLaborLeaveOrderNumber(financeContent.laborLeaves),
+        reason: defaultReasonRef.current,
+      };
     });
     setEditing(true);
-  }, [savedLeaves, selectedId, editing, financeContent.laborLeaves, t]);
+  }, [savedLeaves, selectedId, editing, financeContent.laborLeaves]);
 
   function patch<K extends keyof LaborLeave>(field: K, value: LaborLeave[K]) {
     setDraft((current) => {
@@ -339,7 +345,18 @@ export default function FinanceLaborLeavePanel({
       staffContent,
       financeContent.payrollLedgers
     );
-  }, [staffContent, draft, financeContent.payrollLedgers]);
+  }, [
+    staffContent,
+    financeContent.payrollLedgers,
+    draft.employeeId,
+    draft.startDate,
+    draft.endDate,
+    draft.days,
+    draft.leaveType,
+    draft.salaryPeriodMonths,
+    draft.calculationBasis,
+    draft.lastSalaryRaiseDate,
+  ]);
 
   return (
     <section id="finance-labor-leave" className="space-y-4 border-t border-[var(--border)] pt-6">
