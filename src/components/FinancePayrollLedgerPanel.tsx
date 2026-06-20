@@ -18,7 +18,7 @@ import {
 } from '@/lib/finance-payroll-ledger';
 import {
   resolvePayrollWithholdings,
-  visiblePayrollWithholdings,
+  splitVisiblePayrollWithholdings,
   withholdingAmount,
 } from '@/lib/finance-payroll-withholdings';
 import { summarizePayrollLedger } from '@/lib/payroll-accounting';
@@ -128,10 +128,13 @@ export default function FinancePayrollLedgerPanel({
     [financeContent.payrollWithholdingTypes]
   );
 
-  const visibleWithholdings = useMemo(
-    () => visiblePayrollWithholdings(withholdingTypes, ledger, editing),
+  const { preTax: visiblePreTaxWithholdings, postTax: visiblePostTaxWithholdings } = useMemo(
+    () => splitVisiblePayrollWithholdings(withholdingTypes, ledger, editing),
     [withholdingTypes, ledger, editing]
   );
+
+  const accruedSubCols = 3 + visiblePreTaxWithholdings.length + 1;
+  const deductionSubCols = 3 + visiblePostTaxWithholdings.length + 2;
 
   const ledgerBuildContext = useMemo(
     () => ({
@@ -153,8 +156,6 @@ export default function FinancePayrollLedgerPanel({
       withholdingTypes,
     ]
   );
-
-  const deductionSubCols = 5 + visibleWithholdings.length;
 
   useEffect(() => {
     if (!preferredMonth) return;
@@ -284,6 +285,8 @@ export default function FinancePayrollLedgerPanel({
     const totals = rows.map((row) => row.totals);
     return {
       gross: totals.reduce((sum, item) => sum + item.gross, 0),
+      preTaxOther: totals.reduce((sum, item) => sum + item.preTaxOther, 0),
+      postTaxOther: totals.reduce((sum, item) => sum + item.postTaxOther, 0),
       allowances: totals.reduce((sum, item) => sum + item.allowances, 0),
       laborLeavePay: totals.reduce((sum, item) => sum + item.laborLeavePay, 0),
       baseSalary: totals.reduce((sum, item) => sum + item.baseSalary, 0),
@@ -343,12 +346,12 @@ export default function FinancePayrollLedgerPanel({
         if (withholdingType?.timing !== 'pre_tax') return next;
         const employee = employeeMap.get(employeeId);
         if (!employee) return next;
-        const gross = calcEntryTotals(next, withholdingTypes).gross;
+        const { rawGross } = calcEntryTotals(next, withholdingTypes);
         return {
           ...next,
           tax: recomputeEntryIncomeTax(
             next,
-            gross,
+            rawGross,
             workedDays,
             normDays,
             resolveEmploymentWorkType(employee),
@@ -655,7 +658,7 @@ export default function FinancePayrollLedgerPanel({
                   <th rowSpan={2} className="min-w-[8rem] border border-slate-300 px-2 py-2">
                     {t('payrollLedgerColPosition')}
                   </th>
-                  <th colSpan={4} className="border border-slate-300 px-2 py-2">
+                  <th colSpan={accruedSubCols} className="border border-slate-300 px-2 py-2">
                     {t('payrollLedgerColAccrued')}
                   </th>
                   <th colSpan={deductionSubCols} className="border border-slate-300 px-2 py-2">
@@ -669,11 +672,7 @@ export default function FinancePayrollLedgerPanel({
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColBase')}</th>
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColBonus')}</th>
                   <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColLaborLeave')}</th>
-                  <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColGross')}</th>
-                  <th className="border border-slate-300 px-2 py-2">ФҲИА</th>
-                  <th className="border border-slate-300 px-2 py-2">КИК</th>
-                  <th className="border border-slate-300 px-2 py-2">ҲҲДТ</th>
-                  {visibleWithholdings.map((type) => (
+                  {visiblePreTaxWithholdings.map((type) => (
                     <th
                       key={type.id}
                       className="min-w-[5rem] border border-slate-300 px-2 py-2"
@@ -681,9 +680,23 @@ export default function FinancePayrollLedgerPanel({
                     >
                       <span className="block">{type.name}</span>
                       <span className="mt-0.5 block text-[9px] font-normal text-slate-500">
-                        {type.timing === 'pre_tax'
-                          ? t('payrollWithholdingsTimingPreTaxShort')
-                          : t('payrollWithholdingsTimingPostTaxShort')}
+                        {t('payrollWithholdingsTimingPreTaxShort')}
+                      </span>
+                    </th>
+                  ))}
+                  <th className="border border-slate-300 px-2 py-2">{t('payrollLedgerColGross')}</th>
+                  <th className="border border-slate-300 px-2 py-2">ФҲИА</th>
+                  <th className="border border-slate-300 px-2 py-2">КИК</th>
+                  <th className="border border-slate-300 px-2 py-2">ҲҲДТ</th>
+                  {visiblePostTaxWithholdings.map((type) => (
+                    <th
+                      key={type.id}
+                      className="min-w-[5rem] border border-slate-300 px-2 py-2"
+                      title={type.legalBasis}
+                    >
+                      <span className="block">{type.name}</span>
+                      <span className="mt-0.5 block text-[9px] font-normal text-slate-500">
+                        {t('payrollWithholdingsTimingPostTaxShort')}
                       </span>
                     </th>
                   ))}
@@ -759,6 +772,19 @@ export default function FinancePayrollLedgerPanel({
                         }
                       />
                     </td>
+                    {visiblePreTaxWithholdings.map((type) => (
+                      <td key={type.id} className="border border-slate-300 px-2 py-2 text-center">
+                        <AmountInput
+                          editing={canPatch}
+                          value={entry.withholdingAmounts?.[type.id] ?? '0,00'}
+                          onChange={
+                            canPatch
+                              ? (value) => patchWithholding(entryIds[0], type.id, value)
+                              : undefined
+                          }
+                        />
+                      </td>
+                    ))}
                     <td className="border border-slate-300 px-2 py-2 text-center font-semibold">
                       {formatLedgerAmount(totals.gross)}
                     </td>
@@ -783,7 +809,7 @@ export default function FinancePayrollLedgerPanel({
                         onChange={canPatch ? (value) => patchEntry(entryIds[0], 'hhdt', value) : undefined}
                       />
                     </td>
-                    {visibleWithholdings.map((type) => (
+                    {visiblePostTaxWithholdings.map((type) => (
                       <td key={type.id} className="border border-slate-300 px-2 py-2 text-center">
                         <AmountInput
                           editing={canPatch}
@@ -824,6 +850,16 @@ export default function FinancePayrollLedgerPanel({
                   <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.laborLeavePay)}
                   </td>
+                  {visiblePreTaxWithholdings.map((type) => (
+                    <td key={type.id} className="border border-slate-300 px-2 py-2 text-center">
+                      {formatLedgerAmount(
+                        rows.reduce(
+                          (sum, row) => sum + withholdingAmount(row.entry, type.id),
+                          0
+                        )
+                      )}
+                    </td>
+                  ))}
                   <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.gross)}
                   </td>
@@ -836,7 +872,7 @@ export default function FinancePayrollLedgerPanel({
                   <td className="border border-slate-300 px-2 py-2 text-center">
                     {formatLedgerAmount(summary.hhdt)}
                   </td>
-                  {visibleWithholdings.map((type) => (
+                  {visiblePostTaxWithholdings.map((type) => (
                     <td key={type.id} className="border border-slate-300 px-2 py-2 text-center">
                       {formatLedgerAmount(
                         rows.reduce(

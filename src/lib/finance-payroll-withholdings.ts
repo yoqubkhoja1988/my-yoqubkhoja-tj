@@ -117,6 +117,18 @@ export function visiblePayrollWithholdings(
   return types.filter((type) => ledgerHasWithholdingAmount(ledger, type.id));
 }
 
+export function splitVisiblePayrollWithholdings(
+  types: PayrollWithholdingType[],
+  ledger: PayrollLedger,
+  editing: boolean
+): { preTax: PayrollWithholdingType[]; postTax: PayrollWithholdingType[] } {
+  const visible = visiblePayrollWithholdings(types, ledger, editing);
+  return {
+    preTax: visible.filter((type) => type.timing === 'pre_tax'),
+    postTax: visible.filter((type) => type.timing === 'post_tax'),
+  };
+}
+
 export function newWithholdingType(
   name: string,
   timing: PayrollWithholdingTiming,

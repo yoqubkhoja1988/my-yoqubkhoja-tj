@@ -222,12 +222,12 @@ export function summarizePayrollMonth(
     const employee = employeeById(staffContent, entry.employeeId);
     if (!employee) continue;
     const totals = calcEntryTotals(entry);
-    if (totals.gross <= 0) continue;
+    if (totals.rawGross <= 0) continue;
 
     personKeys.add(personKeyForEmployee(employee));
-    payrollFund += totals.gross;
-    employer25 += calcEmployerFhea25(totals.gross);
-    employee1 += entryFheaAmount(totals.gross, totals.fhea);
+    payrollFund += totals.rawGross;
+    employer25 += calcEmployerFhea25(totals.rawGross);
+    employee1 += entryFheaAmount(totals.rawGross, totals.fhea);
   }
 
   return {
@@ -315,7 +315,7 @@ function buildEmployeeQuarterRows(
       const employee = employeeById(staffContent, entry.employeeId);
       if (!employee) continue;
       const totals = calcEntryTotals(entry);
-      if (totals.gross <= 0) continue;
+      if (totals.rawGross <= 0) continue;
 
       const key = personKeyForEmployee(employee);
       const existing = grouped.get(key) ?? {
@@ -329,10 +329,10 @@ function buildEmployeeQuarterRows(
       }
 
       existing.monthlyGross[month] = roundMoney(
-        (existing.monthlyGross[month] ?? 0) + totals.gross
+        (existing.monthlyGross[month] ?? 0) + totals.rawGross
       );
       existing.monthlyFhea[month] = roundMoney(
-        (existing.monthlyFhea[month] ?? 0) + entryFheaAmount(totals.gross, totals.fhea)
+        (existing.monthlyFhea[month] ?? 0) + entryFheaAmount(totals.rawGross, totals.fhea)
       );
       grouped.set(key, existing);
     }

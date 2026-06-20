@@ -491,10 +491,10 @@ function buildLedgerMetrics(
     if (!departmentBelongsToGroup(department, groupId, organizationId)) continue;
 
     const totals = calcEntryTotals(entry, resolvePayrollWithholdings(financeContent));
-    if (totals.gross > 0) {
+    if (totals.rawGross > 0) {
       metrics.actualUnits += 1;
     }
-    metrics.actualAmount += totals.gross;
+    metrics.actualAmount += totals.rawGross;
     metrics.incomeTax += totals.tax;
     metrics.fhea1 += totals.fhea;
     metrics.unionFee += totals.kik;

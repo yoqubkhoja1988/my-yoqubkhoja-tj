@@ -395,7 +395,7 @@ export function calcEntryTotals(
   const baseSalary = parseAmount(entry.baseSalary) ?? 0;
   const allowances = parseAmount(entry.allowances) ?? 0;
   const laborLeavePay = parseAmount(entry.laborLeavePay ?? '') ?? 0;
-  const gross = baseSalary + allowances + laborLeavePay;
+  const rawGross = baseSalary + allowances + laborLeavePay;
   const fhea = parseAmount(entry.fhea) ?? 0;
   const kik = parseAmount(entry.kik) ?? 0;
   const hhdt = parseAmount(entry.hhdt) ?? 0;
@@ -403,12 +403,14 @@ export function calcEntryTotals(
   const postTaxOther = sumWithholdingsByTiming(entry, withholdingTypes, 'post_tax');
   const otherDeductions = totalOtherWithholdings(entry, withholdingTypes);
   const tax = parseAmount(entry.tax) ?? 0;
-  const deductions = fhea + kik + hhdt + preTaxOther + postTaxOther + tax;
+  const gross = Math.max(0, rawGross - preTaxOther);
+  const deductions = fhea + kik + hhdt + tax + postTaxOther;
 
   return {
     baseSalary,
     allowances,
     laborLeavePay,
+    rawGross,
     gross,
     fhea,
     kik,
@@ -418,7 +420,7 @@ export function calcEntryTotals(
     otherDeductions,
     tax,
     deductions,
-    netPay: Math.max(0, gross - deductions),
+    netPay: Math.max(0, gross - fhea - kik - hhdt - tax - postTaxOther),
   };
 }
 
