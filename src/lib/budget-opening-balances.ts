@@ -110,17 +110,23 @@ export function summarizeOpeningBalances(
   };
 }
 
-export function upsertOpeningBalance(
+export function setOpeningBalanceAmounts(
   map: Record<string, BudgetAccountingOpeningBalance>,
   accountCode: string,
-  patch: BudgetAccountingOpeningBalance
+  debit: number,
+  credit: number,
+  options?: { keepEmptyAccount?: boolean }
 ): Record<string, BudgetAccountingOpeningBalance> {
   const normalized = normalizeAccountCode(accountCode);
   if (!normalized || !isValidNyahAccountCode(normalized)) return map;
 
-  const debit = normalizeSide(patch.debit);
-  const credit = normalizeSide(patch.credit);
-  if (debit <= 0 && credit <= 0) {
+  const nextDebit = normalizeSide(debit);
+  const nextCredit = normalizeSide(credit);
+
+  if (nextDebit <= 0 && nextCredit <= 0) {
+    if (options?.keepEmptyAccount && normalized in map) {
+      return { ...map, [normalized]: {} };
+    }
     const next = { ...map };
     delete next[normalized];
     return next;
@@ -129,10 +135,26 @@ export function upsertOpeningBalance(
   return {
     ...map,
     [normalized]: {
-      ...(debit > 0 ? { debit } : {}),
-      ...(credit > 0 ? { credit } : {}),
+      ...(nextDebit > 0 ? { debit: nextDebit } : {}),
+      ...(nextCredit > 0 ? { credit: nextCredit } : {}),
     },
   };
+}
+
+export function upsertOpeningBalance(
+  map: Record<string, BudgetAccountingOpeningBalance>,
+  accountCode: string,
+  patch: BudgetAccountingOpeningBalance
+): Record<string, BudgetAccountingOpeningBalance> {
+  const normalized = normalizeAccountCode(accountCode);
+  const existing = normalized ? map[normalized] : undefined;
+  return setOpeningBalanceAmounts(
+    map,
+    accountCode,
+    patch.debit ?? existing?.debit ?? 0,
+    patch.credit ?? existing?.credit ?? 0,
+    { keepEmptyAccount: true }
+  );
 }
 
 export function removeOpeningBalance(

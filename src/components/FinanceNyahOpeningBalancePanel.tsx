@@ -13,7 +13,7 @@ import {
   parseOpeningBalanceAmount,
   removeOpeningBalance,
   summarizeOpeningBalances,
-  upsertOpeningBalance,
+  setOpeningBalanceAmounts,
   type NyahOpeningBalanceSummary,
 } from '@/lib/budget-opening-balances';
 import {
@@ -32,7 +32,7 @@ import {
   OrganizationSectionContent,
 } from '@/types/organization-section';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 
 type Props = {
   organizationId: string;
@@ -60,6 +60,7 @@ export default function FinanceNyahOpeningBalancePanel({
   const [lastSaveSummary, setLastSaveSummary] = useState<NyahOpeningBalanceSummary | null>(
     null
   );
+  const [amountDrafts, setAmountDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setSettings(resolveBudgetAccountingSettings(financeContent));
@@ -139,18 +140,53 @@ export default function FinanceNyahOpeningBalancePanel({
     }
   }
 
+  function amountDraftKey(accountCode: string, side: 'debit' | 'credit'): string {
+    return `${accountCode}:${side}`;
+  }
+
+  function amountInputValue(row: { accountCode: string; debit: number; credit: number }, side: 'debit' | 'credit') {
+    const key = amountDraftKey(row.accountCode, side);
+    if (key in amountDrafts) return amountDrafts[key];
+    const amount = side === 'debit' ? row.debit : row.credit;
+    return amount > 0 ? formatOpeningBalanceAmount(amount) : '';
+  }
+
   function handleAmountChange(
     accountCode: string,
     side: 'debit' | 'credit',
-    rawValue: string
+    event: ChangeEvent<HTMLInputElement>
   ) {
-    const amount = parseOpeningBalanceAmount(rawValue);
+    const rawValue = event.target.value;
+    const key = amountDraftKey(accountCode, side);
+    setAmountDrafts((current) => ({ ...current, [key]: rawValue }));
+
+    const normalized = accountCode;
+    const existing = settings.openingBalances?.[normalized] ?? {};
+    const parsed = parseOpeningBalanceAmount(rawValue);
+    const existingDebit = existing.debit && existing.debit > 0 ? existing.debit : 0;
+    const existingCredit = existing.credit && existing.credit > 0 ? existing.credit : 0;
+    const nextDebit = side === 'debit' ? parsed : existingDebit;
+    const nextCredit = side === 'credit' ? parsed : existingCredit;
+
     patchSettings({
       ...settings,
-      openingBalances: upsertOpeningBalance(settings.openingBalances ?? {}, accountCode, {
-        debit: side === 'debit' ? amount : 0,
-        credit: side === 'credit' ? amount : 0,
-      }),
+      openingBalances: setOpeningBalanceAmounts(
+        settings.openingBalances ?? {},
+        accountCode,
+        nextDebit,
+        nextCredit,
+        { keepEmptyAccount: true }
+      ),
+    });
+  }
+
+  function handleAmountBlur(accountCode: string, side: 'debit' | 'credit') {
+    const key = amountDraftKey(accountCode, side);
+    setAmountDrafts((current) => {
+      if (!(key in current)) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
     });
   }
 
@@ -344,12 +380,12 @@ export default function FinanceNyahOpeningBalancePanel({
                       <input
                         type="text"
                         inputMode="decimal"
-                        value={row.debit > 0 ? formatOpeningBalanceAmount(row.debit) : ''}
-                        onChange={(event) =>
-                          handleAmountChange(row.accountCode, 'debit', event.target.value)
-                        }
+                        value={amountInputValue(row, 'debit')}
+                        onChange={(event) => handleAmountChange(row.accountCode, 'debit', event)}
+                        onBlur={() => handleAmountBlur(row.accountCode, 'debit')}
                         className="input-field w-28 text-right text-xs tabular-nums"
                         placeholder="0,00"
+                        aria-label={`${row.accountCode} ${t('financeReportForm1ColOpeningDebit')}`}
                       />
                     ) : (
                       row.debit > 0 ? formatOpeningBalanceAmount(row.debit) : '—'
@@ -360,12 +396,12 @@ export default function FinanceNyahOpeningBalancePanel({
                       <input
                         type="text"
                         inputMode="decimal"
-                        value={row.credit > 0 ? formatOpeningBalanceAmount(row.credit) : ''}
-                        onChange={(event) =>
-                          handleAmountChange(row.accountCode, 'credit', event.target.value)
-                        }
+                        value={amountInputValue(row, 'credit')}
+                        onChange={(event) => handleAmountChange(row.accountCode, 'credit', event)}
+                        onBlur={() => handleAmountBlur(row.accountCode, 'credit')}
                         className="input-field w-28 text-right text-xs tabular-nums"
                         placeholder="0,00"
+                        aria-label={`${row.accountCode} ${t('financeReportForm1ColOpeningCredit')}`}
                       />
                     ) : (
                       row.credit > 0 ? formatOpeningBalanceAmount(row.credit) : '—'
@@ -386,7 +422,7 @@ export default function FinanceNyahOpeningBalancePanel({
               ))
             )}
           </tbody>
-          {filledRows.length > 0 && (
+          {rows.length > 0 && (
             <tfoot>
               <tr
                 className={`bg-[var(--bg-input)]/40 font-semibold ${
