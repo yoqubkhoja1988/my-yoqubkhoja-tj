@@ -501,12 +501,6 @@ export function buildLedgerEntry(
   const normDays = normWorkingDays(month);
   const wage = findEmployeeWage(staffContent, employee, organizationId);
   const base = saved ? migrateLegacyOtherDeductions(saved, withholdingTypes) : emptyEntry(employee.id);
-  const withAssignments = mergeAssignmentWithholdings(
-    base,
-    withholdingAssignments,
-    month,
-    withholdingTypes
-  );
   const workType = resolveEmploymentWorkType(employee);
   const handoverAllowance = handoverAllowanceForEmployee(
     positionHandovers,
@@ -534,6 +528,13 @@ export function buildLedgerEntry(
     if (handoverAllowance <= 0 && retroAllowance <= 0 && laborLeavePay <= 0) return base;
 
     const gross = handoverAllowance + retroAllowance + laborLeavePay;
+    const withAssignments = mergeAssignmentWithholdings(
+      base,
+      withholdingAssignments,
+      month,
+      withholdingTypes,
+      gross
+    );
     const deductions = autoDeductions(
       gross,
       withAssignments,
@@ -555,6 +556,13 @@ export function buildLedgerEntry(
   const nightAllowance = proportional(wage.allowances, workedDays, normDays);
   const allowances = nightAllowance + handoverAllowance + retroAllowance;
   const gross = baseSalary + allowances + laborLeavePay;
+  const withAssignments = mergeAssignmentWithholdings(
+    base,
+    withholdingAssignments,
+    month,
+    withholdingTypes,
+    gross
+  );
   const deductions = autoDeductions(
     gross,
     withAssignments,

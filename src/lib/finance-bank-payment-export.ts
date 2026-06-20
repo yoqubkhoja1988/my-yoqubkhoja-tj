@@ -343,6 +343,7 @@ export function buildBankPaymentDocument(
   const preparedAt = formatDateTj(new Date(ledger.preparedAt ?? Date.now()));
 
   const purposeSalary = `Музди маош барои моҳи ${monthLabel} соли ${year}`;
+  const withholdingTypes = resolvePayrollWithholdings(financeContent);
 
   type DraftBankPaymentRow = Omit<BankPaymentRow, 'index'>;
 
@@ -350,7 +351,7 @@ export function buildBankPaymentDocument(
     ledger.entries.flatMap((entry): DraftBankPaymentRow[] => {
       const employee = employeeMap.get(entry.employeeId);
       if (!employee) return [];
-      const { netPay } = calcEntryTotals(entry);
+      const { netPay } = calcEntryTotals(entry, withholdingTypes);
       if (netPay <= 0) return [];
       const bankAccount = normalizedBankAccount(employee.bankAccount);
       return [

@@ -18,6 +18,7 @@ import {
   resolvePayrollLedgerMonth,
 } from '@/lib/finance-payroll-ledger';
 import {
+  mergeAssignmentWithholdings,
   resolvePayrollWithholdings,
   splitVisiblePayrollWithholdings,
   withholdingAmount,
@@ -338,9 +339,16 @@ export default function FinancePayrollLedgerPanel({
           (parseAmount(next.baseSalary) ?? 0) +
           (parseAmount(next.allowances) ?? 0) +
           (parseAmount(next.laborLeavePay ?? '') ?? 0);
-        const hamagi = calcLedgerHamagi(next, rawGross, withholdingTypes);
+        const merged = mergeAssignmentWithholdings(
+          next,
+          financeContent.payrollWithholdingAssignments,
+          month,
+          withholdingTypes,
+          rawGross
+        );
+        const hamagi = calcLedgerHamagi(merged, rawGross, withholdingTypes);
         const workType = resolveEmploymentWorkType(employee);
-        const updated: PayrollLedgerEntry = { ...next };
+        const updated: PayrollLedgerEntry = { ...merged };
 
         if (entry.fhea === '0,00' || !entry.fhea?.trim()) {
           updated.fhea = formatAmount(hamagi * 0.01);
@@ -353,7 +361,7 @@ export default function FinancePayrollLedgerPanel({
         }
         if (entry.tax === '0,00' || !entry.tax?.trim()) {
           updated.tax = recomputeEntryIncomeTax(
-            next,
+            merged,
             rawGross,
             workedDays,
             normDays,
@@ -395,15 +403,26 @@ export default function FinancePayrollLedgerPanel({
             [typeId]: value,
           },
         };
-        if (withholdingType?.timing !== 'pre_tax') return next;
+        const rawGross =
+          (parseAmount(next.baseSalary) ?? 0) +
+          (parseAmount(next.allowances) ?? 0) +
+          (parseAmount(next.laborLeavePay ?? '') ?? 0);
+        const merged = mergeAssignmentWithholdings(
+          next,
+          financeContent.payrollWithholdingAssignments,
+          month,
+          withholdingTypes,
+          rawGross
+        );
+        if (withholdingType?.timing !== 'pre_tax') return merged;
         const employee = employeeMap.get(employeeId);
-        if (!employee) return next;
-        const { rawGross, gross: hamagi } = calcEntryTotals(next, withholdingTypes);
+        if (!employee) return merged;
+        const { gross: hamagi } = calcEntryTotals(merged, withholdingTypes);
         const workType = resolveEmploymentWorkType(employee);
         const updated: PayrollLedgerEntry = {
-          ...next,
+          ...merged,
           tax: recomputeEntryIncomeTax(
-            next,
+            merged,
             rawGross,
             workedDays,
             normDays,
@@ -518,6 +537,7 @@ export default function FinancePayrollLedgerPanel({
         laborLeaves: financeBase.laborLeaves,
         payrollLedgers: financeBase.payrollLedgers,
         payrollWithholdingTypes: resolvePayrollWithholdings(financeBase),
+        payrollWithholdingAssignments: financeBase.payrollWithholdingAssignments,
       }
     );
     setLedger(merged);

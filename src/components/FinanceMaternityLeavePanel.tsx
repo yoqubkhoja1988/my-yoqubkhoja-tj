@@ -40,7 +40,7 @@ import {
   StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Props = {
   organizationId: string;
@@ -104,6 +104,7 @@ export default function FinanceMaternityLeavePanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
+  const defaultReasonRef = useRef(t('maternityLeaveDefaultReason'));
 
   const departmentOptions = useMemo(() => {
     const labels = staffingDepartments.map((item) => item.label);
@@ -131,15 +132,18 @@ export default function FinanceMaternityLeavePanel({
       return;
     }
     setSelectedId(null);
-    setDraft(
-      applyMaternityPeriodToLeave({
+    setDraft((current) => {
+      if (!selectedId && editing && current.employeeId === '') {
+        return current;
+      }
+      return applyMaternityPeriodToLeave({
         ...createMaternityLeave(),
         orderNumber: nextLaborLeaveOrderNumber(financeContent.laborLeaves),
-        reason: t('maternityLeaveDefaultReason'),
-      })
-    );
+        reason: defaultReasonRef.current,
+      });
+    });
     setEditing(true);
-  }, [savedLeaves, selectedId, editing, financeContent.laborLeaves, t]);
+  }, [savedLeaves, selectedId, editing, financeContent.laborLeaves]);
 
   function patch<K extends keyof LaborLeave>(field: K, value: LaborLeave[K]) {
     setDraft((current) => {
@@ -349,7 +353,18 @@ export default function FinanceMaternityLeavePanel({
       staffContent,
       financeContent.payrollLedgers
     );
-  }, [staffContent, draft, financeContent.payrollLedgers]);
+  }, [
+    staffContent,
+    financeContent.payrollLedgers,
+    draft.employeeId,
+    draft.expectedBirthDate,
+    draft.maternityVariant,
+    draft.calculationBasis,
+    draft.lastSalaryRaiseDate,
+    draft.startDate,
+    draft.endDate,
+    draft.days,
+  ]);
 
   if (employees.length === 0) {
     return (

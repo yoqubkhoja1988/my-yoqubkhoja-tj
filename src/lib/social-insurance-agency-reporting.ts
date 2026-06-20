@@ -3,6 +3,7 @@ import {
   hasStoredPayrollLedger,
   payrollLedgerPersonGroupKey,
 } from '@/lib/finance-payroll-ledger';
+import { resolvePayrollWithholdings } from '@/lib/finance-payroll-withholdings';
 import { isStateInsuranceLeaveType } from '@/lib/finance-labor-leave-pay';
 import { socialInsurancePayForLeaveInMonth } from '@/lib/finance-social-insurance-pay';
 import {
@@ -217,11 +218,12 @@ export function summarizePayrollMonth(
   let payrollFund = 0;
   let employer25 = 0;
   let employee1 = 0;
+  const withholdingTypes = resolvePayrollWithholdings(financeContent);
 
   for (const entry of saved.entries) {
     const employee = employeeById(staffContent, entry.employeeId);
     if (!employee) continue;
-    const totals = calcEntryTotals(entry);
+    const totals = calcEntryTotals(entry, withholdingTypes);
     if (totals.gross <= 0) continue;
 
     personKeys.add(personKeyForEmployee(employee));
@@ -307,6 +309,8 @@ function buildEmployeeQuarterRows(
     }
   >();
 
+  const withholdingTypes = resolvePayrollWithholdings(financeContent);
+
   for (const month of quarterMonths) {
     const saved = storedLedgerForMonth(financeContent.payrollLedgers, month);
     if (!saved) continue;
@@ -314,7 +318,7 @@ function buildEmployeeQuarterRows(
     for (const entry of saved.entries) {
       const employee = employeeById(staffContent, entry.employeeId);
       if (!employee) continue;
-      const totals = calcEntryTotals(entry);
+      const totals = calcEntryTotals(entry, withholdingTypes);
       if (totals.gross <= 0) continue;
 
       const key = personKeyForEmployee(employee);

@@ -1,6 +1,6 @@
 import { getHolidayLabelKey } from '@/lib/staff-holidays';
 import { detectStaffColumns, isTotalRow, parseAmount } from '@/lib/staff-table-calc';
-import { isValidMonthKey, monthsBackFrom, shiftMonth } from '@/lib/staff-timesheet';
+import { isValidMonthKey, MAX_DATE_RANGE_DAYS, monthsBackFrom, shiftMonth } from '@/lib/staff-timesheet';
 import {
   LaborLeave,
   LaborLeaveCalculationBasis,
@@ -51,14 +51,16 @@ export function calcLeaveCalendarDays(startDate: string, endDate: string): {
   let calendarDays = 0;
   let holidaysExcluded = 0;
   const cursor = new Date(start);
+  let guard = 0;
 
-  while (cursor <= end) {
+  while (cursor <= end && guard < MAX_DATE_RANGE_DAYS) {
     if (isDateHoliday(cursor)) {
       holidaysExcluded += 1;
     } else {
       calendarDays += 1;
     }
     cursor.setDate(cursor.getDate() + 1);
+    guard += 1;
   }
 
   return { calendarDays, holidaysExcluded };

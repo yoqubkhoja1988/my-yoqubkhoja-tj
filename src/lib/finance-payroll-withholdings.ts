@@ -3,8 +3,8 @@
  * Кодекси андози ҶТ (андоз аз даромади шахсони воқеӣ); КМҶ моддаҳои 169, 170 (боздошт аз музди меҳнат).
  */
 
-import { parseAmount } from '@/lib/staff-table-calc';
-import { currentMonthKey } from '@/lib/staff-timesheet';
+import { formatAmount, parseAmount } from '@/lib/staff-table-calc';
+import { currentMonthKey, isValidMonthKey, shiftMonth } from '@/lib/staff-timesheet';
 import {
   OrganizationSectionContent,
   PayrollLedger,
@@ -179,9 +179,7 @@ export function assignmentsForEmployeeMonth(
 }
 
 function addMonth(month: string): string {
-  const [year, mon] = month.split('-').map(Number);
-  const date = new Date(year, mon, 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  return shiftMonth(month, 1);
 }
 
 export function assignmentMonthsAffected(
@@ -190,11 +188,22 @@ export function assignmentMonthsAffected(
 ): string[] {
   const months = new Set<string>();
   const end = assignment.effectiveTo ?? currentMonthKey();
-  if (assignment.effectiveFrom && assignment.effectiveFrom <= end) {
-    let cursor = assignment.effectiveFrom;
-    while (cursor <= end) {
+  const from = assignment.effectiveFrom;
+
+  if (
+    from &&
+    isValidMonthKey(from) &&
+    isValidMonthKey(end) &&
+    from <= end
+  ) {
+    let cursor = from;
+    let guard = 0;
+
+    while (cursor <= end && guard < 600) {
       months.add(cursor);
+      if (cursor === end) break;
       cursor = addMonth(cursor);
+      guard += 1;
     }
   }
   for (const month of existingLedgerMonths) {
@@ -203,24 +212,95 @@ export function assignmentMonthsAffected(
   return [...months].sort();
 }
 
-export function mergeAssignmentWithholdings(
+export function parseWithholdingPercent(amount: string): number | null {
+  const trimmed = amount.trim();
+  if (!trimmed.endsWith('%')) return null;
+
+  const value = parseAmount(trimmed.slice(0, -1).trim());
+  if (value === null || value < 0) return null;
+  return value;
+}
+
+export function isPercentWithholdingAmount(amount: string): boolean {
+  return parseWithholdingPercent(amount) !== null;
+}
+
+/** Маблағи боздошт — фоиз аз «Ҳамагӣ» ё маблағи фикс */
+export function resolveWithholdingAssignmentAmount(amount: string, hamagi: number): number {
+  const percent = parseWithholdingPercent(amount);
+  if (percent !== null) {
+    return Math.max(0, hamagi * (percent / 100));
+  }
+  return parseAmount(amount) ?? 0;
+}
+
+/** «Ҳамагӣ» барои боздоштҳои фоизии пеш аз андоз (ҳалли мавқеи doiraӣ) */
+export function resolveHamagiForWithholdingAssignments(
+  rawGross: number,
   entry: PayrollLedgerEntry,
   assignments: PayrollWithholdingAssignment[] | undefined,
   month: string,
   types: PayrollWithholdingType[]
+): number {
+  if (rawGross <= 0) return 0;
+
+  const applicable = assignmentsForEmployeeMonth(assignments, entry.employeeId, month);
+  const typeById = new Map(types.map((type) => [type.id, type]));
+  let fixedPreTax = 0;
+  let percentPreTaxSum = 0;
+
+  for (const assignment of applicable) {
+    const type = typeById.get(assignment.withholdingTypeId);
+    if (!type || type.timing !== 'pre_tax') continue;
+    const percent = parseWithholdingPercent(assignment.amount);
+    if (percent !== null) {
+      percentPreTaxSum += percent;
+    } else {
+      fixedPreTax += parseAmount(assignment.amount) ?? 0;
+    }
+  }
+
+  for (const type of types) {
+    if (type.timing !== 'pre_tax') continue;
+    if (applicable.some((item) => item.withholdingTypeId === type.id)) continue;
+    fixedPreTax += parseAmount(entry.withholdingAmounts?.[type.id] ?? '') ?? 0;
+  }
+
+  if (percentPreTaxSum >= 100) return 0;
+  return Math.max(0, (rawGross - fixedPreTax) / (1 + percentPreTaxSum / 100));
+}
+
+export function mergeAssignmentWithholdings(
+  entry: PayrollLedgerEntry,
+  assignments: PayrollWithholdingAssignment[] | undefined,
+  month: string,
+  types: PayrollWithholdingType[],
+  rawGross = 0
 ): PayrollLedgerEntry {
   const applicable = assignmentsForEmployeeMonth(assignments, entry.employeeId, month);
   if (applicable.length === 0) return entry;
 
   const enabledTypeIds = new Set(types.map((type) => type.id));
   const amounts = { ...(entry.withholdingAmounts ?? {}) };
+  const hamagi = resolveHamagiForWithholdingAssignments(
+    rawGross,
+    entry,
+    assignments,
+    month,
+    types
+  );
 
   for (const assignment of applicable) {
     if (!enabledTypeIds.has(assignment.withholdingTypeId)) continue;
-    const amount = assignment.amount.trim();
-    if (!amount) continue;
-    if (assignment.withholdingTypeId in amounts) continue;
-    amounts[assignment.withholdingTypeId] = amount;
+    const trimmed = assignment.amount.trim();
+    if (!trimmed) continue;
+
+    const isPercent = isPercentWithholdingAmount(trimmed);
+    if (!isPercent && assignment.withholdingTypeId in amounts) continue;
+
+    amounts[assignment.withholdingTypeId] = formatAmount(
+      resolveWithholdingAssignmentAmount(trimmed, hamagi)
+    );
   }
 
   return { ...entry, withholdingAmounts: amounts };

@@ -90,6 +90,9 @@ export function shiftMonth(monthKey: string, delta: number): string {
 
 const MAX_MONTH_ITERATIONS = 600;
 
+/** Ҳадди рӯзҳо барои ҳисоби муддати тақвимӣ (монеъи freeze аз маълумоти нодуруст) */
+export const MAX_DATE_RANGE_DAYS = 1100;
+
 export function isValidMonthKey(value: string): boolean {
   return /^\d{4}-\d{2}$/.test(value);
 }
@@ -358,11 +361,14 @@ export function countWorkingDaysInRange(startDate: string, endDate: string): num
 
   let count = 0;
   const cursor = new Date(start);
-  while (cursor <= end) {
+  let guard = 0;
+
+  while (cursor <= end && guard < MAX_DATE_RANGE_DAYS) {
     const monthKey = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
     const day = cursor.getDate();
     if (!isRestDay(monthKey, day)) count += 1;
     cursor.setDate(cursor.getDate() + 1);
+    guard += 1;
   }
   return count;
 }

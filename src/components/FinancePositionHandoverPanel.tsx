@@ -39,7 +39,7 @@ import {
   StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Props = {
   organizationId: string;
@@ -120,6 +120,8 @@ export default function FinancePositionHandoverPanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
+  const defaultReasonRef = useRef(t('positionHandoverDefaultReason'));
+  const defaultDutiesRef = useRef(t('positionHandoverDefaultDuties'));
 
   useEffect(() => {
     if (editing && !selectedId) return;
@@ -131,13 +133,18 @@ export default function FinancePositionHandoverPanel({
       return;
     }
     setSelectedId(null);
-    setDraft({
-      ...createPositionHandover(),
-      reason: t('positionHandoverDefaultReason'),
-      duties: t('positionHandoverDefaultDuties'),
+    setDraft((current) => {
+      if (!selectedId && editing && current.fromEmployeeId === '') {
+        return current;
+      }
+      return {
+        ...createPositionHandover(),
+        reason: defaultReasonRef.current,
+        duties: defaultDutiesRef.current,
+      };
     });
     setEditing(true);
-  }, [savedHandovers, selectedId, editing, t]);
+  }, [savedHandovers, selectedId, editing]);
 
   function patch<K extends keyof PositionHandover>(field: K, value: PositionHandover[K]) {
     setDraft((current) => ({ ...current, [field]: value }));

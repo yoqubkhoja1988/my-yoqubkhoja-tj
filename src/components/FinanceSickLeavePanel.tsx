@@ -43,7 +43,7 @@ import {
   StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Props = {
   organizationId: string;
@@ -105,6 +105,7 @@ export default function FinanceSickLeavePanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
+  const defaultReasonRef = useRef(t('sickLeaveDefaultReason'));
 
   const departmentOptions = useMemo(() => {
     const labels = staffingDepartments.map((item) => item.label);
@@ -132,15 +133,18 @@ export default function FinanceSickLeavePanel({
       return;
     }
     setSelectedId(null);
-    setDraft(
-      applySickPeriodToLeave({
+    setDraft((current) => {
+      if (!selectedId && editing && current.employeeId === '') {
+        return current;
+      }
+      return applySickPeriodToLeave({
         ...createSickLeave(),
         orderNumber: nextLaborLeaveOrderNumber(financeContent.laborLeaves),
-        reason: t('sickLeaveDefaultReason'),
-      })
-    );
+        reason: defaultReasonRef.current,
+      });
+    });
     setEditing(true);
-  }, [savedLeaves, selectedId, editing, financeContent.laborLeaves, t]);
+  }, [savedLeaves, selectedId, editing, financeContent.laborLeaves]);
 
   function patch<K extends keyof LaborLeave>(field: K, value: LaborLeave[K]) {
     setDraft((current) => applySickPeriodToLeave({ ...current, [field]: value }));
@@ -345,11 +349,24 @@ export default function FinanceSickLeavePanel({
       staffContent,
       financeContent.payrollLedgers
     );
-  }, [staffContent, draft, financeContent.payrollLedgers]);
+  }, [
+    staffContent,
+    financeContent.payrollLedgers,
+    draft.employeeId,
+    draft.startDate,
+    draft.endDate,
+    draft.sickBenefitCategory,
+    draft.sickWageBasis,
+    draft.sickIsTuberculosis,
+    draft.calculationBasis,
+    draft.lastSalaryRaiseDate,
+    draft.department,
+    draft.position,
+  ]);
 
   const durationCheck = useMemo(
     () => checkSickLeaveDuration(applySickPeriodToLeave(draft)),
-    [draft]
+    [draft.startDate, draft.endDate, draft.sickIsTuberculosis]
   );
 
   if (employees.length === 0) {

@@ -39,7 +39,7 @@ import {
   StaffEmployee,
 } from '@/types/organization-section';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Props = {
   organizationId: string;
@@ -117,6 +117,10 @@ export default function FinanceAllowanceAdjustmentPanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saveNotice, setSaveNotice] = useState('');
+  const defaultLegalBasisRef = useRef(
+    defaultLegalBasis('qualification_degree_difference', t)
+  );
+  const defaultReasonRef = useRef(defaultReason('qualification_degree_difference', t));
 
   useEffect(() => {
     if (editing && !selectedId) return;
@@ -128,14 +132,19 @@ export default function FinanceAllowanceAdjustmentPanel({
       return;
     }
     setSelectedId(null);
-    setDraft({
-      ...createSalaryAllowanceAdjustment(),
-      orderNumber: nextAllowanceOrderNumber(financeContent.salaryAllowanceAdjustments),
-      legalBasis: defaultLegalBasis('qualification_degree_difference', t),
-      reason: defaultReason('qualification_degree_difference', t),
+    setDraft((current) => {
+      if (!selectedId && editing && current.employeeId === '') {
+        return current;
+      }
+      return {
+        ...createSalaryAllowanceAdjustment(),
+        orderNumber: nextAllowanceOrderNumber(financeContent.salaryAllowanceAdjustments),
+        legalBasis: defaultLegalBasisRef.current,
+        reason: defaultReasonRef.current,
+      };
     });
     setEditing(true);
-  }, [savedAdjustments, selectedId, editing, financeContent.salaryAllowanceAdjustments, t]);
+  }, [savedAdjustments, selectedId, editing, financeContent.salaryAllowanceAdjustments]);
 
   const employee = employeeMap.get(draft.employeeId);
   const isQualificationKind = draft.kind === 'qualification_degree_difference';
