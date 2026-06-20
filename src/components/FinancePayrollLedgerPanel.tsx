@@ -346,8 +346,8 @@ export default function FinancePayrollLedgerPanel({
         if (withholdingType?.timing !== 'pre_tax') return next;
         const employee = employeeMap.get(employeeId);
         if (!employee) return next;
-        const { rawGross } = calcEntryTotals(next, withholdingTypes);
-        return {
+        const { rawGross, gross: hamagi } = calcEntryTotals(next, withholdingTypes);
+        const updated: PayrollLedgerEntry = {
           ...next,
           tax: recomputeEntryIncomeTax(
             next,
@@ -358,6 +358,16 @@ export default function FinancePayrollLedgerPanel({
             withholdingTypes
           ),
         };
+        if (entry.fhea === '0,00' || !entry.fhea?.trim()) {
+          updated.fhea = formatAmount(hamagi * 0.01);
+        }
+        if (entry.kik === '0,00' || !entry.kik?.trim()) {
+          updated.kik = formatAmount(hamagi * 0.01);
+        }
+        if (entry.hhdt === '0,00' || !entry.hhdt?.trim()) {
+          updated.hhdt = formatAmount(hamagi * 0.01);
+        }
+        return updated;
       }),
     }));
   }

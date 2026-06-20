@@ -88,7 +88,7 @@ export function summarizePayrollLedger(
 
   for (const entry of ledger.entries) {
     const totals = calcEntryTotals(entry, withholdingTypes);
-    gross += totals.rawGross;
+    gross += totals.gross;
     fheaEmployee += totals.fhea;
     unionFee += totals.kik;
     hhdt += totals.hhdt;

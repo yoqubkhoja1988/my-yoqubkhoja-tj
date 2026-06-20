@@ -432,13 +432,14 @@ function autoDeductions(
   workType: EmploymentWorkType,
   withholdingTypes: PayrollWithholdingType[] = []
 ) {
-  const defaultFhea = gross * 0.01;
-  const defaultKik = gross * 0.01;
-  const defaultHhdt = gross * 0.01;
   const entry = saved ? migrateLegacyOtherDeductions(saved, withholdingTypes) : undefined;
   const preTaxOther = entry
     ? sumWithholdingsByTiming(entry, withholdingTypes, 'pre_tax')
     : 0;
+  const hamagiBase = Math.max(0, gross - preTaxOther);
+  const defaultFhea = hamagiBase * 0.01;
+  const defaultKik = hamagiBase * 0.01;
+  const defaultHhdt = hamagiBase * 0.01;
   const fhea =
     entry && entry.fhea !== ZERO
       ? (parseAmount(entry.fhea) ?? defaultFhea)

@@ -97,6 +97,8 @@ export type LocalPayrollRequirementGroupMetrics = {
   vacantAmount: number;
   actualUnits: number;
   actualAmount: number;
+  /** Фонди пурраи музди меҳнат (барои ФҲИА 25%) */
+  payrollFund: number;
   incomeTax: number;
   fhea1: number;
   unionFee: number;
@@ -372,6 +374,7 @@ function emptyMetrics(): LocalPayrollRequirementGroupMetrics {
     vacantAmount: 0,
     actualUnits: 0,
     actualAmount: 0,
+    payrollFund: 0,
     incomeTax: 0,
     fhea1: 0,
     unionFee: 0,
@@ -395,6 +398,7 @@ function addMetrics(
   target.vacantAmount += source.vacantAmount;
   target.actualUnits += source.actualUnits;
   target.actualAmount += source.actualAmount;
+  target.payrollFund += source.payrollFund;
   target.incomeTax += source.incomeTax;
   target.fhea1 += source.fhea1;
   target.unionFee += source.unionFee;
@@ -411,6 +415,7 @@ function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
   metrics.decree469 = roundMoney(metrics.decree469);
   metrics.vacantAmount = roundMoney(metrics.vacantAmount);
   metrics.actualAmount = roundMoney(metrics.actualAmount);
+  metrics.payrollFund = roundMoney(metrics.payrollFund);
   metrics.incomeTax = roundMoney(metrics.incomeTax);
   metrics.fhea1 = roundMoney(metrics.fhea1);
   metrics.unionFee = roundMoney(metrics.unionFee);
@@ -418,7 +423,7 @@ function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
   metrics.otherDeductions = roundMoney(metrics.otherDeductions);
   metrics.totalDeductions = roundMoney(metrics.totalDeductions);
   metrics.netPay = roundMoney(metrics.netPay);
-  metrics.fhea25 = calcEmployerFhea25(metrics.actualAmount);
+  metrics.fhea25 = calcEmployerFhea25(metrics.payrollFund || metrics.actualAmount);
   metrics.bankFeeAmount = roundMoney(metrics.netPay * BANK_FEE_RATE);
 }
 
@@ -494,12 +499,13 @@ function buildLedgerMetrics(
     if (totals.rawGross > 0) {
       metrics.actualUnits += 1;
     }
-    metrics.actualAmount += totals.rawGross;
+    metrics.payrollFund += totals.gross;
+    metrics.actualAmount += totals.gross;
     metrics.incomeTax += totals.tax;
     metrics.fhea1 += totals.fhea;
     metrics.unionFee += totals.kik;
     metrics.hhdt += totals.hhdt;
-    metrics.otherDeductions += totals.otherDeductions;
+    metrics.otherDeductions += totals.postTaxOther;
     metrics.totalDeductions += totals.deductions;
     metrics.netPay += totals.netPay;
   }
@@ -536,11 +542,12 @@ function buildGroup(
     actualUnits:
       ledgerMetrics.actualUnits > 0 ? ledgerMetrics.actualUnits : staffMetrics.actualUnits,
     actualAmount: ledgerMetrics.actualAmount,
+    payrollFund: ledgerMetrics.payrollFund,
     incomeTax: ledgerMetrics.incomeTax,
     fhea1: ledgerMetrics.fhea1,
     unionFee: ledgerMetrics.unionFee,
     hhdt: ledgerMetrics.hhdt,
-    otherDeductions: 0,
+    otherDeductions: ledgerMetrics.otherDeductions,
     totalDeductions: ledgerMetrics.totalDeductions,
     netPay: ledgerMetrics.netPay,
     fhea25: 0,
@@ -551,7 +558,7 @@ function buildGroup(
   const bankFee = {
     actualAmount: employees.bankFeeAmount,
     fhea25: roundMoney(
-      calcEmployerFhea25(employees.actualAmount + employees.bankFeeAmount) - employees.fhea25
+      calcEmployerFhea25(employees.payrollFund + employees.bankFeeAmount) - employees.fhea25
     ),
   };
 
