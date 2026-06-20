@@ -1262,6 +1262,8 @@
   "nyahOpeningSavedUnbalancedShort": "Сохранено — сальdo не сбалансировано",
   "nyahOpeningSavedBalanced": "Сохранено — сальdo сбалансировано",
   "nyahOpeningDifference": "Разница: {amount}",
+  "nyahOpeningNoEditPermission": "У вас нет прав на редактирование сальdo на начало года. Обратитесь к администратору.",
+  "nyahOpeningSupervisionReadOnly": "Режим надзора — ввод сальdo недоступен.",
   "nyahAddEntry": "Новая запись",
   "nyahTabChart": "План счетов",
   "nyahTabMemorial": "Мемориальные ордера",

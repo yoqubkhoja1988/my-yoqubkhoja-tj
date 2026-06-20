@@ -75,6 +75,9 @@ export const ORG_USER_EDITABLE_SECTIONS = [
   ORG_INFO_SECTION_SLUG,
   LIST_OF_ENTERPRISES_SECTION_SLUG,
   ORGANIZATION_CONTRACTS_SECTION_SLUG,
+  'finance',
+  'staff',
+  'formation-report',
   ...FINANCIAL_REPORT_SECTION_SLUGS,
 ] as const;
 
@@ -83,6 +86,13 @@ export function isOrgUserEditableSection(sectionSlug: string): boolean {
   if (sectionSlug === ORG_INFO_SECTION_SLUG) return true;
   if (sectionSlug === LIST_OF_ENTERPRISES_SECTION_SLUG) return true;
   if (sectionSlug === ORGANIZATION_CONTRACTS_SECTION_SLUG) return true;
+  if (
+    sectionSlug === 'finance' ||
+    sectionSlug === 'staff' ||
+    sectionSlug === 'formation-report'
+  ) {
+    return true;
+  }
   return isFinancialReportSection(sectionSlug);
 }
 

@@ -47,7 +47,8 @@ export default function FinanceNyahOpeningBalancePanel({
   onUpdate,
 }: Props) {
   const t = useTranslations();
-  const { canEdit } = useOrganizationAccess();
+  const { canEdit, supervisionOnly } = useOrganizationAccess();
+  const canEnterAmounts = canEdit && !supervisionOnly;
   const [settings, setSettings] = useState<BudgetAccountingSettings>(() =>
     resolveBudgetAccountingSettings(financeContent)
   );
@@ -198,11 +199,11 @@ export default function FinanceNyahOpeningBalancePanel({
             onChange={(event) =>
               patchSettings({ ...settings, fiscalYear: event.target.value.trim() })
             }
-            disabled={!canEdit}
+            disabled={!canEnterAmounts}
             className="input-field w-28 text-xs"
           />
         </label>
-        {canEdit && (
+        {canEnterAmounts && (
           <button
             type="button"
             onClick={handleSave}
@@ -223,7 +224,13 @@ export default function FinanceNyahOpeningBalancePanel({
         )}
       </div>
 
-      {canEdit && (
+      {!canEnterAmounts && (
+        <p className="rounded-lg border border-[var(--border)] bg-[var(--bg-input)]/30 px-4 py-3 text-xs text-[var(--text-muted)]">
+          {supervisionOnly ? t('nyahOpeningSupervisionReadOnly') : t('nyahOpeningNoEditPermission')}
+        </p>
+      )}
+
+      {canEnterAmounts && (
         <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--bg-input)]/10 p-4">
           <p className="text-xs font-semibold">{t('nyahOpeningAddAccount')}</p>
           <div className="flex flex-wrap gap-3">
@@ -317,13 +324,13 @@ export default function FinanceNyahOpeningBalancePanel({
               <th>{t('nyahColName')}</th>
               <th className="text-right">{t('financeReportForm1ColOpeningDebit')}</th>
               <th className="text-right">{t('financeReportForm1ColOpeningCredit')}</th>
-              {canEdit && <th className="w-20" />}
+              {canEnterAmounts && <th className="w-20" />}
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={canEdit ? 5 : 4} className="text-center text-[var(--text-muted)]">
+                <td colSpan={canEnterAmounts ? 5 : 4} className="text-center text-[var(--text-muted)]">
                   {t('nyahOpeningEmpty')}
                 </td>
               </tr>
@@ -333,7 +340,7 @@ export default function FinanceNyahOpeningBalancePanel({
                   <td className="font-mono">{row.accountCode}</td>
                   <td>{row.accountName}</td>
                   <td className="text-right tabular-nums">
-                    {canEdit ? (
+                    {canEnterAmounts ? (
                       <input
                         type="text"
                         inputMode="decimal"
@@ -349,7 +356,7 @@ export default function FinanceNyahOpeningBalancePanel({
                     )}
                   </td>
                   <td className="text-right tabular-nums">
-                    {canEdit ? (
+                    {canEnterAmounts ? (
                       <input
                         type="text"
                         inputMode="decimal"
@@ -364,7 +371,7 @@ export default function FinanceNyahOpeningBalancePanel({
                       row.credit > 0 ? formatOpeningBalanceAmount(row.credit) : '—'
                     )}
                   </td>
-                  {canEdit && (
+                  {canEnterAmounts && (
                     <td className="text-right">
                       <button
                         type="button"
@@ -395,7 +402,7 @@ export default function FinanceNyahOpeningBalancePanel({
                 <td className="text-right tabular-nums">
                   {formatOpeningBalanceAmount(summary.totalCredit)}
                 </td>
-                {canEdit && (
+                {canEnterAmounts && (
                   <td className="text-right tabular-nums text-[var(--text-muted)]">
                     {lastSaveSummary && !lastSaveSummary.balanced
                       ? t('nyahOpeningDifference', {

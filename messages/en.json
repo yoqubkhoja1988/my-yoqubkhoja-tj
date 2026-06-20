@@ -1263,6 +1263,8 @@
   "nyahOpeningSavedUnbalancedShort": "Saved — balances are not balanced",
   "nyahOpeningSavedBalanced": "Saved — balances are balanced",
   "nyahOpeningDifference": "Diff.: {amount}",
+  "nyahOpeningNoEditPermission": "You do not have permission to edit UAC opening balances. Contact your administrator.",
+  "nyahOpeningSupervisionReadOnly": "Supervision mode — opening balances cannot be entered.",
   "nyahAddEntry": "New entry",
   "nyahTabChart": "Chart of accounts",
   "nyahTabMemorial": "Memorial orders",

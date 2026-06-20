@@ -1263,6 +1263,8 @@
   "nyahOpeningSavedUnbalancedShort": "Saqlandi — qoldiq muvozanatlangan emas",
   "nyahOpeningSavedBalanced": "Saqlandi — qoldiq muvozanatlangan",
   "nyahOpeningDifference": "Farq: {amount}",
+  "nyahOpeningNoEditPermission": "BYH yil boshiga qoldiqni tahrirlash huquqingiz yo'q. Administratorga murojaat qiling.",
+  "nyahOpeningSupervisionReadOnly": "Nazorat rejimi — qoldiq kiritish mumkin emas.",
   "nyahAddEntry": "Yangi yozuv",
   "nyahTabChart": "Hisoblar rejasi",
   "nyahTabMemorial": "Memorial buyruqlar",

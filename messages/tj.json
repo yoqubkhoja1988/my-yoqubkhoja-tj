@@ -1260,6 +1260,8 @@
   "nyahOpeningSavedUnbalancedShort": "Захира шуд — бақия мутавозин нест",
   "nyahOpeningSavedBalanced": "Захира шуд — бақия мутавозин аст",
   "nyahOpeningDifference": "Фарқ: {amount}",
+  "nyahOpeningNoEditPermission": "Шумо иҷозати таҳрири бақияи НЯҲ надоред. Ба маъмури система муроҷиат кунед.",
+  "nyahOpeningSupervisionReadOnly": "Режими назорат — ворид кардани бақия имконнопазир аст.",
   "nyahAddEntry": "Сабти нав",
   "nyahTabChart": "Нақшаи ҳисобҳо",
   "nyahTabMemorial": "Ордерҳои мемориалӣ",
