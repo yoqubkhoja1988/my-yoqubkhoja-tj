@@ -234,7 +234,7 @@ export default function FinanceMemorialOrdersPanel({
             onChange={(event) =>
               updateOperationField(operation.id, { [field]: event.target.value })
             }
-            className="input-field w-full max-w-[5.25rem] font-mono text-[10px] px-1.5"
+            className="input-field w-full min-w-[6.75rem] font-mono text-[10px] whitespace-nowrap px-1.5"
             list="nyah-mo-account-codes"
           />
           {code && (
@@ -248,7 +248,7 @@ export default function FinanceMemorialOrdersPanel({
 
     return (
       <>
-        {code || '—'}
+        <span className="whitespace-nowrap">{code || '—'}</span>
         {code && (
           <span className="mt-0.5 block break-words font-sans text-[9px] leading-tight text-[var(--text-muted)]">
             {accountLabel(code)}
@@ -448,14 +448,14 @@ export default function FinanceMemorialOrdersPanel({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-          <table className="data-table w-full table-fixed text-xs">
+          <table className="data-table w-full table-auto text-xs">
             <thead>
               <tr>
-                <th className="w-[32%] min-w-[14rem]">{t('nyahMoColOperation')}</th>
-                <th className="w-[9%] min-w-[5.25rem]">{t('nyahColDebitAccount')}</th>
-                <th className="w-[9%] min-w-[5.25rem]">{t('nyahColCreditAccount')}</th>
+                <th className="w-[28%] min-w-[12rem]">{t('nyahMoColOperation')}</th>
+                <th className="w-[11%] min-w-[6.75rem]">{t('nyahColDebitAccount')}</th>
+                <th className="w-[11%] min-w-[6.75rem]">{t('nyahColCreditAccount')}</th>
                 <th className="w-[10%] min-w-[8.25rem]">{t('nyahColDate')}</th>
-                <th className="w-[8%] min-w-[4.5rem] text-right">{t('nyahColAmount')}</th>
+                <th className="w-[10%] min-w-[5.75rem] text-right">{t('nyahColAmount')}</th>
                 <th>{t('nyahMoColBasis')}</th>
                 {canEdit && <th className="w-[9%] min-w-[9rem]" />}
               </tr>
@@ -469,7 +469,7 @@ export default function FinanceMemorialOrdersPanel({
                     key={operation.id}
                     className={saved ? 'bg-[var(--accent)]/5' : undefined}
                   >
-                    <td className="min-w-[14rem] align-top">
+                    <td className="min-w-[12rem] align-top">
                       {canEdit ? (
                         <input
                           value={operation.name}
@@ -482,10 +482,10 @@ export default function FinanceMemorialOrdersPanel({
                         <span className="block leading-snug">{operation.name}</span>
                       )}
                     </td>
-                    <td className="max-w-[5.25rem] align-top font-mono text-[10px]">
+                    <td className="min-w-[6.75rem] align-top font-mono text-[10px]">
                       {renderAccountCell(operation, 'debit')}
                     </td>
-                    <td className="max-w-[5.25rem] align-top font-mono text-[10px]">
+                    <td className="min-w-[6.75rem] align-top font-mono text-[10px]">
                       {renderAccountCell(operation, 'credit')}
                     </td>
                     <td className="w-[8.25rem] align-top">
@@ -502,7 +502,7 @@ export default function FinanceMemorialOrdersPanel({
                         draft.date
                       )}
                     </td>
-                    <td className="max-w-[4.5rem] align-top text-right">
+                    <td className="min-w-[5.75rem] align-top text-right">
                       {canEdit ? (
                         <input
                           value={draft.amount}
@@ -510,7 +510,7 @@ export default function FinanceMemorialOrdersPanel({
                             updateRowDraft(operation.id, { amount: event.target.value })
                           }
                           placeholder="0,00"
-                          className="input-field w-full max-w-[4.5rem] text-right text-xs px-1.5"
+                          className="input-field w-full min-w-[5.75rem] text-right text-xs px-1.5"
                         />
                       ) : (
                         draft.amount || '—'
