@@ -21,6 +21,7 @@ export function resolveBudgetAccountingSettings(
     ...defaults,
     ...saved,
     fiscalYear: saved?.fiscalYear?.trim() || defaults.fiscalYear,
+    nextEntryNumber: saved?.nextEntryNumber ?? 1,
     openingBalances: saved?.openingBalances ?? {},
   };
 }

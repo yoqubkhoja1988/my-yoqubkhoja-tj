@@ -37,6 +37,7 @@ import FinanceSocialInsuranceAgencyPanel from './FinanceSocialInsuranceAgencyPan
 import FinanceParentMembershipFeePanel from './FinanceParentMembershipFeePanel';
 import FinanceParentFoodPaymentPanel from './FinanceParentFoodPaymentPanel';
 import FinanceNyahOpeningBalancePanel from './FinanceNyahOpeningBalancePanel';
+import FinanceNyahMemorialOrdersPanel from './FinanceNyahMemorialOrdersPanel';
 import { supportsBudgetAccounting } from '@/lib/budget-accounting-settings';
 import FinanceAllowanceAdjustmentPanel from './FinanceAllowanceAdjustmentPanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
@@ -1017,6 +1018,17 @@ export default function EditableSectionContent({
         activeFinanceSection === 'finance-nyah-opening-balances' &&
         supportsBudgetAccounting(organizationId) && (
         <FinanceNyahOpeningBalancePanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' &&
+        activeFinanceSection === 'finance-nyah-memorial-orders' &&
+        supportsBudgetAccounting(organizationId) && (
+        <FinanceNyahMemorialOrdersPanel
           organizationId={organizationId}
           organization={organization}
           financeContent={displayData}
