@@ -234,11 +234,11 @@ export default function FinanceMemorialOrdersPanel({
             onChange={(event) =>
               updateOperationField(operation.id, { [field]: event.target.value })
             }
-            className="input-field w-full font-mono text-xs"
+            className="input-field w-full max-w-[5.25rem] font-mono text-[10px] px-1.5"
             list="nyah-mo-account-codes"
           />
           {code && (
-            <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
+            <span className="mt-0.5 block break-words font-sans text-[9px] leading-tight text-[var(--text-muted)]">
               {accountLabel(code)}
             </span>
           )}
@@ -250,7 +250,7 @@ export default function FinanceMemorialOrdersPanel({
       <>
         {code || '—'}
         {code && (
-          <span className="mt-0.5 block font-sans text-[var(--text-muted)]">
+          <span className="mt-0.5 block break-words font-sans text-[9px] leading-tight text-[var(--text-muted)]">
             {accountLabel(code)}
           </span>
         )}
@@ -448,16 +448,16 @@ export default function FinanceMemorialOrdersPanel({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-          <table className="data-table min-w-[56rem] text-xs">
+          <table className="data-table w-full table-fixed text-xs">
             <thead>
               <tr>
-                <th>{t('nyahMoColOperation')}</th>
-                <th>{t('nyahColDebitAccount')}</th>
-                <th>{t('nyahColCreditAccount')}</th>
-                <th>{t('nyahColDate')}</th>
-                <th className="text-right">{t('nyahColAmount')}</th>
+                <th className="w-[32%] min-w-[14rem]">{t('nyahMoColOperation')}</th>
+                <th className="w-[9%] min-w-[5.25rem]">{t('nyahColDebitAccount')}</th>
+                <th className="w-[9%] min-w-[5.25rem]">{t('nyahColCreditAccount')}</th>
+                <th className="w-[10%] min-w-[8.25rem]">{t('nyahColDate')}</th>
+                <th className="w-[8%] min-w-[4.5rem] text-right">{t('nyahColAmount')}</th>
                 <th>{t('nyahMoColBasis')}</th>
-                {canEdit && <th />}
+                {canEdit && <th className="w-[9%] min-w-[9rem]" />}
               </tr>
             </thead>
             <tbody>
@@ -469,7 +469,7 @@ export default function FinanceMemorialOrdersPanel({
                     key={operation.id}
                     className={saved ? 'bg-[var(--accent)]/5' : undefined}
                   >
-                    <td className="min-w-[12rem]">
+                    <td className="min-w-[14rem] align-top">
                       {canEdit ? (
                         <input
                           value={operation.name}
@@ -482,13 +482,13 @@ export default function FinanceMemorialOrdersPanel({
                         <span className="block leading-snug">{operation.name}</span>
                       )}
                     </td>
-                    <td className="font-mono text-[10px]">
+                    <td className="max-w-[5.25rem] align-top font-mono text-[10px]">
                       {renderAccountCell(operation, 'debit')}
                     </td>
-                    <td className="font-mono text-[10px]">
+                    <td className="max-w-[5.25rem] align-top font-mono text-[10px]">
                       {renderAccountCell(operation, 'credit')}
                     </td>
-                    <td>
+                    <td className="w-[8.25rem] align-top">
                       {canEdit ? (
                         <input
                           type="date"
@@ -496,13 +496,13 @@ export default function FinanceMemorialOrdersPanel({
                           onChange={(event) =>
                             updateRowDraft(operation.id, { date: event.target.value })
                           }
-                          className="input-field text-xs"
+                          className="input-field w-full min-w-0 text-xs px-1.5"
                         />
                       ) : (
                         draft.date
                       )}
                     </td>
-                    <td className="text-right">
+                    <td className="max-w-[4.5rem] align-top text-right">
                       {canEdit ? (
                         <input
                           value={draft.amount}
@@ -510,13 +510,13 @@ export default function FinanceMemorialOrdersPanel({
                             updateRowDraft(operation.id, { amount: event.target.value })
                           }
                           placeholder="0,00"
-                          className="input-field w-28 text-right text-xs"
+                          className="input-field w-full max-w-[4.5rem] text-right text-xs px-1.5"
                         />
                       ) : (
                         draft.amount || '—'
                       )}
                     </td>
-                    <td>
+                    <td className="align-top">
                       {canEdit ? (
                         <input
                           value={draft.basis}
@@ -524,7 +524,7 @@ export default function FinanceMemorialOrdersPanel({
                             updateRowDraft(operation.id, { basis: event.target.value })
                           }
                           placeholder={operation.basisHint ?? ''}
-                          className="input-field min-w-[10rem] text-xs"
+                          className="input-field w-full min-w-0 text-xs"
                         />
                       ) : (
                         draft.basis || operation.basisHint || '—'
