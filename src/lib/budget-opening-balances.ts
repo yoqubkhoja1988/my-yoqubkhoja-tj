@@ -71,6 +71,30 @@ export function addOpeningBalanceAccount(
   return { ...map, [normalized]: {} };
 }
 
+export function filledOpeningBalanceRows(
+  settings: BudgetAccountingSettings
+): NyahOpeningBalanceRow[] {
+  return openingBalanceRows(settings).filter((row) => row.debit > 0 || row.credit > 0);
+}
+
+export function cleanOpeningBalances(
+  settings: BudgetAccountingSettings
+): BudgetAccountingSettings {
+  const map = settings.openingBalances ?? {};
+  const next: Record<string, BudgetAccountingOpeningBalance> = {};
+  for (const [code, entry] of Object.entries(map)) {
+    const normalized = normalizeAccountCode(code);
+    const debit = normalizeSide(entry.debit);
+    const credit = normalizeSide(entry.credit);
+    if (debit <= 0 && credit <= 0) continue;
+    next[normalized] = {
+      ...(debit > 0 ? { debit } : {}),
+      ...(credit > 0 ? { credit } : {}),
+    };
+  }
+  return { ...settings, openingBalances: next };
+}
+
 export function summarizeOpeningBalances(
   rows: NyahOpeningBalanceRow[]
 ): NyahOpeningBalanceSummary {

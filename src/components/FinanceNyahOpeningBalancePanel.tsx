@@ -7,11 +7,14 @@ import {
 import {
   formatOpeningBalanceAmount,
   addOpeningBalanceAccount,
+  cleanOpeningBalances,
+  filledOpeningBalanceRows,
   openingBalanceRows,
   parseOpeningBalanceAmount,
   removeOpeningBalance,
   summarizeOpeningBalances,
   upsertOpeningBalance,
+  type NyahOpeningBalanceSummary,
 } from '@/lib/budget-opening-balances';
 import {
   NYAH_ACCOUNT_CLASSES,
@@ -53,13 +56,17 @@ export default function FinanceNyahOpeningBalancePanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [lastSaveSummary, setLastSaveSummary] = useState<NyahOpeningBalanceSummary | null>(
+    null
+  );
 
   useEffect(() => {
     setSettings(resolveBudgetAccountingSettings(financeContent));
   }, [financeContent.budgetAccountingSettings]);
 
   const rows = useMemo(() => openingBalanceRows(settings), [settings]);
-  const summary = useMemo(() => summarizeOpeningBalances(rows), [rows]);
+  const filledRows = useMemo(() => filledOpeningBalanceRows(settings), [settings]);
+  const summary = useMemo(() => summarizeOpeningBalances(filledRows), [filledRows]);
 
   const searchResults = useMemo(() => {
     const existing = new Set(rows.map((row) => row.accountCode));
@@ -69,7 +76,7 @@ export default function FinanceNyahOpeningBalancePanel({
       .slice(0, 12);
   }, [query, classFilter, rows]);
 
-  async function persist(nextSettings: BudgetAccountingSettings) {
+  async function persist(nextSettings: BudgetAccountingSettings): Promise<boolean> {
     setSaving(true);
     setError('');
     const payload: OrganizationSectionContent = {
@@ -82,7 +89,7 @@ export default function FinanceNyahOpeningBalancePanel({
       const savedContent = await updateOrganizationSection(organizationId, 'finance', payload);
       if (!savedContent) {
         setError(t('sectionSaveError'));
-        return;
+        return false;
       }
       const resolved = resolveBudgetAccountingSettings(savedContent);
       onUpdate({
@@ -92,8 +99,10 @@ export default function FinanceNyahOpeningBalancePanel({
       setSettings(resolved);
       setSaved(true);
       window.setTimeout(() => setSaved(false), 2500);
+      return true;
     } catch {
       setError(t('sectionSaveError'));
+      return false;
     } finally {
       setSaving(false);
     }
@@ -101,6 +110,32 @@ export default function FinanceNyahOpeningBalancePanel({
 
   function patchSettings(next: BudgetAccountingSettings) {
     setSettings(next);
+    setLastSaveSummary(null);
+    setSaved(false);
+  }
+
+  async function handleSave() {
+    const cleaned = cleanOpeningBalances(settings);
+    const reviewRows = filledOpeningBalanceRows(cleaned);
+    const review = summarizeOpeningBalances(reviewRows);
+
+    const ok = await persist(cleaned);
+    if (!ok) return;
+
+    if (reviewRows.length > 0) {
+      setLastSaveSummary(review);
+      if (!review.balanced) {
+        window.alert(
+          t('nyahOpeningUnbalancedAlert', {
+            debit: formatOpeningBalanceAmount(review.totalDebit),
+            credit: formatOpeningBalanceAmount(review.totalCredit),
+            difference: formatOpeningBalanceAmount(review.difference),
+          })
+        );
+      }
+    } else {
+      setLastSaveSummary(null);
+    }
   }
 
   function handleAmountChange(
@@ -170,14 +205,22 @@ export default function FinanceNyahOpeningBalancePanel({
         {canEdit && (
           <button
             type="button"
-            onClick={() => persist(settings)}
+            onClick={handleSave}
             className="btn-primary text-xs"
             disabled={saving}
           >
             {saving ? '...' : t('save')}
           </button>
         )}
-        {saved && <span className="text-xs font-medium text-emerald-600">{t('adsinSaved')}</span>}
+        {saved && lastSaveSummary?.balanced && (
+          <span className="text-xs font-medium text-emerald-400">{t('nyahOpeningSavedBalanced')}</span>
+        )}
+        {saved && lastSaveSummary && !lastSaveSummary.balanced && (
+          <span className="text-xs font-medium text-amber-300">{t('nyahOpeningSavedUnbalancedShort')}</span>
+        )}
+        {saved && !lastSaveSummary && (
+          <span className="text-xs font-medium text-emerald-400">{t('adsinSaved')}</span>
+        )}
       </div>
 
       {canEdit && (
@@ -240,18 +283,30 @@ export default function FinanceNyahOpeningBalancePanel({
         </p>
       )}
 
-      {!summary.balanced && summary.rowCount > 0 && (
-        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-900">
-          {t('nyahOpeningUnbalanced', {
-            debit: formatOpeningBalanceAmount(summary.totalDebit),
-            credit: formatOpeningBalanceAmount(summary.totalCredit),
-            difference: formatOpeningBalanceAmount(summary.difference),
-          })}
+      {lastSaveSummary && !lastSaveSummary.balanced && (
+        <div
+          role="alert"
+          className="rounded-lg border border-amber-500/50 bg-amber-500/15 px-4 py-3 text-xs text-amber-100"
+        >
+          <p className="font-semibold">{t('nyahOpeningSavedUnbalancedTitle')}</p>
+          <p className="mt-1">
+            {t('nyahOpeningUnbalanced', {
+              debit: formatOpeningBalanceAmount(lastSaveSummary.totalDebit),
+              credit: formatOpeningBalanceAmount(lastSaveSummary.totalCredit),
+              difference: formatOpeningBalanceAmount(lastSaveSummary.difference),
+            })}
+          </p>
+          <p className="mt-1 text-amber-200/90">{t('nyahOpeningSavedUnbalancedHint')}</p>
         </div>
       )}
 
-      {summary.balanced && summary.rowCount > 0 && (
-        <p className="text-xs font-medium text-emerald-600">{t('nyahOpeningBalanced')}</p>
+      {lastSaveSummary?.balanced && lastSaveSummary.rowCount > 0 && (
+        <div
+          role="status"
+          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200"
+        >
+          {t('nyahOpeningBalanced')}
+        </div>
       )}
 
       <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
@@ -324,9 +379,15 @@ export default function FinanceNyahOpeningBalancePanel({
               ))
             )}
           </tbody>
-          {rows.length > 0 && (
+          {filledRows.length > 0 && (
             <tfoot>
-              <tr className="bg-[var(--bg-input)]/40 font-semibold">
+              <tr
+                className={`bg-[var(--bg-input)]/40 font-semibold ${
+                  lastSaveSummary && !lastSaveSummary.balanced
+                    ? 'text-amber-200'
+                    : ''
+                }`}
+              >
                 <td colSpan={2}>{t('nyahOpeningTotals')}</td>
                 <td className="text-right tabular-nums">
                   {formatOpeningBalanceAmount(summary.totalDebit)}
@@ -334,7 +395,15 @@ export default function FinanceNyahOpeningBalancePanel({
                 <td className="text-right tabular-nums">
                   {formatOpeningBalanceAmount(summary.totalCredit)}
                 </td>
-                {canEdit && <td />}
+                {canEdit && (
+                  <td className="text-right tabular-nums text-[var(--text-muted)]">
+                    {lastSaveSummary && !lastSaveSummary.balanced
+                      ? t('nyahOpeningDifference', {
+                          amount: formatOpeningBalanceAmount(lastSaveSummary.difference),
+                        })
+                      : ''}
+                  </td>
+                )}
               </tr>
             </tfoot>
           )}
