@@ -8,10 +8,13 @@ import {
   supportsBudgetAccounting,
 } from '@/lib/budget-accounting-settings';
 import { downloadTurnoverStatementExcel } from '@/lib/budget-turnover-statement-export';
+import { filledOpeningBalanceRows } from '@/lib/budget-opening-balances';
 import {
   buildTurnoverStatement,
   formatTurnoverPeriodLabel,
   formatTurnoverStatementAmount,
+  memorialJournalEntries,
+  legacyJournalEntries,
   resolveTurnoverPeriod,
 } from '@/lib/budget-turnover-statement';
 import { NYAH_INSTRUCTION } from '@/lib/budget-unified-chart-of-accounts';
@@ -55,16 +58,17 @@ export default function FinanceTurnoverStatementPanel({
 
   useEffect(() => {
     setSettings(resolveBudgetAccountingSettings(financeContent));
-  }, [financeContent.budgetAccountingSettings]);
+  }, [financeContent.budgetAccountingSettings, financeContent.budgetAccountingJournal]);
 
   const period = useMemo(() => resolveTurnoverPeriod(settings), [settings]);
   const documentData = useMemo(
     () => buildTurnoverStatement(financeContent, settings, period),
-    [financeContent, settings, period]
+    [financeContent.budgetAccountingJournal, financeContent, settings, period]
   );
 
-  const journalCount = financeContent.budgetAccountingJournal?.length ?? 0;
-  const openingCount = Object.keys(settings.openingBalances ?? {}).length;
+  const memorialEntryCount = memorialJournalEntries(financeContent.budgetAccountingJournal).length;
+  const legacyEntryCount = legacyJournalEntries(financeContent.budgetAccountingJournal).length;
+  const openingCount = filledOpeningBalanceRows(settings).length;
   const directorSignatureLabel = getDirectorSignatureLabel(organizationId);
   const accountantSignatureLabel = getAccountantSignatureLabel(staffContent, {
     chiefAccountantName: organization?.chiefAccountant,
@@ -133,9 +137,17 @@ export default function FinanceTurnoverStatementPanel({
           />
         </label>
         <div className="text-xs text-[var(--text-muted)] sm:col-span-2">
-          <p>{t('turnoverStatementSources', { openingCount, journalCount })}</p>
+          <p>{t('turnoverStatementSources', { openingCount, memorialEntryCount })}</p>
           {openingCount === 0 ? (
             <p className="mt-1 text-amber-300">{t('turnoverStatementNoOpeningHint')}</p>
+          ) : null}
+          {memorialEntryCount === 0 ? (
+            <p className="mt-1 text-amber-300">{t('turnoverStatementNoMemorialHint')}</p>
+          ) : null}
+          {legacyEntryCount > 0 ? (
+            <p className="mt-1 text-amber-300">
+              {t('turnoverStatementLegacyJournalHint', { count: legacyEntryCount })}
+            </p>
           ) : null}
         </div>
       </div>

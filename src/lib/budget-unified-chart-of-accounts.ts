@@ -122,7 +122,7 @@ export function isValidNyahAccountCode(code: string): boolean {
 }
 
 export function normalizeAccountCode(code: string): string {
-  return code.replace(/\s+/g, ' ').trim();
+  return code.replace(/\./g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export function accountsByClass(classId?: NyahAccountClassId): NyahAccount[] {

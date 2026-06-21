@@ -90,6 +90,33 @@ function turnoverTemplateRows(): TurnoverStatementTemplateRow[] {
   );
 }
 
+export function memorialJournalEntries(
+  entries: BudgetAccountingJournalEntry[] | undefined
+): BudgetAccountingJournalEntry[] {
+  return (entries ?? []).filter((entry) => Boolean(entry.memorialOrderId?.trim()));
+}
+
+export function legacyJournalEntries(
+  entries: BudgetAccountingJournalEntry[] | undefined
+): BudgetAccountingJournalEntry[] {
+  return (entries ?? []).filter((entry) => !entry.memorialOrderId?.trim());
+}
+
+function buildOpeningBalanceMap(
+  settings: BudgetAccountingSettings
+): Map<string, { debit: number; credit: number }> {
+  const map = new Map<string, { debit: number; credit: number }>();
+  for (const [code, entry] of Object.entries(settings.openingBalances ?? {})) {
+    const normalized = normalizeAccountCode(code);
+    if (!normalized) continue;
+    const current = map.get(normalized) ?? { debit: 0, credit: 0 };
+    current.debit = roundMoney(current.debit + normalizeSide(entry?.debit));
+    current.credit = roundMoney(current.credit + normalizeSide(entry?.credit));
+    map.set(normalized, current);
+  }
+  return map;
+}
+
 function sumJournalByAccount(
   entries: BudgetAccountingJournalEntry[] | undefined,
   periodFrom: string,
@@ -97,7 +124,7 @@ function sumJournalByAccount(
 ): Map<string, { debit: number; credit: number }> {
   const map = new Map<string, { debit: number; credit: number }>();
 
-  for (const entry of entries ?? []) {
+  for (const entry of memorialJournalEntries(entries)) {
     if (entry.date < periodFrom || entry.date > periodTo) continue;
     for (const line of entry.lines) {
       const code = normalizeAccountCode(line.accountCode);
@@ -113,14 +140,10 @@ function sumJournalByAccount(
 }
 
 function openingForAccount(
-  settings: BudgetAccountingSettings,
+  openingMap: Map<string, { debit: number; credit: number }>,
   accountCode: string
 ): { debit: number; credit: number } {
-  const entry = settings.openingBalances?.[accountCode];
-  return {
-    debit: normalizeSide(entry?.debit),
-    credit: normalizeSide(entry?.credit),
-  };
+  return openingMap.get(accountCode) ?? { debit: 0, credit: 0 };
 }
 
 function accountRowHasActivity(row: TurnoverStatementRow): boolean {
@@ -163,10 +186,10 @@ function filterRowsWithActivity(rows: TurnoverStatementRow[]): TurnoverStatement
 function buildAccountRow(
   label: string,
   accountCode: string,
-  settings: BudgetAccountingSettings,
+  openingMap: Map<string, { debit: number; credit: number }>,
   turnoverMap: Map<string, { debit: number; credit: number }>
 ): TurnoverStatementRow {
-  const opening = openingForAccount(settings, accountCode);
+  const opening = openingForAccount(openingMap, accountCode);
   const turnover = turnoverMap.get(accountCode) ?? { debit: 0, credit: 0 };
   const closing = splitBalance(
     opening.debit + turnover.debit,
@@ -195,6 +218,7 @@ export function buildTurnoverStatement(
   period?: { from: string; to: string }
 ): TurnoverStatementDocument {
   const { from: periodFrom, to: periodTo } = period ?? resolveTurnoverPeriod(settings);
+  const openingMap = buildOpeningBalanceMap(settings);
   const turnoverMap = sumJournalByAccount(
     financeContent.budgetAccountingJournal,
     periodFrom,
@@ -222,13 +246,12 @@ export function buildTurnoverStatement(
     const accountCode = normalizeAccountCode(templateRow.accountCode ?? '');
     if (!accountCode) continue;
     templateCodes.add(accountCode);
-    rows.push(buildAccountRow(templateRow.label, accountCode, settings, turnoverMap));
+    rows.push(buildAccountRow(templateRow.label, accountCode, openingMap, turnoverMap));
   }
 
   const extraCodes = new Set<string>();
-  for (const code of Object.keys(settings.openingBalances ?? {})) {
-    const normalized = normalizeAccountCode(code);
-    if (normalized && !templateCodes.has(normalized)) extraCodes.add(normalized);
+  for (const code of openingMap.keys()) {
+    if (!templateCodes.has(code)) extraCodes.add(code);
   }
   for (const code of turnoverMap.keys()) {
     if (!templateCodes.has(code)) extraCodes.add(code);
@@ -246,7 +269,7 @@ export function buildTurnoverStatement(
       closingCredit: 0,
     });
     for (const accountCode of [...extraCodes].sort()) {
-      rows.push(buildAccountRow(accountCode, accountCode, settings, turnoverMap));
+      rows.push(buildAccountRow(accountCode, accountCode, openingMap, turnoverMap));
     }
   }
 
