@@ -16,6 +16,7 @@ export const FINANCE_SECTION_IDS = [
   'finance-parent-food-payment',
   'finance-nyah-opening-balances',
   'finance-nyah-memorial-orders',
+  'finance-turnover-statement',
   'finance-contacts',
 ] as const;
 

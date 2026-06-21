@@ -369,6 +369,11 @@ const FINANCE_SUB_SECTIONS: Record<string, SectionEntry> = {
     hint: 'Варақаи корношоямӣ.',
     greeting: 'Мебинам, шумо дар **варақаи корношоямӣ** ҳастед.',
   },
+  'finance-turnover-statement': {
+    title: 'Ведомости гардиши-салдо',
+    hint: 'Варақаи гардиши-салдо — бақия, гардиш ва салдои охир.',
+    greeting: 'Мебинам, шумо дар **ведомости гардиши-салдо** ҳастед.',
+  },
   'finance-contacts': {
     title: 'Тамос (молия)',
     hint: 'Тамосҳои молиявӣ.',

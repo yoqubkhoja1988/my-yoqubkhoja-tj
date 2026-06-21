@@ -549,6 +549,10 @@ export interface BudgetAccountingSettings {
   nextEntryNumber?: number;
   /** Бақияи ҳисобҳо аз аввали соли молиявӣ (код → дебет/кредит) */
   openingBalances?: Record<string, BudgetAccountingOpeningBalance>;
+  /** Аввали давраи ведомости гардиш (YYYY-MM-DD) */
+  turnoverPeriodFrom?: string;
+  /** Охири давраи ведомости гардиш (YYYY-MM-DD) */
+  turnoverPeriodTo?: string;
 }
 
 export interface BudgetAccountingJournalLine {

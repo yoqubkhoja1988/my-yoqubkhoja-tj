@@ -38,6 +38,7 @@ import FinanceParentMembershipFeePanel from './FinanceParentMembershipFeePanel';
 import FinanceParentFoodPaymentPanel from './FinanceParentFoodPaymentPanel';
 import FinanceNyahOpeningBalancePanel from './FinanceNyahOpeningBalancePanel';
 import FinanceNyahMemorialOrdersPanel from './FinanceNyahMemorialOrdersPanel';
+import FinanceTurnoverStatementPanel from './FinanceTurnoverStatementPanel';
 import { supportsBudgetAccounting } from '@/lib/budget-accounting-settings';
 import FinanceAllowanceAdjustmentPanel from './FinanceAllowanceAdjustmentPanel';
 import FinancePositionHandoverPanel from './FinancePositionHandoverPanel';
@@ -1032,6 +1033,18 @@ export default function EditableSectionContent({
           organizationId={organizationId}
           organization={organization}
           financeContent={displayData}
+          onUpdate={setData}
+        />
+      )}
+
+      {section === 'finance' &&
+        activeFinanceSection === 'finance-turnover-statement' &&
+        supportsBudgetAccounting(organizationId) && (
+        <FinanceTurnoverStatementPanel
+          organizationId={organizationId}
+          organization={organization}
+          financeContent={displayData}
+          staffContent={liveStaffContent}
           onUpdate={setData}
         />
       )}

@@ -25,6 +25,7 @@ const links: { id: FinanceSectionId; labelKey: string }[] = [
   { id: 'finance-parent-food-payment', labelKey: 'financeNavParentFoodPayment' },
   { id: 'finance-nyah-opening-balances', labelKey: 'financeNavNyahOpeningBalances' },
   { id: 'finance-nyah-memorial-orders', labelKey: 'financeNavNyahMemorialOrders' },
+  { id: 'finance-turnover-statement', labelKey: 'financeNavTurnoverStatement' },
   { id: 'finance-contacts', labelKey: 'financeNavContacts' },
 ];
 
@@ -63,6 +64,12 @@ export default function FinanceSectionNav({ activeId, onSelect, organizationId }
     }
     if (
       link.id === 'finance-nyah-memorial-orders' &&
+      !supportsBudgetAccounting(organizationId)
+    ) {
+      return false;
+    }
+    if (
+      link.id === 'finance-turnover-statement' &&
       !supportsBudgetAccounting(organizationId)
     ) {
       return false;
