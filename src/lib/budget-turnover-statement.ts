@@ -123,6 +123,42 @@ function openingForAccount(
   };
 }
 
+function accountRowHasActivity(row: TurnoverStatementRow): boolean {
+  return (
+    row.openingDebit > 0 ||
+    row.openingCredit > 0 ||
+    row.debitTurnover > 0 ||
+    row.creditTurnover > 0
+  );
+}
+
+function filterRowsWithActivity(rows: TurnoverStatementRow[]): TurnoverStatementRow[] {
+  const filtered: TurnoverStatementRow[] = [];
+  let pendingHeader: TurnoverStatementRow | null = null;
+  let sectionHasActive = false;
+
+  const flushHeader = () => {
+    if (pendingHeader && sectionHasActive) {
+      filtered.push(pendingHeader);
+    }
+    pendingHeader = null;
+    sectionHasActive = false;
+  };
+
+  for (const row of rows) {
+    if (row.kind === 'header') {
+      flushHeader();
+      pendingHeader = row;
+      continue;
+    }
+    if (!accountRowHasActivity(row)) continue;
+    sectionHasActive = true;
+    filtered.push(row);
+  }
+
+  flushHeader();
+  return filtered;
+}
 
 function buildAccountRow(
   label: string,
@@ -214,7 +250,8 @@ export function buildTurnoverStatement(
     }
   }
 
-  const dataRows = rows.filter((row) => row.kind === 'account');
+  const visibleRows = filterRowsWithActivity(rows);
+  const dataRows = visibleRows.filter((row) => row.kind === 'account');
   const totals = {
     openingDebit: roundMoney(dataRows.reduce((sum, row) => sum + row.openingDebit, 0)),
     openingCredit: roundMoney(dataRows.reduce((sum, row) => sum + row.openingCredit, 0)),
@@ -227,7 +264,7 @@ export function buildTurnoverStatement(
   return {
     periodFrom,
     periodTo,
-    rows,
+    rows: visibleRows,
     totals,
   };
 }

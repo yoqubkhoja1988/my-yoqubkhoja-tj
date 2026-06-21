@@ -226,6 +226,13 @@ export default function FinanceTurnoverStatementPanel({
             </tr>
           </thead>
           <tbody>
+            {documentData.rows.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="border border-slate-300 px-2 py-4 text-center text-slate-500">
+                  {t('nyahNoTurnover')}
+                </td>
+              </tr>
+            ) : null}
             {documentData.rows.map((row, index) =>
               row.kind === 'header' ? (
                 <tr key={`header-${row.label}-${index}`} className="bg-sky-50 font-bold">
