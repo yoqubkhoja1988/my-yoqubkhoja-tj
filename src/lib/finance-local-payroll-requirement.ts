@@ -254,6 +254,64 @@ function departmentBelongsToKindergartenGroup(
   );
 }
 
+function isAssistantEducatorPosition(position: string): boolean {
+  const key = normalizeDepartmentKey(position);
+  return key.includes('ЁВАРИ') && key.includes('МУРАББ');
+}
+
+function isPedagogicalPosition(position: string): boolean {
+  const key = normalizeDepartmentKey(position);
+  if (!key) return false;
+  if (isAssistantEducatorPosition(position)) return true;
+  return (
+    key.includes('МУРАББ') ||
+    key.includes('ОМУЗГОР') ||
+    key.includes('ТАРБИЯГАР') ||
+    key.includes('ЗАБОНИ') ||
+    key.includes('РОҲБАРИ МУСИК') ||
+    key.includes('ТАРБИЯИ ҶИСМОН')
+  );
+}
+
+function isMedicalStaffPosition(position: string): boolean {
+  const key = normalizeDepartmentKey(position);
+  return key.includes('ҲАМШИР') || key.includes('ТИББ') || key.includes('ДИЕТОЛОГ');
+}
+
+function kindergartenPositionGroupOverride(
+  position: string,
+  groupId: LocalPayrollRequirementGroupId
+): boolean | null {
+  const key = normalizeDepartmentKey(position);
+  if (!key) return null;
+
+  if (groupId === 'admin_teachers') {
+    if (isPedagogicalPosition(position) || isMedicalStaffPosition(position)) return true;
+    return null;
+  }
+
+  if (groupId === 'technical') {
+    if (isPedagogicalPosition(position) || isMedicalStaffPosition(position)) return false;
+    return null;
+  }
+
+  return null;
+}
+
+export function staffRowBelongsToGroup(
+  department: string,
+  position: string,
+  groupId: LocalPayrollRequirementGroupId,
+  organizationId?: string
+): boolean {
+  if (isKindergartenOrganization(organizationId)) {
+    const override = kindergartenPositionGroupOverride(position, groupId);
+    if (override !== null) return override;
+  }
+
+  return departmentBelongsToGroup(department, groupId, organizationId);
+}
+
 export function departmentBelongsToGroup(
   department: string,
   groupId: LocalPayrollRequirementGroupId,
@@ -410,10 +468,28 @@ function addMetrics(
   target.bankFeeAmount += source.bankFeeAmount;
 }
 
-function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
+function buildGrandTotalFromSubtotals(
+  groups: LocalPayrollRequirementGroup[]
+): LocalPayrollRequirementGroupMetrics {
+  const grandTotal = emptyMetrics();
+  for (const group of groups) {
+    addMetrics(grandTotal, group.subtotal);
+  }
+  roundMetricFields(grandTotal);
+  // Сатри «ХАМАГИ»: ҳар сутун = ҷамъи сатрҳои «ЧАМЪ» (на аз нав формула).
+  grandTotal.fhea25 = roundMoney(
+    groups.reduce((sum, group) => sum + group.subtotal.fhea25, 0)
+  );
+  return grandTotal;
+}
+
+function roundMetricFields(metrics: LocalPayrollRequirementGroupMetrics) {
+  metrics.approvedUnits = roundMoney(metrics.approvedUnits);
   metrics.approvedFund = roundMoney(metrics.approvedFund);
   metrics.decree469 = roundMoney(metrics.decree469);
+  metrics.vacantUnits = roundMoney(metrics.vacantUnits);
   metrics.vacantAmount = roundMoney(metrics.vacantAmount);
+  metrics.actualUnits = roundMoney(metrics.actualUnits);
   metrics.actualAmount = roundMoney(metrics.actualAmount);
   metrics.payrollFund = roundMoney(metrics.payrollFund);
   metrics.incomeTax = roundMoney(metrics.incomeTax);
@@ -423,6 +499,12 @@ function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
   metrics.otherDeductions = roundMoney(metrics.otherDeductions);
   metrics.totalDeductions = roundMoney(metrics.totalDeductions);
   metrics.netPay = roundMoney(metrics.netPay);
+  metrics.fhea25 = roundMoney(metrics.fhea25);
+  metrics.bankFeeAmount = roundMoney(metrics.bankFeeAmount);
+}
+
+function finalizeGroupMetrics(metrics: LocalPayrollRequirementGroupMetrics) {
+  roundMetricFields(metrics);
   metrics.fhea25 = calcEmployerFhea25(metrics.payrollFund || metrics.actualAmount);
   metrics.bankFeeAmount = roundMoney(metrics.netPay * BANK_FEE_RATE);
 }
@@ -439,7 +521,7 @@ function buildStaffMetrics(
   metrics.decree469 = decree469;
 
   for (const slot of analytics.slots) {
-    if (!departmentBelongsToGroup(slot.department, groupId, organizationId)) continue;
+    if (!staffRowBelongsToGroup(slot.department, slot.position, groupId, organizationId)) continue;
     metrics.approvedUnits += slot.quota;
     metrics.actualUnits += slot.filled;
     metrics.vacantUnits += slot.vacant;
@@ -493,7 +575,16 @@ function buildLedgerMetrics(
     if (!employee) continue;
 
     const department = resolveEmployeeDepartment(employee, staffContent);
-    if (!departmentBelongsToGroup(department, groupId, organizationId)) continue;
+    if (
+      !staffRowBelongsToGroup(
+        department,
+        employee.position ?? '',
+        groupId,
+        organizationId
+      )
+    ) {
+      continue;
+    }
 
     const totals = calcEntryTotals(entry, resolvePayrollWithholdings(financeContent));
     if (totals.rawGross > 0) {
@@ -565,6 +656,7 @@ function buildGroup(
   const subtotal: LocalPayrollRequirementGroupMetrics = {
     ...employees,
     actualAmount: roundMoney(employees.actualAmount + employees.bankFeeAmount),
+    bankFeeAmount: employees.bankFeeAmount,
     fhea25: roundMoney(employees.fhea25 + bankFee.fhea25),
   };
 
@@ -620,6 +712,23 @@ export function readBudgetArticle2121Amount(
   return calcSocialInsuranceArticle2121Amount(financeContent, staffContent, month);
 }
 
+function summarizePayment2111Expense(
+  row: Pick<
+    LocalPayrollRequirementPaymentRow,
+    'salaryPay' | 'incomeTax' | 'fhea1' | 'unionFee' | 'hhdt' | 'otherDeductions' | 'bankFee'
+  >
+): number {
+  return roundMoney(
+    row.salaryPay +
+      row.incomeTax +
+      row.fhea1 +
+      row.unionFee +
+      row.hhdt +
+      row.otherDeductions +
+      row.bankFee
+  );
+}
+
 export function buildLocalPayrollRequirementDocument(
   financeContent: OrganizationSectionContent,
   staffContent: OrganizationSectionContent,
@@ -643,11 +752,7 @@ export function buildLocalPayrollRequirementDocument(
     )
   );
 
-  const grandTotal = emptyMetrics();
-  for (const group of groups) {
-    addMetrics(grandTotal, group.subtotal);
-  }
-  finalizeGroupMetrics(grandTotal);
+  const grandTotal = buildGrandTotalFromSubtotals(groups);
 
   const budgetArticle2121Amount = readBudgetArticle2121Amount(
     financeContent,
@@ -655,7 +760,7 @@ export function buildLocalPayrollRequirementDocument(
     staffContent
   );
 
-  const payment2111: LocalPayrollRequirementPaymentRow = {
+  const payment2111Base = {
     article: '2111',
     salaryPay: grandTotal.netPay,
     incomeTax: grandTotal.incomeTax,
@@ -667,7 +772,10 @@ export function buildLocalPayrollRequirementDocument(
     bankFee: roundMoney(groups.reduce((sum, group) => sum + group.employees.bankFeeAmount, 0)),
     sanatorium15: 0,
     fhea25Payment: 0,
-    totalExpense: roundMoney(grandTotal.actualAmount),
+  };
+  const payment2111: LocalPayrollRequirementPaymentRow = {
+    ...payment2111Base,
+    totalExpense: summarizePayment2111Expense(payment2111Base),
   };
 
   const fhea25Total = grandTotal.fhea25;
