@@ -15,7 +15,7 @@ import {
   isKindergartenOrganization,
 } from '@/lib/organization-scope';
 import { analyzeStaffing } from '@/lib/staff-analytics';
-import { detectStaffColumns, parseAmount } from '@/lib/staff-table-calc';
+import { detectStaffColumns, isTotalRow, parseAmount, parseStaffCount } from '@/lib/staff-table-calc';
 import { Organization } from '@/types/organization';
 import { OrganizationSectionContent, StaffEmployee } from '@/types/organization-section';
 
@@ -370,6 +370,96 @@ function readFinancePayrollSourceFunds(
   return funds;
 }
 
+function readFoodSafetyGrandMonthlyFund(
+  staffContent: OrganizationSectionContent,
+  groupId: LocalPayrollRequirementGroupId
+): number {
+  for (const table of staffContent.tables ?? []) {
+    const title = normalizeDepartmentKey(table.title);
+    if (!title.includes('ҲАМАГӢ')) continue;
+
+    const matchesGroup =
+      (groupId === 'leadership_specialists' && title.includes('РОҲБАРИКУНАНДА')) ||
+      (groupId === 'service_staff' && title.includes('ХИЗМАТРАСОН'));
+    if (!matchesGroup) continue;
+
+    const lower = table.columns.map((column) => column.toLowerCase());
+    const monthlyIndex = lower.findIndex(
+      (column) => column.includes('музди') && column.includes('моҳона')
+    );
+    if (monthlyIndex < 0 || table.rows.length === 0) continue;
+
+    const monthlyFund = parseAmount(table.rows[0][monthlyIndex] ?? '');
+    if (monthlyFund !== null && monthlyFund > 0) {
+      return roundMoney(monthlyFund);
+    }
+  }
+
+  return 0;
+}
+
+function resolveSlotMonthlyWage(
+  staffContent: OrganizationSectionContent,
+  department: string,
+  position: string,
+  monthlyWageText?: string
+): number {
+  const fromSlot = parseAmount(monthlyWageText ?? '');
+  if (fromSlot !== null && fromSlot > 0) return fromSlot;
+
+  for (const table of staffContent.tables ?? []) {
+    if (table.title !== department) continue;
+
+    const columns = detectStaffColumns(table.columns);
+    if (!columns) continue;
+
+    for (const row of table.rows) {
+      if (isTotalRow(row, columns.position)) continue;
+      if (row[columns.position]?.trim() !== position) continue;
+
+      const monthly = parseAmount(row[columns.monthlyWage] ?? '');
+      if (monthly !== null && monthly > 0) return monthly;
+
+      const units = parseStaffCount(row[columns.staff]) ?? 0;
+      const base = parseAmount(row[columns.baseSalary]) ?? 0;
+      const night =
+        columns.nightAllowance >= 0
+          ? (parseAmount(row[columns.nightAllowance]) ?? 0)
+          : 0;
+
+      let harmful = 0;
+      if (columns.harmfulAmount >= 0) {
+        harmful = parseAmount(row[columns.harmfulAmount]) ?? 0;
+        if (harmful <= 0 && columns.harmfulPercent >= 0) {
+          const percent = parseAmount(row[columns.harmfulPercent]);
+          if (percent !== null && percent > 0) {
+            harmful = base * (percent / 100);
+          }
+        }
+      }
+
+      const wagePerUnit = base + harmful + night;
+      return roundMoney(wagePerUnit * (units > 0 ? units : 1));
+    }
+  }
+
+  return 0;
+}
+
+function applyFoodSafetyApprovedFundFromGrandTable(
+  metrics: LocalPayrollRequirementGroupMetrics,
+  groupId: LocalPayrollRequirementGroupId,
+  staffContent: OrganizationSectionContent,
+  organizationId?: string
+) {
+  if (!isFoodSafetyCenterOrganization(organizationId)) return;
+
+  const grandFund = readFoodSafetyGrandMonthlyFund(staffContent, groupId);
+  if (grandFund > 0) {
+    metrics.approvedFund = grandFund;
+  }
+}
+
 function supplementStaffMetricsFromStaffGrandTables(
   metrics: LocalPayrollRequirementGroupMetrics,
   groupId: LocalPayrollRequirementGroupId,
@@ -379,25 +469,9 @@ function supplementStaffMetricsFromStaffGrandTables(
   if (metrics.approvedFund > 0) return;
   if (!isFoodSafetyCenterOrganization(organizationId)) return;
 
-  for (const table of staffContent.tables ?? []) {
-    const title = normalizeDepartmentKey(table.title);
-    if (!title.includes('ҲАМАГӢ')) continue;
-
-    const lower = table.columns.map((column) => column.toLowerCase());
-    const monthlyIndex = lower.findIndex(
-      (column) => column.includes('музди') && column.includes('моҳона')
-    );
-    if (monthlyIndex < 0 || table.rows.length === 0) continue;
-
-    const monthlyFund = parseAmount(table.rows[0][monthlyIndex] ?? '');
-    if (monthlyFund === null || monthlyFund <= 0) continue;
-
-    if (groupId === 'leadership_specialists' && title.includes('РОҲБАРИКУНАНДА')) {
-      metrics.approvedFund = roundMoney(monthlyFund);
-    }
-    if (groupId === 'service_staff' && title.includes('ХИЗМАТРАСОН')) {
-      metrics.approvedFund = roundMoney(monthlyFund);
-    }
+  const grandFund = readFoodSafetyGrandMonthlyFund(staffContent, groupId);
+  if (grandFund > 0) {
+    metrics.approvedFund = grandFund;
   }
 }
 
@@ -526,9 +600,13 @@ function buildStaffMetrics(
     metrics.actualUnits += slot.filled;
     metrics.vacantUnits += slot.vacant;
 
-    const monthlyWage = parseAmount(slot.monthlyWage ?? '') ?? 0;
-    const unitWage =
-      slot.quota > 0 ? monthlyWage / slot.quota : parseAmount(slot.baseSalary ?? '') ?? 0;
+    const monthlyWage = resolveSlotMonthlyWage(
+      staffContent,
+      slot.department,
+      slot.position,
+      slot.monthlyWage
+    );
+    const unitWage = slot.quota > 0 ? monthlyWage / slot.quota : monthlyWage;
 
     metrics.approvedFund += monthlyWage;
     metrics.vacantAmount += unitWage * slot.vacant;
@@ -542,6 +620,13 @@ function buildStaffMetrics(
   );
 
   supplementStaffMetricsFromFinance(metrics, groupId, financeContent, organizationId);
+
+  applyFoodSafetyApprovedFundFromGrandTable(
+    metrics,
+    groupId,
+    staffContent,
+    organizationId
+  );
 
   metrics.approvedUnits = roundMoney(metrics.approvedUnits);
   metrics.actualUnits = roundMoney(metrics.actualUnits);
